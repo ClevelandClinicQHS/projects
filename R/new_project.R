@@ -2,15 +2,19 @@
 #' @export
 new_project <- function(project_number) {
 
-  projects_path     <- projects_path(check = TRUE)
-  project_list_path <- file.path(projects_path, "project_list.csv")
+  #projects_path     <- projects_path(check = TRUE)
+  check_projects_path(error = TRUE)
+  
+  #project_list_path <- file.path(projects_path, "project_list.csv")
+  project_list_path <- fs::path(projects_path, "project_list", ext = "rds")
 
   if(!fs::file_exists(project_list_path)) {
     stop("project_list.csv file not detected at ", project_list_path, ". ",
          "Restore this file at this location OR run setup_project_folder()")
   }
 
-  project_list <- readr::read_csv(file = project_list_path, col_types = "ic")
+  #project_list <- readr::read_csv(file = project_list_path, col_types = "ic")
+  project_list <- readRDS(project_list_path)
 
   if(missing(project_number)) {
     
@@ -63,11 +67,12 @@ new_project <- function(project_number) {
   project_list <-
     dplyr::arrange(
       dplyr::bind_rows(project_list,
-                       data.frame(number = project_number, path   = pXXXX_path,
-                                  stringsAsFactors = FALSE)),
+                       tibble::tibble(number = project_number,
+                                      path = pXXXX_path)),
       .data$number)
 
-  readr::write_csv(project_list, path = project_list_path)
+  #readr::write_csv(project_list, path = project_list_path)
+  saveRDS(project_list, file = project_list_path)
 
   message("Project ", pXXXX, " has been created at ", pXXXX_path)
 }

@@ -22,9 +22,14 @@ archive_delete <- function(numbers, archive) {
     stop("numbers must be a vector of unique integers between 1 and 9999")
   }
   
-  projects_path     <- projects_path(check = TRUE)
-  project_list_path <- fs::path(projects_path, "project_list.csv")
-  project_list      <- readr::read_csv(project_list_path, col_types = "ic")
+  #projects_path     <- projects_path(check = TRUE)
+  check_projects_path(error = TRUE)
+  
+  #project_list_path <- fs::path(projects_path, "project_list", ext = "csv")
+  project_list_path <- fs::path(projects_path, "project_list", ext = "csv")
+  
+  #project_list      <- readr::read_csv(project_list_path, col_types = "ic")
+  project_list      <- readRDS(project_list_path)
 
   if(!all(numbers %in% project_list$number)) {
     stop("At least one project number not present in project_list.csv at ",

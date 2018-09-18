@@ -3,16 +3,14 @@ make_project_name <- function(project_number) {
          stringr::str_pad(project_number, width = 4, side = "left", pad = "0"))
 }
 
-
-#' @export
-projects_path <- function(check = TRUE) {
-
-  projects_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
-
-  if(check && projects_path == "") {
-    stop('"projects" folder not found. Please run setup_projects_folder()')
+check_projects_path <- function(error = FALSE) {
+  if(projects_path == "") {
+    check_message <-
+      '"projects" folder not found. Please run setup_projects_folder()'
+    if(error) {
+      stop(check_message)
+    }
+    return(check_message)
   }
-  else {
-    return(projects_path)
-  }
+  return(paste0('"projects" folder located at ', projects_path))
 }
