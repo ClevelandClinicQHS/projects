@@ -1,4 +1,5 @@
 #' @importFrom rlang .data
+#' @export
 new_project <- function(project_number) {
 
   projects_path     <- projects_path(check = TRUE)

@@ -1,3 +1,4 @@
+#' @export
 setup_projects_folder <- function(path, overwrite = FALSE) {
 
   path <- fs::path_tidy(path)

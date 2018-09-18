@@ -1,10 +1,11 @@
+#' @export
 archive_project <- function(numbers_to_archive) {
   message(paste0(archive_delete(numbers_to_archive, archive = TRUE),
                  " archived. "))
 }
 
 
-
+#' @export
 delete_project <- function(numbers_to_delete) {
   message(paste0(archive_delete(numbers_to_delete, archive = FALSE),
                  " deleted. "))

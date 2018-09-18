@@ -4,7 +4,7 @@ make_project_name <- function(project_number) {
 }
 
 
-
+#' @export
 projects_path <- function(check = TRUE) {
 
   projects_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
