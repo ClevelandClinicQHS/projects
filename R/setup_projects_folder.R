@@ -41,8 +41,6 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
   
   readRenviron(home_Renviron_path)
 
-  p <- projects(path, rds_paths_only = TRUE)
-  
   fs::dir_create(fs::path(path, c("archive", "templates")))
   
   fs::file_copy(
@@ -50,31 +48,36 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
                             package = "projects"),
     new_path  = fs::path(path, "templates", "pXXXX_protocol", ext = "docx"),
     overwrite = TRUE)
-
-  if(isFALSE(fs::file_exists(p$list_path))) {
-    tibble::tibble(number        = integer(),   title    = character(),
-                   current_owner = character(), PI       = list(),
-                   investigators = list(),      creator  = character(),
-                   stage         = character(), path     = character(),
-                   deadline_type = character(), deadline = as.Date(character()),
-                   status        = character()) %>% 
-      saveRDS(file = p$list_path)
-  }
   
-  if(isFALSE(fs::file_exists(p$authors_path))) {
-    tibble::tibble(last_name = character(), given_names  = character(),
-                   title     = character(), affiliations = list(),
-                   degree    = character(), email        = character()) %>% 
-      saveRDS(file = p$authors_path)
-  }
-  
-  if(isFALSE(fs::file_exists(p$affiliations_path))) {
-    tibble::tibble(id               = integer(),
-                   department_name  = character(),
-                   institution_name = character(),
-                   address          = character()) %>% 
-      saveRDS(file = p$affiliations_path)
-  }
+  purrr::walk2(
+    .x = projects(path, rds_paths_only = TRUE),
+    .y = 
+      list(
+        # project_list
+        tibble::tibble(number        = integer(),   title    = character(),
+                       current_owner = character(), PI       = list(),
+                       investigators = list(),      creator  = character(),
+                       stage         = character(), path     = character(),
+                       deadline_type = character(),
+                       deadline      = as.Date(character()),
+                       status        = character()),
+        # authors_list
+        tibble::tibble(last_name     = character(), given_names  = character(),
+                       title         = character(), affiliations = list(),
+                       degree        = character(), email        = character()),
+        # affiliations_list
+        tibble::tibble(id               = integer(),
+                       department_name  = character(),
+                       institution_name = character(),
+                       address          = character())
+      ),
+    .f = create_new_rds_files)
   
   message('"projects" folder created at ', path)
+}
+
+create_new_rds_files <- function(path, empty_tibble) {
+  if(isFALSE(fs::file_exists(path))) {
+    saveRDS(empty_tibble, file = path)
+  }
 }
