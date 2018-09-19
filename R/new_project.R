@@ -1,35 +1,29 @@
 #' @importFrom rlang .data
 #' @export
-new_project <- function(project_number) {
+new_project <- function(number,                        title    = NA_character_,
+                        current_owner = NA_character_, PI       = NA_character_,
+                        investigators = NA_character_, creator  = NA_character_,
+                        stage         = NA_character_, path     = NA_character_,
+                        deadline_type = NA_character_, deadline = as.Date(NA),
+                        status        = "just created",
+                        checklist     = c("STROBE", "CONSORT", "PRIMA")){
 
-  #projects_path     <- projects_path(check = TRUE)
-  check_projects_path(error = TRUE)
+  p <- projects()
   
-  #project_list_path <- file.path(projects_path, "project_list.csv")
-  project_list_path <- fs::path(projects_path, "project_list", ext = "rds")
-
-  if(!fs::file_exists(project_list_path)) {
-    stop("project_list.csv file not detected at ", project_list_path, ". ",
-         "Restore this file at this location OR run setup_project_folder()")
-  }
-
-  #project_list <- readr::read_csv(file = project_list_path, col_types = "ic")
-  project_list <- readRDS(project_list_path)
-
-  if(missing(project_number)) {
+  if(missing(number)) {
     
-    # If there are no projects, project_number will be 1.
-    # Otherwise, project_number will be 1 + the highest existing project number.
-    # HOWEVER: if project number 9999 is taken, project_number will be the
+    # If there are no projects, number will be 1.
+    # Otherwise, number will be 1 + the highest existing project number.
+    # HOWEVER: if project number 9999 is taken, number will be the
     # lowest available number in 1:9999.
-    if(nrow(project_list) == 0) {
-      project_number <- 1L
+    if(nrow(p$list) == 0) {
+      number <- 1L
     }
-    else if(max(project_list$number) < 9999L) {
-      project_number <- max(project_list$number) + 1L
+    else if(max(p$list$number) < 9999L) {
+      number <- max(p$list$number) + 1L
     }
-    else if(!all(1L:9999L %in% project_list$number)){
-      project_number <- min(setdiff(1L:9999L, project_list$number))
+    else if(!all(1L:9999L %in% p$list$number)){
+      number <- min(setdiff(1L:9999L, p$list$number))
     }
     else {
       stop("projects folder is full. Delete or archive one or more of them.")
@@ -37,42 +31,44 @@ new_project <- function(project_number) {
   }
   else {
     
-    if(isFALSE(checkmate::test_integerish(project_number, lower = 1L, upper = 9999L,
-                                 any.missing = FALSE, len = 1L))) {
-      stop("project_number must be an integer")
+    if(isFALSE(checkmate::test_integerish(number, lower = 1L,
+                                          upper = 9999L, any.missing = FALSE,
+                                          len = 1L))) {
+      stop("number must be an integer")
     }
     
-    project_number <- as.integer(project_number)
+    number <- as.integer(number)
     
-    if(project_number %in% project_list$number) {
-      stop('project_number already taken. Try a different one or leave the ',
+    if(number %in% p$list$number) {
+      stop('number already taken. Try a different one or leave the ',
            'argument blank for automatic selection.')
     }
   }
 
-  pXXXX      <- make_project_name(project_number)
-
-  pXXXX_path <- unclass(fs::path(projects_path, pXXXX))
-
-  fs::dir_create(file.path(pXXXX_path, c("data", "progs", "reports",
-                                         "manuscript", "figures")))
+  pXXXX <- make_project(number, p$folder_path)
+  
+  fs::dir_create(fs::path(pXXXX$path, c("data", "progs", "manuscript",
+                                        "figures")))
   
   fs::file_copy(path     = system.file("extdata", "pXXXX_protocol.docx",
                                        package = "projects"),
-                new_path = fs::path(pXXXX_path,
-                                    paste0(pXXXX, "_protocol"), ext = "docx"))
+                new_path = fs::path(pXXXX$path, paste0(pXXXX$name, "_protocol"),
+                                    ext = "docx"))
 
-  readr::write_lines(Rproj_template, fs::path(pXXXX_path, pXXXX, ext = "Rproj"))
+  readr::write_lines(Rproj_template, # Rproj_template is in sysdata.Rda
+                     fs::path(pXXXX$path, pXXXX$name, ext = "Rproj"))
 
-  project_list <-
-    dplyr::arrange(
-      dplyr::bind_rows(project_list,
-                       tibble::tibble(number = project_number,
-                                      path = pXXXX_path)),
-      .data$number)
+  #p$list <-
+  dplyr::bind_rows(
+    p$list,
+    tibble::tibble(number        = number,              title    = title,
+                   current_owner = current_owner,       PI       = list(PI),
+                   investigators = list(investigators), creator  = creator,
+                   stage         = stage,               path     = pXXXX$path,
+                   deadline_type = deadline_type,       deadline = deadline,
+                   status        = status)) %>%
+    dplyr::arrange(.data$number) %>% 
+    saveRDS(file = p$list_path)
 
-  #readr::write_csv(project_list, path = project_list_path)
-  saveRDS(project_list, file = project_list_path)
-
-  message("Project ", pXXXX, " has been created at ", pXXXX_path)
+  message("Project ", pXXXX$name, " has been created at ", pXXXX$path)
 }

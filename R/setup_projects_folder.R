@@ -1,13 +1,13 @@
 #' @export
 setup_projects_folder <- function(path, overwrite = FALSE) {
 
-  path <- fs::path_tidy(path)
+  path <- path %>% fs::path_tidy()
   
   if(tolower(fs::path_file(path)) != "projects") {
     path <- fs::path(path, "projects")
   }
   
-  #old_path           <- projects_path(check = FALSE)
+  old_path           <- projects_path()
   home_Renviron_path <- fs::path(Sys.getenv("HOME"), ".Renviron")
   
   # If overwite == TRUE, function will run no matter what, overwriting any
@@ -16,10 +16,10 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
   # If overwrite == FALSE, function will still run UNLESS a
   # PROJECTS_FOLDER_PATH value already exists and does not match up with the
   # user-specified path.
-  if(!overwrite && projects_path != path && projects_path != "") {
+  if(!overwrite && old_path != path && old_path != "") {
     stop('An .Renviron file (probably at ', home_Renviron_path,
          ') indicates that a "projects" folder already exists at ',
-         projects_path, '. Rerun with that path OR set overwrite = TRUE')
+         old_path, '. Rerun with that path OR set overwrite = TRUE')
   }
   
   home_Renviron_file <- paste0("PROJECTS_FOLDER_PATH='", path, "'")
@@ -38,7 +38,11 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
         old_home_Renviron[!grepl("PROJECTS_FOLDER_PATH", old_home_Renviron)])
   }
   readr::write_lines(home_Renviron_file, path = home_Renviron_path)
+  
+  readRenviron(home_Renviron_path)
 
+  p <- projects(path, rds_paths_only = TRUE)
+  
   fs::dir_create(fs::path(path, c("archive", "templates")))
   
   fs::file_copy(
@@ -47,21 +51,30 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
     new_path  = fs::path(path, "templates", "pXXXX_protocol", ext = "docx"),
     overwrite = TRUE)
 
-  project_list_path <- fs::path(path, "project_list", ext = "rds")
-  
-  if(!fs::file_exists(project_list_path)) {
-    project_list <- tibble::tibble(number = integer(0), path = character(0))
-    saveRDS(project_list, project_list_path)
+  if(isFALSE(fs::file_exists(p$list_path))) {
+    tibble::tibble(number        = integer(),   title    = character(),
+                   current_owner = character(), PI       = list(),
+                   investigators = list(),      creator  = character(),
+                   stage         = character(), path     = character(),
+                   deadline_type = character(), deadline = as.Date(character()),
+                   status        = character()) %>% 
+      saveRDS(file = p$list_path)
   }
   
-  # project_list_path <- fs::path(path, "project_list", ext = "csv")
-  # readr::write_csv(data.frame(number = integer(0), path = character(0)),
-  #                  path   = project_list_path,
-  #                  append = fs::file_exists(project_list_path))
-
-  readRenviron(home_Renviron_path)
-  #requireNamespace("projects", quietly = TRUE)
-  assign("projects_path", path, asNamespace("projects"))
+  if(isFALSE(fs::file_exists(p$authors_path))) {
+    tibble::tibble(last_name = character(), given_names  = character(),
+                   title     = character(), affiliations = list(),
+                   degree    = character(), email        = character()) %>% 
+      saveRDS(file = p$authors_path)
+  }
+  
+  if(isFALSE(fs::file_exists(p$affiliations_path))) {
+    tibble::tibble(id               = integer(),
+                   department_name  = character(),
+                   institution_name = character(),
+                   address          = character()) %>% 
+      saveRDS(file = p$affiliations_path)
+  }
   
   message('"projects" folder created at ', path)
 }
