@@ -46,9 +46,3 @@ archive_delete <- function(numbers, archive) {
   
   return(paste0("Project ", numbers))
 }
-
-fs::path_file("dir/file.zip")
-fs::path_dir("dir/file.zip")
-fs::path_ext("dir/file.zip")
-fs::path_ext("file.tar.gz")
-fs::path_ext_remove("file.tar.gz")
