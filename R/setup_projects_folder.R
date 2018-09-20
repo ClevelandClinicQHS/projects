@@ -1,4 +1,6 @@
+#' @importFrom tibble tibble
 #' @export
+#' 
 setup_projects_folder <- function(path, overwrite = FALSE) {
 
   path <- path %>% fs::path_tidy()
@@ -7,7 +9,7 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
     path <- fs::path(path, "projects")
   }
   
-  old_path           <- projects_path()
+  old_path           <- Sys.getenv("PROJECTS_FOLDER_PATH")
   home_Renviron_path <- fs::path(Sys.getenv("HOME"), ".Renviron")
   
   # If overwite == TRUE, function will run no matter what, overwriting any
@@ -16,7 +18,7 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
   # If overwrite == FALSE, function will still run UNLESS a
   # PROJECTS_FOLDER_PATH value already exists and does not match up with the
   # user-specified path.
-  if(!overwrite && old_path != path && old_path != "") {
+  if(!overwrite && old_path != "" && old_path != path) {
     stop('An .Renviron file (probably at ', home_Renviron_path,
          ') indicates that a "projects" folder already exists at ',
          old_path, '. Rerun with that path OR set overwrite = TRUE')
@@ -50,34 +52,33 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
     overwrite = TRUE)
   
   purrr::walk2(
-    .x = projects(path, rds_paths_only = TRUE),
+    .x = c("projects", "authors", "affiliations"),
     .y = 
       list(
-        # project_list
-        tibble::tibble(number        = integer(),   title    = character(),
-                       current_owner = character(), PI       = list(),
-                       investigators = list(),      creator  = character(),
-                       stage         = character(), path     = character(),
-                       deadline_type = character(),
-                       deadline      = as.Date(character()),
-                       status        = character()),
-        # authors_list
-        tibble::tibble(last_name     = character(), given_names  = character(),
-                       title         = character(), affiliations = list(),
-                       degree        = character(), email        = character()),
-        # affiliations_list
-        tibble::tibble(id               = integer(),
-                       department_name  = character(),
-                       institution_name = character(),
-                       address          = character())
+        # projects
+        tibble(id            = integer(),   title    = character(),
+               current_owner = character(), PI       = list(),
+               investigators = list(),      creator  = character(),
+               stage         = character(), deadline_type = character(),
+               deadline      = as.Date(character()),
+               status        = character()),
+        # authors
+        tibble(id            = integer(),   last_name    = character(),
+               given_names   = character(), title        = character(),
+               affiliations  = list(),      degree       = character(),
+               email         = character()),
+        # affiliations
+        tibble(id               = integer(),   department_name  = character(),
+               institution_name = character(), address          = character())
       ),
-    .f = create_new_rds_files)
+    .f =
+      function(rds_name, empty_tibble) {
+        rds_path <- make_rds_path(rds_name, path)
+        if(isFALSE(fs::file_exists(rds_path))) {
+          saveRDS(object = empty_tibble, file = rds_path)
+        }
+      }
+  )
   
   message('"projects" folder created at ', path)
-}
-
-create_new_rds_files <- function(path, empty_tibble) {
-  if(isFALSE(fs::file_exists(path))) {
-    saveRDS(empty_tibble, file = path)
-  }
 }
