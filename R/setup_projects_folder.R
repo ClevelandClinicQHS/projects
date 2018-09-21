@@ -43,7 +43,7 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
   
   readRenviron(home_Renviron_path)
 
-  fs::dir_create(fs::path(path, c("archive", "templates")))
+  fs::dir_create(fs::path(path, c("metadata", "archive", "templates")))
   
   fs::file_copy(
     path      = system.file("extdata", "pXXXX_protocol.docx",
@@ -52,24 +52,33 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
     overwrite = TRUE)
   
   purrr::walk2(
-    .x = c("projects", "authors", "affiliations"),
+    .x = c("projects", "authors", "affiliations", "project_PI_assoc",
+           "project_investigator_assoc", "author_affiliation_assoc"),
     .y = 
       list(
         # projects
         tibble(id            = integer(),   title    = character(),
-               current_owner = character(), PI       = list(),
-               investigators = list(),      creator  = character(),
+               current_owner = character(), #PI       = list(),
+               #investigators = list(),      
+               creator  = character(),
                stage         = character(), deadline_type = character(),
                deadline      = as.Date(character()),
                status        = character()),
         # authors
         tibble(id            = integer(),   last_name    = character(),
                given_names   = character(), title        = character(),
-               affiliations  = list(),      degree       = character(),
+               #affiliations  = list(),      
+               degree       = character(),
                email         = character()),
         # affiliations
         tibble(id               = integer(),   department_name  = character(),
-               institution_name = character(), address          = character())
+               institution_name = character(), address          = character()),
+        # project-PI association table
+        tibble(project_id = integer(), PI_id = integer()),
+        # project-investigator association table
+        tibble(project_id = integer(), investigator_id = integer()),
+        # author-affiliation association table
+        tibble(author_id = integer(), affiliation_id = integer())
       ),
     .f =
       function(rds_name, empty_tibble) {

@@ -1,9 +1,24 @@
 #' @export
+delete_affiliation <- function(id) {
+  
+  checkmate::assert_integerish(id, lower = 1, upper = 9999, any.missing = FALSE)
+  
+  affiliations_tibble <- "affiliations" %>% make_rds_path() %>% get_rds()
+  
+  if(!all(id %in% affiliations_tibble$id)) {
+    stop("At least one id not present in affiliations table.")
+  }
+  
+  affiliations_tibble <- affiliations_tibble %>% dplyr::filter(.data$id %in% id)
+  
+  saveRDS(affiliations_tibble, file = )
+}
+
+#' @export
 archive_project <- function(id_to_archive) {
   message(paste0(archive_delete(id_to_archive, archive = TRUE),
                  " archived. "))
 }
-
 
 #' @export
 delete_project <- function(id_to_delete) {
@@ -11,8 +26,7 @@ delete_project <- function(id_to_delete) {
                  " deleted. "))
 }
 
-
-
+# Needs to be fixed so it doesn't depend on project_data()
 #' @importFrom rlang .data
 archive_delete <- function(id, archive) {
 

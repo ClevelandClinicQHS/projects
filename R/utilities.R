@@ -1,28 +1,8 @@
 ################################################################################
 ################################################################################
-# RDS helper functions
-
-make_rds_path <- function(rds_name, p_path = p_path_internal()) {
-  fs::path(p_path, rds_name, ext = "rds")
-}
-
-get_rds <- function(rds_path) {
-  
-  if(fs::file_exists(rds_path)) {
-    
-    return(readRDS(rds_path))
-    
-  }
-  else {
-    stop(fs::path_file(rds_path), " file not found at ", rds_path,
-         ". Please restore the file or [re]run setup_projects_folder()")
-  }
-}
-
-################################################################################
-################################################################################
 # Internal helper functions
 
+# To be scrapped. Currently only used by archive_delete()
 project_data <- function() {
   
   p_path <- p_path_internal()
