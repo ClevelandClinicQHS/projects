@@ -6,12 +6,12 @@ edit_affiliation <- function(id,                    department_name  = NA,
   checkmate::assert_int(id)
   
   message("Edited affiliation:")
-  set_rds(rds_name         = "affiliations",
-          edit             = TRUE,
-          id               = id,
-          department_name  = department_name,
-          institution_name = institution_name,
-          address          = address)
+  change_table(rds_name         = "affiliations",
+               action           = "edit",
+               id               = id,
+               department_name  = department_name,
+               institution_name = institution_name,
+               address          = address)
 }
 ################################################################################
 
@@ -28,7 +28,7 @@ edit_author <- function(id,                last_name = NA,
   checkmate::assert_int(id)
   
   p_path         <- p_path_internal()
-  new_author_row <- set_rds(rds_name     = "authors", 
+  new_author_row <- change_table(rds_name     = "authors", 
                             p_path       = p_path,
                             edit         = TRUE,
                             id           = id,
@@ -40,7 +40,7 @@ edit_author <- function(id,                last_name = NA,
   
   if(!is.na(affiliations) && length(affiliations) > 0) {
     author_affiliation_assoc <- 
-      set_rds(rds_name       = "author_affiliation_assoc",
+      change_table(rds_name       = "author_affiliation_assoc",
               edit           = TRUE,
               p_path         = p_path,
               author_id      = new_author_row$id,
@@ -79,7 +79,7 @@ edit_project <- function(title         = NA,   current_owner = NA,
                         checklist = c("STROBE", "CONSORT", "PRIMA")) {
   
   p_path          <- p_path_internal()
-  new_project_row <- set_rds(rds_name      = "projects",
+  new_project_row <- change_table(rds_name      = "projects",
                              p_path        = p_path,
                              edit          = TRUE,
                              id            = id,
@@ -92,14 +92,14 @@ edit_project <- function(title         = NA,   current_owner = NA,
                              status        = status)
   
   project_PI_assoc <-
-    set_rds(rds_name         = "project_PI_assoc",
+    change_table(rds_name         = "project_PI_assoc",
             p_path           = p_path,
             edit             = TRUE,
             project_id       = new_project_row$id,
             PI_id            = PI)
   
   project_investigator_assoc <-
-    set_rds(rds_name        = "project_investigator_assoc",
+    change_table(rds_name        = "project_investigator_assoc",
             p_path          = p_path,
             edit            = TRUE,
             project_id      = new_project_row$id,

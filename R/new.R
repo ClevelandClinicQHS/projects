@@ -1,17 +1,16 @@
 ################################################################################
 #' @export
 new_affiliation <- function(department_name  = NA, institution_name = NA,
-                            address          = NA, id = NA) {
+                            address          = NA, id               = NA) {
   
   message("New affiliation:")
   
-  set_rds(rds_name         = "affiliations",
-          new              = TRUE,
-          edit             = FALSE,
-          id               = id,
-          department_name  = department_name,
-          institution_name = institution_name,
-          address          = address)
+  change_table(rds_name         = "affiliations",
+               action           = "new",
+               id               = id,
+               department_name  = department_name,
+               institution_name = institution_name,
+               address          = address)
 }
 ################################################################################
 
@@ -26,23 +25,22 @@ new_author <- function(last_name = NA, given_names  = NA,
                        id        = NA) {
   
   p_path         <- p_path_internal()
-  new_author_row <- set_rds(rds_name     = "authors", 
-                            p_path       = p_path,
-                            new          = TRUE,
-                            edit         = FALSE,
-                            id           = id,
-                            last_name    = last_name,
-                            given_names  = given_names,
-                            title        = title,
-                            degree       = degree,
-                            email        = email)
+  new_author_row <- change_table(rds_name     = "authors", 
+                                 p_path       = p_path,
+                                 action       = "new",
+                                 id           = id,
+                                 last_name    = last_name,
+                                 given_names  = given_names,
+                                 title        = title,
+                                 degree       = degree,
+                                 email        = email)
   
   author_affiliation_tibble <- 
-    set_rds(rds_name       = "author_affiliation_assoc",
-            p_path         = p_path,
-            edit           = FALSE,
-            author_id      = new_author_row$id,
-            affiliation_id = affiliations)
+    change_assoc(rds_name       = "author_affiliation_assoc",
+                 p_path         = p_path,
+                 action         = "new",
+                 author_id      = new_author_row$id,
+                 affiliation_id = affiliations)
   
   affiliation_tibble <- get_rds(make_rds_path("affiliations", p_path))
   
@@ -74,8 +72,9 @@ new_project <- function(title         = NA,   current_owner = NA,
                         checklist = c("STROBE", "CONSORT", "PRIMA")) {
   
   p_path          <- p_path_internal()
-  new_project_row <- new_rds_item(rds_name      = "projects",
+  new_project_row <- change_table(rds_name      = "projects",
                                   p_path        = p_path,
+                                  action        = "new",
                                   id            = id,
                                   title         = title,
                                   current_owner = current_owner,
@@ -86,20 +85,18 @@ new_project <- function(title         = NA,   current_owner = NA,
                                   status        = status)
   
   project_PI_assoc_tibble <-
-    set_rds(rds_name   = "project_PI_assoc",
-            p_path     = p_path,
-            edit  = FALSE,
-            project_id = new_project_row$id,
-            PI_id      = PI)
+    change_assoc(rds_name   = "project_PI_assoc",
+                 p_path     = p_path,
+                 project_id = new_project_row$id,
+                 PI_id      = PI)
   
   project_investigator_assoc_tibble <-
-    set_rds(rds_name        = "project_investigator_assoc",
-            p_path          = p_path,
-            edit       = FALSE,
-            project_id      = new_project_row$id,
-            investigator_id = investigators)
+    change_assoc(rds_name        = "project_investigator_assoc",
+                 p_path          = p_path,
+                 project_id      = new_project_row$id,
+                 investigator_id = investigators)
   
-  author_tibble <- get_rds(make_rds_path("authors", p_path))
+  author_tibble  <- get_rds(make_rds_path("authors", p_path))
   
   pXXXX_name     <- make_project_name(new_project_row$id)
   pXXXX_path     <- make_project_path(pXXXX_name, p_path)
