@@ -5,12 +5,7 @@
 projects_folder <- function() {
   p_path_internal(error = FALSE)
 }
-################################################################################
-################################################################################
 
-
-################################################################################
-################################################################################
 p_path_internal <- function(error = TRUE) {
   
   path <- Sys.getenv("PROJECTS_FOLDER_PATH")
@@ -42,13 +37,14 @@ p_path_internal <- function(error = TRUE) {
 projects <- function(id, PI = FALSE, investigators = FALSE) {
   
   p_path          <- p_path_internal()
-  projects_tibble <- "projects" %>% make_rds_path() %>% get_rds()
+  projects_tibble <- "projects" %>% make_rds_path(p_path) %>% get_rds()
   
   if(!missing(id)) {
-    checkmate::assert_integerish(id, lower = 1, upper = 9999,
-                                 any.missing = FALSE)
+    
+    test_id_entry(id = id, what = "project")
+    
     if(!all(id %in% projects_tibble$id)) {
-      stop("At least one id not found")
+      stop("At least one project id not found")
     }
     id <- rlang::enquo(id)
     projects_tibble <- projects_tibble %>% dplyr::filter(.data$id %in% !!id)
@@ -67,13 +63,13 @@ projects <- function(id, PI = FALSE, investigators = FALSE) {
         "project_PI_assoc" %>%
         make_rds_path(p_path) %>%
         get_rds() %>% 
-        dplyr::filter(.data$project_id %in% projects_tibble$id)
+        dplyr::filter(.data$id1 %in% projects_tibble$id)
       
       projects_tibble <- 
         project_PI_assoc %>% 
-        dplyr::left_join(projects_tibble, by = c("project_id" = "id")) %>% 
-        dplyr::left_join(authors_tibble, by = c("PI_id" = "id")) %>% 
-        dplyr::rename(id            = "project_id",
+        dplyr::left_join(projects_tibble, by = c("id1" = "id")) %>% 
+        dplyr::left_join(authors_tibble, by = c("id2" = "id")) %>% 
+        dplyr::rename(id            = "id1",
                       PI_last_name  = "last_name",
                       PI_given_names = "given_names")
     }
@@ -83,13 +79,13 @@ projects <- function(id, PI = FALSE, investigators = FALSE) {
         "project_investigator_assoc" %>%
         make_rds_path(p_path) %>%
         get_rds() %>% 
-        dplyr::filter(.data$project_id %in% projects_tibble$id)
+        dplyr::filter(.data$id1 %in% projects_tibble$id)
       
       projects_tibble <-
         project_investigator_assoc %>%
-        dplyr::left_join(projects_tibble, by = c("project_id" = "id")) %>% 
-        dplyr::left_join(authors_tibble, by = c("investigator_id" = "id")) %>% 
-        dplyr::rename(id                   = "project_id",
+        dplyr::left_join(projects_tibble, by = c("id1" = "id")) %>% 
+        dplyr::left_join(authors_tibble, by = c("id2" = "id")) %>% 
+        dplyr::rename(id                   = "id1",
                       investig_last_name   = "last_name",
                       investig_given_names = "given_names")
     }
@@ -105,7 +101,12 @@ authors <- function(id, affiliations = FALSE) {
   authors_tibble <- "authors" %>% make_rds_path(p_path) %>% get_rds()
   
   if(!missing(id)) {
-    checkmate::assert_integerish(x = id, lower = 1, upper = 9999)
+    test_id_entry(id = id, what = "author")
+    
+    if(!all(id %in% authors_tibble$id)) {
+      stop("At least one author id not found")
+    }
+    
     id <- rlang::enquo(id)
     authors_tibble <- authors_tibble %>% dplyr::filter(.data$id %in% !!id)
   }
@@ -121,12 +122,14 @@ authors <- function(id, affiliations = FALSE) {
       "author_affiliation_assoc" %>%
       make_rds_path(p_path) %>%
       get_rds() %>% 
-      dplyr::filter(.data$author_id %in% authors_tibble)
+      dplyr::filter(.data$id1 %in% authors_tibble)
     
     author_affiliation_assoc %>% 
-      dplyr::left_join(authors_tibble, by = c("author_id" = "id")) %>% 
-      dplyr::left_join(affiliations_tibble, by = c("affiliation_id" = "id")) %>% 
-      dplyr::rename(id = "author_id")
+      dplyr::left_join(authors_tibble, by = c("id1" = "id")) %>% 
+      dplyr::left_join(affiliations_tibble, by = c("id2" = "id")) %>% 
+      dplyr::rename(id = id1, affiliation_id = id2) %>% 
+      dplyr::select(id, last_name:email, affiliation_id, department_name,
+                    institution_name)
   }
   else {
     authors_tibble
@@ -134,6 +137,20 @@ authors <- function(id, affiliations = FALSE) {
 }
 
 #' @export
-affiliations <- function() {
-  "affiliations" %>% make_rds_path() %>% get_rds()
+affiliations <- function(id) {
+  
+  p_path              <- p_path_internal()
+  affiliations_tibble <- "affiliations" %>% make_rds_path(p_path) %>% get_rds()
+  
+  if(!missing(id)) {
+    test_id_entry(id = id, what = "affiliation")
+    
+    if(!all(id %in% authors_tibble$id)) {
+      stop("At least one affiliation id not found")
+    }
+    
+    id <- rlang::enquo(id)
+    authors_tibble <- authors_tibble %>% dplyr::filter(.data$id %in% !!id)
+  }
+  "affiliations" %>% make_rds_path(p_path) %>% get_rds()
 }

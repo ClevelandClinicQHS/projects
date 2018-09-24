@@ -3,6 +3,8 @@
 new_affiliation <- function(department_name  = NA, institution_name = NA,
                             address          = NA, id               = NA) {
   
+  test_id_entry(id, what = "affiliation", max.length = 1, any.missing = TRUE)
+  
   message("New affiliation:")
   
   change_table(rds_name         = "affiliations",
@@ -20,11 +22,18 @@ new_affiliation <- function(department_name  = NA, institution_name = NA,
 #' @importFrom rlang .data
 #' @export
 new_author <- function(last_name = NA, given_names  = NA,
-                       title     = NA, affiliations = NA,
+                       title     = NA, affiliations,
                        degree    = NA, email        = NA,
                        id        = NA) {
   
   p_path         <- p_path_internal()
+  
+  test_id_entry(id = id, what = "author", max.length = 1, any.missing = TRUE)
+  
+  if(!missing(affiliations)) {
+    test_id_entry(id = affiliations, what = "affiliation")
+  }
+  
   new_author_row <- change_table(rds_name     = "authors", 
                                  p_path       = p_path,
                                  action       = "new",
@@ -35,24 +44,27 @@ new_author <- function(last_name = NA, given_names  = NA,
                                  degree       = degree,
                                  email        = email)
   
-  author_affiliation_tibble <- 
-    change_assoc(rds_name       = "author_affiliation_assoc",
-                 p_path         = p_path,
-                 action         = "new",
-                 author_id      = new_author_row$id,
-                 affiliation_id = affiliations)
-  
-  affiliation_tibble <- get_rds(make_rds_path("affiliations", p_path))
-  
   message("New author:")
   print(new_author_row)
-
-  message("\nNew author's affiliations:")
-  print(author_affiliation_tibble %>%
-          dplyr::filter(.data$author_id == new_author_row$id) %>%
-          dplyr::left_join(affiliation_tibble,
-                           by = c("affiliation_id" = "id")) %>%
-          dplyr::select(-.data$author_id))
+  
+  if(!missing(affiliations)) {
+    new_author_affiliations <- 
+      change_assoc(assoc_name = "author_affiliation_assoc",
+                   p_path     = p_path,
+                   new        = TRUE,
+                   id1        = new_author_row$id,
+                   id2        = affiliations)
+    
+    affiliation_tibble <- get_rds(make_rds_path("affiliations", p_path))
+    
+    message("\nNew author's affiliations:")
+    print(new_author_affiliations %>%
+            dplyr::filter(.data$id1 == new_author_row$id) %>%
+            dplyr::left_join(affiliation_tibble,
+                             by = c("id2" = "id")) %>%
+            dplyr::select(-.data$id1) %>% 
+            dplyr::rename(affiliation_id = "id2"))
+  }
   
   # print_association("author", new_author_row, "affiliation", affiliation_tibble)
   # invisible(return(TRUE))
@@ -64,7 +76,7 @@ new_author <- function(last_name = NA, given_names  = NA,
 ################################################################################
 #' @export
 new_project <- function(title         = NA,   current_owner = NA,   
-                        PI            = NA,   investigators = NA,   
+                        PI,                   investigators,   
                         creator       = NA,   stage         = NA,   
                         deadline_type = NA,   deadline      = as.Date(NA),
                         id            = NA,   status        = "just created",
@@ -72,6 +84,15 @@ new_project <- function(title         = NA,   current_owner = NA,
                         checklist = c("STROBE", "CONSORT", "PRIMA")) {
   
   p_path          <- p_path_internal()
+  
+  test_id_entry(id = id, what = "project", max.length = 1, any.missing = TRUE)
+  if(!missing(PI)) {
+    test_id_entry(id = PI, what = "PI")
+  }
+  if(!missing(investigators)) {
+    test_id_entry(id = investigators, what = "investigator")
+  }
+  
   new_project_row <- change_table(rds_name      = "projects",
                                   p_path        = p_path,
                                   action        = "new",
@@ -84,17 +105,19 @@ new_project <- function(title         = NA,   current_owner = NA,
                                   deadline      = deadline,
                                   status        = status)
   
-  project_PI_assoc_tibble <-
-    change_assoc(rds_name   = "project_PI_assoc",
-                 p_path     = p_path,
-                 project_id = new_project_row$id,
-                 PI_id      = PI)
+  new_project_PI_assoc <-
+    change_assoc(assoc_name = "project_PI_assoc",
+                 p_path   = p_path,
+                 new      = TRUE,
+                 id1      = new_project_row$id,
+                 id2      = PI)
   
-  project_investigator_assoc_tibble <-
-    change_assoc(rds_name        = "project_investigator_assoc",
+  new_project_investigator_assoc <-
+    change_assoc(assoc_name        = "project_investigator_assoc",
                  p_path          = p_path,
-                 project_id      = new_project_row$id,
-                 investigator_id = investigators)
+                 new             = TRUE,
+                 id1             = new_project_row$id,
+                 id2             = investigators)
   
   author_tibble  <- get_rds(make_rds_path("authors", p_path))
   
@@ -116,18 +139,20 @@ new_project <- function(title         = NA,   current_owner = NA,
   print(new_project_row)
   
   message("\nNew project's PI(s):")
-  print(project_PI_assoc_tibble %>% 
-          dplyr::filter(.data$project_id == new_project_row$id) %>% 
+  print(new_project_PI_assoc %>% 
+          dplyr::filter(.data$id1 == new_project_row$id) %>% 
           dplyr::left_join(author_tibble,
-                           by = c("PI_id" = "id")) %>% 
-          dplyr::select(-.data$project_id))
+                           by = c("id2" = "id")) %>% 
+          dplyr::select(-.data$id1) %>% 
+          dplyr::rename(PI_id = id2))
   
   message("\nNew project's investigators:")
-  print(project_investigator_assoc_tibble %>% 
-          dplyr::filter(.data$project_id == new_project_row$id) %>%
+  print(new_project_investigator_assoc %>% 
+          dplyr::filter(.data$id1 == new_project_row$id) %>%
           dplyr::left_join(author_tibble,
-                           by = c("investigator_id" = "id")) %>% 
-          dplyr::select(-.data$project_id))
+                           by = c("id2" = "id")) %>% 
+          dplyr::select(-.data$id1) %>% 
+          dplyr::rename(investigator_id = id2))
 }
 ################################################################################
 

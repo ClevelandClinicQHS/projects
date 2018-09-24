@@ -3,9 +3,10 @@
 edit_affiliation <- function(id,                    department_name  = NA,
                              institution_name = NA, address          = NA) {
   
-  checkmate::assert_int(id)
-  
   message("Edited affiliation:")
+  
+  test_id_entry(id, what = "affiliation", max.length = 1)
+  
   change_table(rds_name         = "affiliations",
                action           = "edit",
                id               = id,
@@ -20,49 +21,81 @@ edit_affiliation <- function(id,                    department_name  = NA,
 ################################################################################
 #' @importFrom rlang .data
 #' @export
-edit_author <- function(id,                last_name = NA,
-                        given_names  = NA, title     = NA,
-                        affiliations = NA, degree    = NA,
-                        email        = NA) {
-  
-  checkmate::assert_int(id)
+edit_author <- function(id,               last_name = NA,
+                        given_names = NA, title     = NA,
+                        degree      = NA, email     = NA,
+                        add_affiliation,  remove_affiliation) {
   
   p_path         <- p_path_internal()
-  new_author_row <- change_table(rds_name     = "authors", 
-                            p_path       = p_path,
-                            edit         = TRUE,
-                            id           = id,
-                            last_name    = last_name,
-                            given_names  = given_names,
-                            title        = title,
-                            degree       = degree,
-                            email        = email)
   
-  if(!is.na(affiliations) && length(affiliations) > 0) {
-    author_affiliation_assoc <- 
-      change_table(rds_name       = "author_affiliation_assoc",
-              edit           = TRUE,
-              p_path         = p_path,
-              author_id      = new_author_row$id,
-              affiliation_id = affiliations)
+  test_id_entry(id = id, what = "author", max.length = 1)
+  
+  if(!missing(add_affiliation)) {
+    test_id_entry(id         = add_affiliation, what        = "affiliation",
+                  max.length = 9999,            any.missing = FALSE)
   }
-  else {
-    author_affiliation_assoc <-
-      get_rds(make_rds_path("author_affiliations_assoc", p_path)) %>% 
-      dplyr::filter(.data$author_id == id)
+  
+  if(!missing(remove_affiliation)) {
+    test_id_entry(id         = remove_affiliation, what        = "affiliation",
+                  max.length = 9999,               any.missing = FALSE)
   }
+  
+  new_author_row <- change_table(rds_name           = "authors", 
+                                 p_path             = p_path,
+                                 action             = "edit",
+                                 id                 = id,
+                                 last_name          = last_name,
+                                 given_names        = given_names,
+                                 title              = title,
+                                 degree             = degree,
+                                 email              = email)
+  
+  # if(!is.na(affiliations) && length(affiliations) > 0) {
+  #   author_affiliation_assoc <- 
+  #     change_table(rds_name       = "author_affiliation_assoc",
+  #             edit           = TRUE,
+  #             p_path         = p_path,
+  #             author_id      = new_author_row$id,
+  #             affiliation_id = affiliations)
+  # }
+  # else {
+  #   author_affiliation_assoc <-
+  #     get_rds(make_rds_path("author_affiliations_assoc", p_path)) %>% 
+  #     dplyr::filter(.data$author_id == id)
+  # }
   
   affiliation_tibble <- get_rds(make_rds_path("affiliations", p_path))
+  
+  if(!missing(add_affiliation)) {
+    change_assoc(assoc_name = "author_affiliation_assoc",
+                 p_path     = p_path,
+                 new        = TRUE,
+                 id1        = id,
+                 id2        = add_affiliation)
+  }
+  if(!missing(remove_affiliation)) {
+    change_assoc(assoc_name = "author_affiliation_assoc",
+                 p_path     = p_path,
+                 new        = FALSE,
+                 id1        = id,
+                 id2        = remove_affiliation)
+  }
+  
+  author_affiliation_assoc <-
+    "author_affiliation_assoc" %>% 
+    make_rds_path(p_path) %>% 
+    get_rds
   
   message("Edited author:")
   print(new_author_row)
 
   message("\nEdited author's affiliations:")
   print(author_affiliation_assoc %>%
-          dplyr::filter(.data$author_id == new_author_row$id) %>%
+          dplyr::filter(.data$id1 == new_author_row$id) %>%
           dplyr::left_join(affiliation_tibble,
-                           by = c("affiliation_id" = "id")) %>%
-          dplyr::select(-.data$author_id))
+                           by = c("id2" = "id")) %>%
+          dplyr::select(-.data$id1) %>% 
+          dplyr::rename(affiliation_id = id2))
 }
 ################################################################################
 
@@ -70,73 +103,111 @@ edit_author <- function(id,                last_name = NA,
 
 ################################################################################
 #' @export
-edit_project <- function(title         = NA,   current_owner = NA,   
-                         PI            = NA,   investigators = NA,   
-                         creator       = NA,   stage         = NA,   
-                         deadline_type = NA,   deadline      = as.Date(NA),
-                         id            = NA,   status        = "just created",
-                        
-                        checklist = c("STROBE", "CONSORT", "PRIMA")) {
+edit_project <- function(id,                             title         = NA,
+                         current_owner = NA,             creator       = NA,   
+                         stage         = NA,             deadline_type = NA,   
+                         deadline      = as.Date(NA),
+                         status        = "just created",
+                         
+                         add_PI,                         remove_PI,
+                         add_investigator,               remove_investigator,
+                         
+                         checklist = c("STROBE", "CONSORT", "PRIMA")) {
   
-  p_path          <- p_path_internal()
+  p_path <- p_path_internal()
+  
+  test_id_entry(id = id, what = "project", max.length = 1)
+  
+  if(!missing(add_PI)) {
+    test_id_entry(id = add_PI, what = "PI")
+  }
+  if(!missing(remove_PI)) {
+    test_id_entry(id = remove_PI, what = "PI")
+  }
+  if(!missing(add_investigator)) {
+    test_id_entry(id = add_investigator, what = "investigator")
+  }
+  if(!missing(remove_investigator)) {
+    test_id_entry(id = remove_investigator, what ="investigator")
+  }
+  
   new_project_row <- change_table(rds_name      = "projects",
-                             p_path        = p_path,
-                             edit          = TRUE,
-                             id            = id,
-                             title         = title,
-                             current_owner = current_owner,
-                             creator       = creator,
-                             stage         = stage,
-                             deadline_type = deadline_type,
-                             deadline      = deadline,
-                             status        = status)
+                                  p_path        = p_path,
+                                  action        = "edit",
+                                  id            = id,
+                                  title         = title,
+                                  current_owner = current_owner,
+                                  creator       = creator,
+                                  stage         = stage,
+                                  deadline_type = deadline_type,
+                                  deadline      = deadline,
+                                  status        = status)
+  
+  if(!missing(add_PI)) {
+    change_assoc(assoc_name = "project_PI_assoc",
+                 p_path     = p_path,
+                 new        = TRUE,
+                 id1        = id,
+                 id2        = add_PI)
+  }
+  
+  if(!missing(remove_PI)) {
+    change_assoc(assoc_name = "project_PI_assoc",
+                 p_path     = p_path,
+                 new        = FALSE,
+                 id1        = id,
+                 id2        = remove_PI)
+  }
   
   project_PI_assoc <-
-    change_table(rds_name         = "project_PI_assoc",
-            p_path           = p_path,
-            edit             = TRUE,
-            project_id       = new_project_row$id,
-            PI_id            = PI)
+    "project_PI_assoc" %>% 
+    make_rds_path(p_path) %>% 
+    get_rds
+  
+  if(!missing(add_investigator)) {
+    change_assoc(assoc_name = "project_investigator_assoc",
+                 p_path     = p_path,
+                 new        = TRUE,
+                 id1        = id,
+                 id2        = add_investigator)
+  }
+  
+  if(!missing(remove_investigator)) {
+    change_assoc(assoc_name = "project_investigator_assoc",
+                 p_path     = p_path,
+                 new        = FALSE,
+                 id1        = id,
+                 id2        = remove_investigator)
+  }
   
   project_investigator_assoc <-
-    change_table(rds_name        = "project_investigator_assoc",
-            p_path          = p_path,
-            edit            = TRUE,
-            project_id      = new_project_row$id,
-            investigator_id = investigators)
+    "project_investigator_assoc" %>% 
+    make_rds_path(p_path) %>% 
+    get_rds
   
-  author_tibble <- get_rds(make_rds_path("authors", p_path))
-  
-  pXXXX_name     <- make_project_name(new_project_row$id)
-  pXXXX_path     <- make_project_path(pXXXX_name, p_path)
-  
-  fs::dir_create(fs::path(pXXXX_path, c("data", "progs", "manuscript",
-                                        "figures")))
-  
-  fs::file_copy(path     = system.file("extdata", "pXXXX_protocol.docx",
-                                       package = "projects"),
-                new_path = fs::path(pXXXX_path, paste0(pXXXX_name, "_protocol"),
-                                    ext = "docx"))
-  
-  readr::write_lines(Rproj_template, # Rproj_template is in sysdata.Rda
-                     fs::path(pXXXX_path, pXXXX_name, ext = "Rproj"))
+  author_tibble <-
+    "authors" %>% 
+    make_rds_path(p_path) %>% 
+    get_rds
   
   message("Edited project info:")
   print(new_project_row)
   
   message("\nEdited project's PI(s):")
   print(project_PI_assoc %>% 
-          dplyr::filter(.data$project_id == new_project_row$id) %>% 
+          dplyr::filter(.data$id1 == new_project_row$id) %>% 
           dplyr::left_join(author_tibble,
-                           by = c("PI_id" = "id")) %>% 
-          dplyr::select(-.data$project_id))
+                           by = c("id2" = "id")) %>% 
+          dplyr::select(-.data$id1) %>% 
+          dplyr::rename(PI_id = id2))
   
   message("\nEdited project's investigators:")
   print(project_investigator_assoc %>% 
-          dplyr::filter(.data$project_id == new_project_row$id) %>%
+          dplyr::filter(.data$id1 == new_project_row$id) %>%
           dplyr::left_join(author_tibble,
-                           by = c("investigator_id" = "id")) %>% 
-          dplyr::select(-.data$project_id))
+                           by = c("id2" = "id")) %>% 
+          dplyr::select(-.data$id1) %>% 
+          dplyr::rename(investigator_id = id2))
 }
 ################################################################################
 

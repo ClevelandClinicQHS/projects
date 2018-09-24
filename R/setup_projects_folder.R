@@ -55,30 +55,29 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
     .x = c("projects", "authors", "affiliations", "project_PI_assoc",
            "project_investigator_assoc", "author_affiliation_assoc"),
     .y = 
-      list(
-        # projects
-        tibble(id            = integer(),   title    = character(),
-               current_owner = character(), #PI       = list(),
-               #investigators = list(),      
-               creator  = character(),
-               stage         = character(), deadline_type = character(),
-               deadline      = as.Date(character()),
-               status        = character()),
-        # authors
-        tibble(id            = integer(),   last_name    = character(),
-               given_names   = character(), title        = character(),
-               #affiliations  = list(),      
-               degree       = character(),
-               email         = character()),
-        # affiliations
-        tibble(id               = integer(),   department_name  = character(),
-               institution_name = character(), address          = character()),
-        # project-PI association table
-        tibble(project_id = integer(), PI_id = integer()),
-        # project-investigator association table
-        tibble(project_id = integer(), investigator_id = integer()),
-        # author-affiliation association table
-        tibble(author_id = integer(), affiliation_id = integer())
+      c(
+        list(
+          # projects
+          tibble(id            = integer(),   title    = character(),
+                 current_owner = character(), creator  = character(),
+                 stage         = character(), deadline_type = character(),
+                 deadline      = as.Date(character()),
+                 status        = character()),
+          # authors
+          tibble(id          = integer(),   last_name = character(),
+                 given_names = character(), title     = character(),
+                 degree      = character(), email     = character()),
+          # affiliations
+          tibble(id               = integer(),   department_name= character(),
+                 institution_name = character(), address        = character())),
+        
+        
+        rep(
+          # project-PI, project-investigator, and author-affiliation association
+          # tables
+          list(tibble(id1 = integer(), id2 = integer())),
+          3
+        )
       ),
     .f =
       function(rds_name, empty_tibble) {
