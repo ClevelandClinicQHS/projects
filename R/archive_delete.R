@@ -85,7 +85,7 @@ delete_project <- function(id, archived = FALSE) {
     fs::path()
   
   if(archived) {
-    fs::path(pXXXX_path, "archived")
+    pXXXX_path <- fs::path(pXXXX_path, "archived")
   }
   
   fs::dir_delete(path = pXXXX_path)
@@ -119,7 +119,7 @@ archive_project <- function(id) {
   pXXXX_path <-
     id %>% 
     make_project_name() %>% 
-    make_project_path(p$folder_path)
+    make_project_path(p_path)
   
   fs::file_move(path     = pXXXX_path,
                 new_path = fs::path(p_path, "archive"))

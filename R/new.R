@@ -104,20 +104,23 @@ new_project <- function(title         = NA,   current_owner = NA,
                                   deadline_type = deadline_type,
                                   deadline      = deadline,
                                   status        = status)
+  if(!missing(PI)) {
+    new_project_PI_assoc <-
+      change_assoc(assoc_name = "project_PI_assoc",
+                   p_path   = p_path,
+                   new      = TRUE,
+                   id1      = new_project_row$id,
+                   id2      = PI)
+  }
   
-  new_project_PI_assoc <-
-    change_assoc(assoc_name = "project_PI_assoc",
-                 p_path   = p_path,
-                 new      = TRUE,
-                 id1      = new_project_row$id,
-                 id2      = PI)
-  
-  new_project_investigator_assoc <-
-    change_assoc(assoc_name        = "project_investigator_assoc",
-                 p_path          = p_path,
-                 new             = TRUE,
-                 id1             = new_project_row$id,
-                 id2             = investigators)
+  if(!missing(investigators)) {
+    new_project_investigator_assoc <-
+      change_assoc(assoc_name        = "project_investigator_assoc",
+                   p_path          = p_path,
+                   new             = TRUE,
+                   id1             = new_project_row$id,
+                   id2             = investigators)
+  }
   
   author_tibble  <- get_rds(make_rds_path("authors", p_path))
   
@@ -138,21 +141,25 @@ new_project <- function(title         = NA,   current_owner = NA,
   message("Project ", new_project_row$id, " has been created at ", pXXXX_path)
   print(new_project_row)
   
-  message("\nNew project's PI(s):")
-  print(new_project_PI_assoc %>% 
-          dplyr::filter(.data$id1 == new_project_row$id) %>% 
-          dplyr::left_join(author_tibble,
-                           by = c("id2" = "id")) %>% 
-          dplyr::select(-.data$id1) %>% 
-          dplyr::rename(PI_id = id2))
+  if(!missing(PI)) {
+    message("\nNew project's PI(s):")
+    print(new_project_PI_assoc %>% 
+            dplyr::filter(.data$id1 == new_project_row$id) %>% 
+            dplyr::left_join(author_tibble,
+                             by = c("id2" = "id")) %>% 
+            dplyr::select(-.data$id1) %>% 
+            dplyr::rename(PI_id = id2))
+  }
   
-  message("\nNew project's investigators:")
-  print(new_project_investigator_assoc %>% 
-          dplyr::filter(.data$id1 == new_project_row$id) %>%
-          dplyr::left_join(author_tibble,
-                           by = c("id2" = "id")) %>% 
-          dplyr::select(-.data$id1) %>% 
-          dplyr::rename(investigator_id = id2))
+  if(!missing(investigators)) {
+    message("\nNew project's investigators:")
+    print(new_project_investigator_assoc %>% 
+            dplyr::filter(.data$id1 == new_project_row$id) %>%
+            dplyr::left_join(author_tibble,
+                             by = c("id2" = "id")) %>% 
+            dplyr::select(-.data$id1) %>% 
+            dplyr::rename(investigator_id = id2))
+  }
 }
 ################################################################################
 
