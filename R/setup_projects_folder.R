@@ -33,11 +33,12 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
   if(fs::file_exists(home_Renviron_path)) {
     old_home_Renviron  <- readr::read_lines(home_Renviron_path)
     home_Renviron_file <-
-      c(home_Renviron_file,
-
+      append(
+        old_home_Renviron[!grepl("PROJECTS_FOLDER_PATH", old_home_Renviron)],
         # Contents of the old .Renviron file, excluding any pre-existing
         # PROJECTS_FOLDER_PATH value
-        old_home_Renviron[!grepl("PROJECTS_FOLDER_PATH", old_home_Renviron)])
+        
+        home_Renviron_file)
   }
   readr::write_lines(home_Renviron_file, path = home_Renviron_path)
   

@@ -79,7 +79,11 @@ affiliations <- function(id, authors = FALSE) {
 authors <- function(id, affiliations = FALSE) {
   
   p_path         <- p_path_internal()
-  authors_tibble <- "authors" %>% make_rds_path(p_path) %>% get_rds()
+  authors_tibble <-
+    "authors" %>%
+    make_rds_path(p_path = p_path) %>%
+    get_rds() %>% 
+    dplyr::arrange(last_name, given_names)
   
   if(!missing(id)) {
     test_id_entry(id = id, what = "author")
@@ -127,7 +131,11 @@ authors <- function(id, affiliations = FALSE) {
 projects <- function(id, PI = FALSE, investigators = FALSE) {
   
   p_path          <- p_path_internal()
-  projects_tibble <- "projects" %>% make_rds_path(p_path) %>% get_rds()
+  projects_tibble <- 
+    "projects" %>% 
+    make_rds_path(p_path) %>%
+    get_rds() %>% 
+    dplyr::arrange(id)
   
   if(!missing(id)) {
     

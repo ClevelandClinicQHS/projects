@@ -132,7 +132,8 @@ change_assoc <- function(assoc_name,
   # }
 }
 
-test_id_entry <- function(id, what, max.length = 9999, any.missing = FALSE) {
+test_id_entry <- function(id, what, max.length = 9999, any.missing = FALSE,
+                          set = NULL) {
   
   if(!checkmate::test_integerish(id, lower = 1, upper = 9999,
                                  any.missing = any.missing,
@@ -143,6 +144,16 @@ test_id_entry <- function(id, what, max.length = 9999, any.missing = FALSE) {
     }
     else {
       stop("Please enter the ", what, " ids as a vector of integers.")
+    }
+  }
+  
+  if(!is.null(set)) {
+    
+    id_checks <- purrr::map_lgl(id, checkmate::test_choice, choices = set)
+    
+    if(!all(id_checks)) {
+      stop("The following ", what, "(s) not found: ",
+           paste(id[!id_checks], collapse = ", "))
     }
   }
 }
