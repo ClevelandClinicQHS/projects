@@ -2,9 +2,9 @@
 
 export("%>%")
 export(affiliations)
-export(archive_project)
 export(authors)
 export(delete_affiliation)
+export(delete_author)
 export(delete_project)
 export(edit_affiliation)
 export(edit_author)

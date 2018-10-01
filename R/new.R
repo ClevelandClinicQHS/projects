@@ -159,14 +159,14 @@ new_project <- function(title         = NA,   current_owner = NA,
     project_authors <-
       purrr::map_dfr(all_authors,
                      function(i)
-                       dplyr::filter(author_tibble, .data$id == i))
+                       author_tibble %>%
+                       dplyr::filter(.data$id == i))
     
     project_affiliations <-
       purrr::map_dfr(all_authors,
                      function(i)
                        author_affiliation_assoc %>% 
-                       dplyr::filter(.data$id1 == i) %>% 
-                       dplyr::arrange(.data$id2)
+                       dplyr::filter(.data$id1 == i)
                      ) %>% 
       dplyr::left_join(affiliations_tibble, by = c("id2" = "id"))
     
@@ -239,7 +239,8 @@ new_project <- function(title         = NA,   current_owner = NA,
       if(nrow(x_affiliations) > 0) {
         author_line <- paste0(author_line,
                               "^",
-                              paste(x_affiliations$superscript, collapse = ","),
+                              paste(sort(x_affiliations$superscript),
+                                    collapse = ","),
                               "^")
       }
     }
