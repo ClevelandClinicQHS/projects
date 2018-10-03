@@ -2,3 +2,5 @@
 .Rbuildignore
 projects.Rproj
 test
+.Rhistory
+.RData

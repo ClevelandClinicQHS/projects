@@ -1,13 +1,16 @@
 ################################################################################
 #' @export
-new_affiliation <- function(department_name  = NA, institution_name = NA,
-                            address          = NA, id               = NA) {
+new_affiliation <- function(department_name  = NA,
+                            institution_name = NA,
+                            address          = NA,
+                            id               = NA_integer_) {
   
-  test_id_entry(id, what = "affiliation", max.length = 1, any.missing = TRUE)
+  validate_entry(id, what = "affiliation", max.length = 1, any.missing = TRUE)
   
   message("New affiliation:")
   
   change_table(rds_name         = "affiliations",
+               p_path           = p_path_internal(),
                action           = "new",
                id               = id,
                department_name  = department_name,
@@ -23,19 +26,20 @@ new_affiliation <- function(department_name  = NA, institution_name = NA,
 #' @export
 new_author <- function(last_name = NA, given_names  = NA,
                        title     = NA, affiliations,
-                       degree    = NA, email        = NA,
-                       id        = NA) {
+                       degree    = NA,
+                       email     = NA,
+                       id        = NA_integer_) {
   
   p_path         <- p_path_internal()
   
-  test_id_entry(id = id, what = "author", max.length = 1, any.missing = TRUE)
+  validate_entry(id, what = "author", max.length = 1, any.missing = TRUE)
   
   affiliation_tibble <- get_rds(make_rds_path("affiliations", p_path))
   
   if(!missing(affiliations)) {
-    test_id_entry(id   = affiliations,
-                  what = "affiliation",
-                  set  = affiliation_tibble$id)
+    affiliations <- validate_entry(affiliations,
+                                   what        = "affiliation",
+                                   rds_tibble  = affiliation_tibble)
   }
   
   new_author_row <- change_table(rds_name     = "authors", 
@@ -78,34 +82,52 @@ new_author <- function(last_name = NA, given_names  = NA,
 new_project <- function(title         = NA,   current_owner = NA,   
                         PI,                   investigators,   
                         creator       = NA,   stage         = NA,   
-                        deadline_type = NA,   deadline      = as.Date(NA),
-                        id            = NA,   status        = "just created",
-                        
-                        checklist = c("STROBE", "CONSORT")) {
+                        deadline_type = NA,
+                        deadline      = as.Date(NA),
+                        id            = NA_integer_,
+                        status        = "just created",
+                        protocol      = c("STROBE", "CONSORT")) {
   
   p_path    <- p_path_internal()
   
-  checklist <- match.arg(checklist)
+  validate_entry(id, what = "project", max.length = 1, any.missing = TRUE)
   
-  test_id_entry(id = id, what = "project", max.length = 1, any.missing = TRUE)
-  
-  author_tibble  <- get_rds(make_rds_path("authors", p_path))
+  authors_tibble  <- get_rds(make_rds_path("authors", p_path))
   
   if(!missing(PI)) {
-    test_id_entry(id   = PI,
-                  what = "PI",
-                  set  = author_tibble$id)
-    all_authors <- PI
+    PI           <- validate_entry(PI, what = "PI", rds_tibble = authors_tibble)
+    all_authors  <- PI
   }
   else {
-    all_authors <- integer()
+    all_authors  <- integer()
   }
   
   if(!missing(investigators)) {
-    test_id_entry(id   = investigators,
-                  what = "investigator",
-                  set  = author_tibble$id)
-    all_authors <- all_authors %>% append(investigators) %>% unique
+    investigators <- validate_entry(investigators,
+                                    what        = "investigator",
+                                    rds_tibble  = authors_tibble)
+    all_authors   <- all_authors %>% append(investigators) %>% unique
+  }
+  
+  if(identical(protocol, c("STROBE", "CONSORT")) || protocol == "STROBE") {
+    protocol <- STROBE_template
+  }
+  else if(protocol == "CONSORT") {
+    protocol <- CONSORT_template
+  }
+  else {
+    template_path <- fs::path(p_path, "templates", protocol)
+    if(!fs::file_exists(template_path)) {
+      stop("Custom template not found at ", protocol,
+           ". (check the case, and don't forget file extension))")
+    }
+    
+    protocol  <- readr::read_lines(template_path)
+  }
+  yaml_bounds <- grep("^---$", protocol)
+  if(length(yaml_bounds) < 2) {
+    stop("Custom template must have a yaml header. (Check that there are no ",
+         "spaces before or after each \"---\")")
   }
   
   new_project_row <- change_table(rds_name      = "projects",
@@ -138,13 +160,6 @@ new_project <- function(title         = NA,   current_owner = NA,
   }
   
   
-  if(checklist == "STROBE") {
-    protocol <- STROBE_template
-  }
-  else if(checklist == "CONSORT") {
-    protocol <- CONSORT_template
-  }
-  
   if(length(all_authors > 0)) {
     
     author_line        <- ""
@@ -159,7 +174,7 @@ new_project <- function(title         = NA,   current_owner = NA,
     project_authors <-
       purrr::map_dfr(all_authors,
                      function(i)
-                       author_tibble %>%
+                       authors_tibble %>%
                        dplyr::filter(.data$id == i))
     
     project_affiliations <-
@@ -247,8 +262,7 @@ new_project <- function(title         = NA,   current_owner = NA,
     
     header <- c("", title, "", author_line, "", affiliations_lines)
     
-    protocol <- append(protocol, header,
-                       after = grep("---", protocol, fixed = TRUE)[2])
+    protocol <- append(protocol, header, after = yaml_bounds[2])
   }
   
   pXXXX_name <- make_project_name(new_project_row$id)
@@ -273,7 +287,7 @@ new_project <- function(title         = NA,   current_owner = NA,
   if(!missing(PI)) {
     message("\nNew project's PI(s):")
     print(new_project_PI_assoc %>% 
-            dplyr::left_join(author_tibble,
+            dplyr::left_join(authors_tibble,
                              by = c("id2" = "id")) %>% 
             dplyr::select(-.data$id1) %>% 
             dplyr::rename(PI_id = id2))
@@ -282,7 +296,7 @@ new_project <- function(title         = NA,   current_owner = NA,
   if(!missing(investigators)) {
     message("\nNew project's investigators:")
     print(new_project_investigator_assoc %>% 
-            dplyr::left_join(author_tibble,
+            dplyr::left_join(authors_tibble,
                              by = c("id2" = "id")) %>% 
             dplyr::select(-.data$id1) %>% 
             dplyr::rename(investigator_id = id2))

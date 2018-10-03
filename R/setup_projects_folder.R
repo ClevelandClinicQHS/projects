@@ -46,11 +46,10 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
 
   fs::dir_create(fs::path(path, c("metadata", "archive", "templates")))
   
-  fs::file_copy(
-    path      = system.file("extdata", "pXXXX_protocol.docx",
-                            package = "projects"),
-    new_path  = fs::path(path, "templates", "pXXXX_protocol", ext = "docx"),
-    overwrite = TRUE)
+  readr::write_lines(CONSORT_template,
+                     fs::path(path, "templates", "CONSORT_template.Rmd"))
+  readr::write_lines(STROBE_template,
+                     fs::path(path, "templates", "STROBE_template.Rmd"))
   
   purrr::walk2(
     .x = c("projects", "authors", "affiliations", "project_PI_assoc",

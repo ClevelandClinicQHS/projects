@@ -27,21 +27,26 @@ p_path_internal <- function(error = TRUE) {
 ################################################################################
 
 
+#' @importFrom rlang .data
 #' @export
-affiliations <- function(id, authors = FALSE) {
+affiliations <- function(affiliation, authors = FALSE) {
   
   p_path              <- p_path_internal()
-  affiliations_tibble <- "affiliations" %>% make_rds_path(p_path) %>% get_rds()
+  affiliations_tibble <- 
+    "affiliations" %>% 
+    make_rds_path(p_path) %>% 
+    get_rds()
   
-  if(!missing(id)) {
-    test_id_entry(id = id, what = "affiliation")
+  if(!missing(affiliation)) {
+    affiliation <- validate_entry(affiliation,
+                                  what = "affiliation",
+                                  rds_tibble  = affiliations_tibble)
     
-    if(!all(id %in% authors_tibble$id)) {
-      stop("At least one affiliation id not found")
-    }
+    affiliations_tibble <-
+      affiliations_tibble %>% dplyr::filter(.data$id %in% affiliation)
     
-    id <- rlang::enquo(id)
-    authors_tibble <- authors_tibble %>% dplyr::filter(.data$id %in% !!id)
+    # id <- rlang::enquo(id)
+    # authors_tibble <- authors_tibble %>% dplyr::filter(.data$id %in% !!id)
   }
   
   if(authors == TRUE) {
@@ -64,7 +69,8 @@ affiliations <- function(id, authors = FALSE) {
       dplyr::rename(id = id2, author_id = id1) %>% 
       dplyr::full_join(affiliations_tibble) %>% 
       dplyr::select(id,        department_name:address,
-                    author_id, last_name:given_names)
+                    author_id, last_name:given_names) %>% 
+      suppressMessages()
   }
   else {
     affiliations_tibble
@@ -76,24 +82,21 @@ affiliations <- function(id, authors = FALSE) {
 
 #' @importFrom rlang .data
 #' @export
-authors <- function(id, affiliations = FALSE) {
+authors <- function(author, affiliations = FALSE) {
   
   p_path         <- p_path_internal()
   authors_tibble <-
-    "authors" %>%
-    make_rds_path(p_path = p_path) %>%
-    get_rds() %>% 
-    dplyr::arrange(last_name, given_names)
+    "authors" %>% 
+    make_rds_path(p_path) %>% 
+    get_rds() %>%
+    dplyr::arrange(.data$last_name, .data$given_names)
   
-  if(!missing(id)) {
-    test_id_entry(id = id, what = "author")
+  if(!missing(author)) {
+    author         <- validate_entry(author,
+                                     what       = "author",
+                                     rds_tibble = authors_tibble)
     
-    if(!all(id %in% authors_tibble$id)) {
-      stop("At least one author id not found")
-    }
-    
-    id <- rlang::enquo(id)
-    authors_tibble <- authors_tibble %>% dplyr::filter(.data$id %in% !!id)
+    authors_tibble <- authors_tibble %>% dplyr::filter(.data$id %in% author)
   }
   
   if(affiliations == TRUE) {
@@ -116,7 +119,8 @@ authors <- function(id, affiliations = FALSE) {
       dplyr::rename(id = id1, affiliation_id = id2) %>% 
       dplyr::full_join(authors_tibble) %>% 
       dplyr::select(id,             last_name:email,
-                    affiliation_id, department_name:institution_name)
+                    affiliation_id, department_name:institution_name) %>% 
+      suppressMessages
   }
   else {
     authors_tibble
@@ -128,24 +132,22 @@ authors <- function(id, affiliations = FALSE) {
 
 #' @importFrom rlang .data
 #' @export
-projects <- function(id, PI = FALSE, investigators = FALSE) {
+projects <- function(project, PI = FALSE, investigators = FALSE) {
   
   p_path          <- p_path_internal()
   projects_tibble <- 
     "projects" %>% 
-    make_rds_path(p_path) %>%
-    get_rds() %>% 
-    dplyr::arrange(id)
+    make_rds_path(p_path) %>% 
+    get_rds() %>%
+    dplyr::arrange(.data$id)
   
-  if(!missing(id)) {
+  if(!missing(project)) {
     
-    test_id_entry(id = id, what = "project")
+    project         <- validate_entry(project,
+                                      what       = "project",
+                                      rds_tibble = projects_tibble)
     
-    if(!all(id %in% projects_tibble$id)) {
-      stop("At least one project id not found")
-    }
-    id              <- rlang::enquo(id)
-    projects_tibble <- projects_tibble %>% dplyr::filter(.data$id %in% !!id)
+    projects_tibble <- projects_tibble %>% dplyr::filter(.data$id %in% project)
   }
   
   if(PI == TRUE || investigators == TRUE) {
@@ -174,7 +176,8 @@ projects <- function(id, PI = FALSE, investigators = FALSE) {
                       PI_given_names = given_names) %>% 
         dplyr::full_join(projects_tibble) %>%
         dplyr::select(.data$id, .data$title:.data$status, .data$PI_id,
-                      .data$PI_last_name:.data$PI_given_names)
+                      .data$PI_last_name:.data$PI_given_names) %>% 
+        suppressMessages
     }
     
     if(investigators == TRUE) {
@@ -198,7 +201,8 @@ projects <- function(id, PI = FALSE, investigators = FALSE) {
         dplyr::select(.data$id, .data$title:.data$tmp, .data$investig_id,
                       .data$investig_last_name:.data$investig_given_names) %>% 
         dplyr::select(-.data$tmp) %>% 
-        dplyr::arrange(.data$id)
+        dplyr::arrange(.data$id) %>% 
+        suppressMessages
     }
   }
   

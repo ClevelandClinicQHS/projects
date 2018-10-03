@@ -21,14 +21,18 @@ get_rds <- function(rds_path) {
 #' @importFrom rlang .data
 #' @importFrom tibble tibble
 change_table <- function(rds_name,
-                         p_path = p_path_internal(),
+                         p_path,
+                         rds_path,
+                         rds_tibble,
                          action,
                          ...) {
   
   changes    <- tibble(...)
   
-  rds_path   <- make_rds_path(rds_name, p_path)
-  rds_tibble <- get_rds(rds_path)
+  if(missing(rds_path) || missing(rds_tibble)) {
+    rds_path   <- make_rds_path(rds_name, p_path)
+    rds_tibble <- get_rds(rds_path)
+  }
   
   if(is.na(changes$id)) {
     
@@ -118,7 +122,7 @@ change_assoc <- function(assoc_name,
   }
   
   else {
-    assoc_table <- dplyr::anti_join(assoc_table, assoc_change)
+    assoc_table <- suppressMessages(dplyr::anti_join(assoc_table, assoc_change))
   }
   
   saveRDS(assoc_table, rds_path)
@@ -132,28 +136,70 @@ change_assoc <- function(assoc_name,
   # }
 }
 
-test_id_entry <- function(id, what, max.length = 9999, any.missing = FALSE,
-                          set = NULL) {
+
+################################################################################
+validate_entry <- function(x,
+                           what,
+                           max.length  = 9999L,
+                           any.missing = FALSE,
+                           rds_tibble) {
   
-  if(!checkmate::test_integerish(id, lower = 1, upper = 9999,
-                                 any.missing = any.missing,
-                                 min.len = 1, max.len = max.length)) {
+  if(is.numeric(x) || any.missing == TRUE) {
     
-    if(max.length == 1) {
-      stop("Please enter the ", what, " id as a single integer.")
+    if(!checkmate::test_integerish(x, lower = 1, upper = 9999,
+                                   any.missing = any.missing,
+                                   min.len = 1, max.len = max.length)) {
+      
+      if(max.length == 1) {
+        stop("Please enter the ", what, " id as a single integer.")
+      }
+      else {
+        stop("Please enter the ", what, " ids as a vector of integers.")
+      }
     }
-    else {
-      stop("Please enter the ", what, " ids as a vector of integers.")
+    
+    if(!missing(rds_tibble)) {
+      
+      id_checks <-
+        purrr::map_lgl(x, checkmate::test_choice, choices = rds_tibble$id)
+      
+      if(!all(id_checks)) {
+        stop("The following ", what, " id(s) not found: ",
+             paste(x[!id_checks], collapse = ", "))
+      }
     }
+    return(x)
   }
-  
-  if(!is.null(set)) {
+  else {
     
-    id_checks <- purrr::map_lgl(id, checkmate::test_choice, choices = set)
-    
-    if(!all(id_checks)) {
-      stop("The following ", what, "(s) not found: ",
-           paste(id[!id_checks], collapse = ", "))
+    if(missing(rds_tibble)) {
+      stop("id must be an integer")
     }
+    
+    if(!checkmate::test_character(x, min.chars = 1, any.missing = any.missing,
+                                  min.len = 1, max.len = max.length)) {
+      stop("Entered ", what, "s must be a vector with maximum length of ",
+           max.length, " with each entry having at least 1")
+    }
+    
+    purrr::map_int(
+      x,
+      function(string) {
+        matches <- grep(string, rds_tibble[[2]], ignore.case = TRUE)
+        if(length(matches) != 1) {
+          if(length(matches) == 0) {
+            stop("No ", what, " found containing ", string, " in the ",
+                 colnames(rds_tibble)[2])
+          }
+          else if(length(matches) > 1) {
+            print(rds_tibble[matches, ])
+            stop(string, " matches the ", colnames(rds_tibble)[2],
+                 " of all of the above ", what, "s. Be more specific to ",
+                 "differentiate or enter their ", what, " id numbers instead.")
+          }
+        }
+        return(rds_tibble$id[matches])
+      }
+    )
   }
 }

@@ -1,53 +1,64 @@
 #' @export
-delete_affiliation <- function(id) {
+delete_affiliation <- function(affiliation) {
   
-  p_path <- p_path_internal()
+  p_path              <- p_path_internal()
   
-  test_id_entry(id = id, what = "affiliation", max.length = 1)
+  affiliations_path   <- make_rds_path("affiliations", p_path)
+  affiliations_tibble <- get_rds(affiliations_path)
   
-  deleted_affiliation <- change_table(rds_name = "affiliations",
-                                      p_path   = p_path,
-                                      action   = "delete",
-                                      id       = id)
+  affiliation         <- validate_entry(affiliation,
+                                        what       = "affiliation",
+                                        max.length = 1,
+                                        rds_tibble = affiliations_tibble)
   
-  # rds_path    <- make_rds_path(assoc_name, p_path)
-  # assoc_table <- get_rds(rds_path)
+  deleted_affiliation <- change_table(rds_name   = "affiliations",
+                                      rds_path   = affiliations_path,
+                                      rds_tibble = affiliations_tibble,
+                                      action     = "delete",
+                                      id         = affiliation)
   
   change_assoc(assoc_name = "author_affiliation_assoc",
                p_path     = p_path,
                new        = FALSE,
-               id2        = id)
+               id2        = affiliation)
   
   message("The following affiliation was deleted:")
   return(deleted_affiliation)
 }
 
 #' @export
-delete_author <- function(id) {
+delete_author <- function(author) {
   
   p_path         <- p_path_internal()
   
-  test_id_entry(id = id, what = "author", max.length = 1)
+  authors_path   <- make_rds_path("authors", p_path)
+  authors_tibble <- get_rds(authors_path)
   
-  deleted_author <- change_table(rds_name = "authors",
-                                 p_path   = p_path,
-                                 action   = "delete",
-                                 id       = id)
+  author         <- validate_entry(author,
+                                   what       = "author",
+                                   max.length = 1,
+                                   rds_tibble = authors_tibble)
+  
+  deleted_author <- change_table(rds_name   = "authors",
+                                 rds_path   = authors_path,
+                                 rds_tibble = authors_tibble,
+                                 action     = "delete",
+                                 id         = author)
   
   change_assoc(assoc_name = "author_affiliation_assoc",
                p_path     = p_path,
                new        = FALSE,
-               id1        = id)
+               id1        = author)
   
   change_assoc(assoc_name = "project_PI_assoc",
                p_path     = p_path,
                new        = FALSE,
-               id2        = id)
+               id2        = author)
   
   change_assoc(assoc_name = "project_investigator_assoc",
                p_path     = p_path,
                new        = FALSE,
-               id2        = id)
+               id2        = author)
   
   message("The following author was deleted:")
   return(deleted_author)
@@ -57,29 +68,36 @@ delete_author <- function(id) {
 
 
 #' @export
-delete_project <- function(id, archived = FALSE) {
+delete_project <- function(project, archived = FALSE) {
   
-  p_path <- p_path_internal()
+  p_path          <- p_path_internal()
   
-  test_id_entry(id = id, what = "project", max.length = 1)
+  projects_path   <- make_rds_path("projects", p_path)
+  projects_tibble <- get_rds(projects_path)
   
-  deleted_project <- change_table(rds_name = "projects",
-                                  p_path   = p_path,
-                                  action   = "delete",
-                                  id       = id)
+  project         <- validate_entry(project,
+                                    what       = "project",
+                                    max.length = 1,
+                                    rds_tibble = projects_tibble)
+  
+  deleted_project <- change_table(rds_name   = "projects",
+                                  rds_path   = projects_path,
+                                  rds_tibble = projects_tibble,
+                                  action     = "delete",
+                                  id         = project)
   
   change_assoc(assoc_name = "project_PI_assoc",
                p_path     = p_path,
                new        = FALSE,
-               id1        = id)
+               id1        = project)
   
   change_assoc(assoc_name = "project_investigator_assoc",
                p_path     = p_path,
                new        = FALSE,
-               id1        = id)
+               id1        = project)
   
   pXXXX_path <- 
-    id %>% 
+    project %>% 
     make_project_name() %>% 
     make_project_path(p_path) %>% 
     fs::path()
@@ -97,84 +115,39 @@ delete_project <- function(id, archived = FALSE) {
 
 
 
-
-archive_project <- function(id) {
+#' @export
+archive_project <- function(project) {
   
   p_path <- p_path_internal()
   
-  test_id_entry(id = id, what = "project", max.length = 1)
+  projects_path   <- make_rds_path("projects", p_path)
+  projects_tibble <- get_rds(projects_path)
   
-  change_table(rds_name      = "projects",
-               p_path        = p_path,
-               action        = "edit",
-               id            = id,
-               title         = NA,
-               current_owner = NA,
-               creator       = NA,
-               stage         = NA,
-               deadline_type = NA,
-               deadline      = as.Date(NA),
-               status        = "archived")
+  project <- validate_entry(x = project,
+                            what = "project",
+                            max.length = 1,
+                            rds_tibble = projects_tibble)
+  
+  archived_project <- change_table(rds_name      = "projects",
+                                   p_path        = p_path,
+                                   action        = "edit",
+                                   id            = project,
+                                   title         = NA,
+                                   current_owner = NA,
+                                   creator       = NA,
+                                   stage         = NA,
+                                   deadline_type = NA,
+                                   deadline      = as.Date(NA),
+                                   status        = "archived")
   
   pXXXX_path <-
-    id %>% 
+    project %>% 
     make_project_name() %>% 
     make_project_path(p_path)
   
   fs::file_move(path     = pXXXX_path,
                 new_path = fs::path(p_path, "archive"))
   
-  
+  message("The following project was archived:")
+  return(archived_project)
 }
-
-
-# # @export
-# archive_project <- function(id_to_archive) {
-#   message(paste0(archive_delete(id_to_archive, archive = TRUE),
-#                  " archived. "))
-# }
-# 
-# # @export
-# delete_project <- function(id_to_delete) {
-#   message(paste0(archive_delete(id_to_delete, archive = FALSE),
-#                  " deleted. "))
-# }
-# 
-# # Needs to be fixed so it doesn't depend on project_data()
-# # @importFrom rlang .data
-# archive_delete <- function(id, archive) {
-# 
-#   p <- project_data()
-#   
-#   if(isFALSE(checkmate::test_integerish(id, lower = 1L, upper = 9999L,
-#                                         any.missing = FALSE, unique = TRUE,
-#                                         min.len = 1L, max.len = 9999L))) {
-#     stop("id must be a vector of unique integers between 1 and 9999")
-#   }
-#   
-#   if(!all(id %in% p$list$id)) {
-#     stop("At least one project id not present in projects.rds at ",
-#          p$list_path)
-#   }
-# 
-#   pXXXX_path <-
-#     id %>% 
-#     make_project_name() %>% 
-#     make_project_path(p$folder_path)
-#   
-#   
-#   if(archive) {
-#     fs::file_move(path     = pXXXX_path,
-#                   new_path = fs::path(p$folder_path, "archive"))
-#   }
-#   else {
-#     fs::dir_delete(path = pXXXX_path)
-#   }
-# 
-#   #p$list <-
-#   p$list %>%
-#     dplyr::filter(!(.data$id %in% id)) %>% 
-#     saveRDS(p$list_path)
-#   
-#   return(paste0("Project ", id))
-# }
