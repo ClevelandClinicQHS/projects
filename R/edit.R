@@ -124,13 +124,14 @@ edit_author <- function(author,           last_name = NA,
 ################################################################################
 #' @export
 edit_project <- function(project,                        title         = NA,
-                         current_owner = NA,             creator       = NA,   
+                         current_owner = NA,             corresp_auth  = NA,
+                         creator       = NA,   
                          stage         = NA,             deadline_type = NA,   
                          deadline      = as.Date(NA),
                          status        = "just created",
                          
-                         add_PI,                         remove_PI,
-                         add_investigator,               remove_investigator,
+                         #add_PI,                         remove_PI,
+                         add_author,               remove_author,
                          
                          checklist = c("STROBE", "CONSORT", "PRISMA")) {
   
@@ -145,26 +146,45 @@ edit_project <- function(project,                        title         = NA,
   
   authors_tibble  <- "authors" %>% make_rds_path(p_path) %>% get_rds
   
-  if(!missing(add_PI)) {
-    add_PI              <- validate_entry(add_PI,
-                                          what        = "PI",
+  # if(!missing(add_PI)) {
+  #   add_PI              <- validate_entry(add_PI,
+  #                                         what        = "PI",
+  #                                         rds_tibble  = authors_tibble)
+  # }
+  # if(!missing(remove_PI)) {
+  #   remove_PI           <- validate_entry(x           = remove_PI,
+  #                                         what        = "PI",
+  #                                         rds_tibble  = authors_tibble)
+  #}
+  if(!missing(add_author)) {
+    add_author    <- validate_entry(x           = add_author,
+                                          what        = "author",
                                           rds_tibble  = authors_tibble)
   }
-  if(!missing(remove_PI)) {
-    remove_PI           <- validate_entry(x           = remove_PI,
-                                          what        = "PI",
+  if(!missing(remove_author)) {
+    remove_author <- validate_entry(x           = remove_author,
+                                          what        = "author",
                                           rds_tibble  = authors_tibble)
-  }
-  if(!missing(add_investigator)) {
-    add_investigator    <- validate_entry(x           = add_investigator,
-                                          what        = "investigator",
-                                          rds_tibble  = authors_tibble)
-  }
-  if(!missing(remove_investigator)) {
-    remove_investigator <- validate_entry(x           = remove_investigator,
-                                          what        = "investigator",
-                                          rds_tibble  = authors_tibble)
-  }
+  }  
+  if(!is.null(corresp_auth) && !is.na(corresp_auth)) {
+    corresp_auth        <- validate_entry(x          = corresp_auth,
+                                          what       = "author",
+                                          rds_tibble = authors_tibble)
+    
+    #if(corresp_auth %in% remove_author || corresp_auth )
+  }  
+    
+  #   if(!is.na(corresp_auth) && 
+  #      (corresp_auth %in% remove_author || TRUE)) {
+  #     stop("")
+  #   }
+  # }
+  # 
+  # if(corresp_auth)) {
+  #   if(!missing(remove_auth)) {
+  #     if corresp_auth
+  #   }
+  # }
   
   new_project_row <- change_table(rds_name      = "projects",
                                   rds_path      = projects_path,
@@ -173,63 +193,64 @@ edit_project <- function(project,                        title         = NA,
                                   id            = project,
                                   title         = title,
                                   current_owner = current_owner,
+                                  corresp_auth  = corresp_auth,
                                   creator       = creator,
                                   stage         = stage,
                                   deadline_type = deadline_type,
                                   deadline      = deadline,
                                   status        = status)
   
-  if(missing(add_PI) && missing(remove_PI)) {
-    project_PI_assoc <-
-      "project_PI_assoc" %>% 
+  # if(missing(add_PI) && missing(remove_PI)) {
+  #   project_PI_assoc <-
+  #     "project_PI_assoc" %>% 
+  #     make_rds_path(p_path) %>% 
+  #     get_rds %>% 
+  #     dplyr::filter(.data$id1 == new_project_row$id)
+  # } 
+  # else {
+  #   if(!missing(add_PI)) {
+  #     project_PI_assoc <-
+  #       change_assoc(assoc_name = "project_PI_assoc",
+  #                    p_path     = p_path,
+  #                    new        = TRUE,
+  #                    id1        = project,
+  #                    id2        = add_PI)
+  #   }
+  #   if(!missing(remove_PI)) {
+  #     project_PI_assoc <-
+  #       change_assoc(assoc_name = "project_PI_assoc",
+  #                    p_path     = p_path,
+  #                    new        = FALSE,
+  #                    id1        = project,
+  #                    id2        = remove_PI)
+  #   }
+  # }
+  
+  
+  if(missing(add_author) && missing(remove_author)) {
+    project_author_assoc <-
+      "project_author_assoc" %>% 
       make_rds_path(p_path) %>% 
       get_rds %>% 
       dplyr::filter(.data$id1 == new_project_row$id)
-  } 
+  }
   else {
-    if(!missing(add_PI)) {
-      project_PI_assoc <-
-        change_assoc(assoc_name = "project_PI_assoc",
+    if(!missing(add_author)) {
+      project_author_assoc <-
+        change_assoc(assoc_name = "project_author_assoc",
                      p_path     = p_path,
                      new        = TRUE,
                      id1        = project,
-                     id2        = add_PI)
-    }
-    if(!missing(remove_PI)) {
-      project_PI_assoc <-
-        change_assoc(assoc_name = "project_PI_assoc",
-                     p_path     = p_path,
-                     new        = FALSE,
-                     id1        = project,
-                     id2        = remove_PI)
-    }
-  }
-  
-  
-  if(missing(add_investigator) && missing(remove_investigator)) {
-    project_investigator_assoc <-
-      "project_investigator_assoc" %>% 
-      make_rds_path(p_path) %>% 
-      get_rds %>% 
-      dplyr::filter(.data$id1 == new_project_row$id)
-  }
-  else {
-    if(!missing(add_investigator)) {
-      project_investigator_assoc <-
-        change_assoc(assoc_name = "project_investigator_assoc",
-                     p_path     = p_path,
-                     new        = TRUE,
-                     id1        = project,
-                     id2        = add_investigator)
+                     id2        = add_author)
     }
     
-    if(!missing(remove_investigator)) {
-      project_investigator_assoc <-
-        change_assoc(assoc_name = "project_investigator_assoc",
+    if(!missing(remove_author)) {
+      project_author_assoc <-
+        change_assoc(assoc_name = "project_author_assoc",
                      p_path     = p_path,
                      new        = FALSE,
                      id1        = project,
-                     id2        = remove_investigator)
+                     id2        = remove_author)
     }
   }
   
@@ -249,15 +270,15 @@ edit_project <- function(project,                        title         = NA,
             dplyr::rename(PI_id = id2))
   }
   
-  message("\nEdited project's investigators:")
-  if(nrow(project_investigator_assoc) == 0) {
+  message("\nEdited project's authors:")
+  if(nrow(project_author_assoc) == 0) {
     print("None")
   }
   else {
-    print(project_investigator_assoc %>% 
+    print(project_author_assoc %>% 
             dplyr::left_join(authors_tibble,
                              by = c("id2" = "id")) %>% 
             dplyr::select(-.data$id1) %>% 
-            dplyr::rename(investigator_id = id2))
+            dplyr::rename(author_id = id2))
   }
 }

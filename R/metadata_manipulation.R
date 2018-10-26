@@ -16,10 +16,62 @@ get_rds <- function(rds_path) {
   readRDS(rds_path)
 }
 
+
+################################################################################
+#' @export
+set_default_author <- function(author, overwrite = FALSE) {
+  
+  old_default_author   <- Sys.getenv("PROJECTS_DEFAULT_AUTHOR")
+  home_Renviron_path <- fs::path(Sys.getenv("HOME"), ".Renviron")
+  
+  # If overwite == TRUE, function will run no matter what, overwriting any
+  # pre-existing value of PROJECTS_DEFAULT_AUTHOR in the home .Renviron file.
+  #
+  # If overwrite == FALSE, function will still run UNLESS a
+  # PROJECTS_DEFAULT_AUTHOR value already exists and does not match up with the
+  # user-specified path.
+  if(!overwrite && old_default_author != "" && old_default_author != author) {
+    stop('An .Renviron file (probably at ', home_Renviron_path,
+         ') indicates that the default author was already set to ',
+         old_default_author, '. To change, set overwrite = TRUE')
+  }
+  
+  authors_tibble <- authors()
+  
+  author <- validate_entry(author,
+                         what       = "author",
+                         max.length = 1,
+                         rds_tibble = authors_tibble)
+  
+  home_Renviron_file <- paste0("PROJECTS_DEFAULT_AUTHOR='", author, "'")
+  
+  # If a home .Renviron file already exists, it is overwritten with its original
+  # contents, minus any old values of PROJECTS_DEFAULT_AUTHOR, plus the new value
+  # of PROJECTS_DEFAULT_AUTHOR (i.e., the user-specified path, which could
+  # actually be the same as the old value).
+  if(fs::file_exists(home_Renviron_path)) {
+    old_home_Renviron  <- readr::read_lines(home_Renviron_path)
+    home_Renviron_file <-
+      append(
+        old_home_Renviron[!grepl("PROJECTS_DEFAULT_AUTHOR",
+                                 old_home_Renviron)],
+        # Contents of the old .Renviron file, excluding any pre-existing
+        # PROJECTS_DEFAULT_AUTHOR value
+        
+        home_Renviron_file
+      )
+  }
+  readr::write_lines(home_Renviron_file, path = home_Renviron_path)
+  
+  readRenviron(home_Renviron_path)
+  
+  message("Default author set to:")
+  return(authors_tibble[authors_tibble$id == author,])
+}
+
 ################################################################################
 # Used by all the new_*(), edit_*(), and delete_*() functions
 #' @importFrom rlang .data
-#' @importFrom tibble tibble
 change_table <- function(rds_name,
                          p_path,
                          rds_path,
@@ -27,7 +79,7 @@ change_table <- function(rds_name,
                          action,
                          ...) {
   
-  changes    <- tibble(...)
+  changes    <- list(...)
   
   if(missing(rds_path) || missing(rds_tibble)) {
     rds_path   <- make_rds_path(rds_name, p_path)
@@ -63,9 +115,18 @@ change_table <- function(rds_name,
       }
       if(action == "edit") {
         changes <-
-          tidyr::replace_na(
-            data    = changes,
-            replace = rds_tibble %>% dplyr::filter(.data$id == changes$id))
+          purrr::map2(
+            .x = changes,
+            .y = as.list(dplyr::filter(rds_tibble, .data$id == changes$id)),
+            .f = function(x, y) {
+              if(is.null(x)) {
+                return(NA)
+              }
+              if(is.na(x)) {
+                return(y)
+              }
+              return(x)
+            })
       }
       else {
         deleted_item <- rds_tibble %>% dplyr::filter(.data$id == changes$id)
@@ -107,7 +168,7 @@ change_assoc <- function(assoc_name,
   # 
   # if(!all(integerish_test)) {
   #   stop("For all additions and removals of affiliations, PIs, and ",
-  #        "investigators, enter a vector of id numbers.")
+  #        "authors, enter a vector of id numbers.")
   # }
   
   rds_path      <- make_rds_path(assoc_name, p_path)
@@ -179,7 +240,7 @@ validate_entry <- function(x,
     if(!checkmate::test_character(x, min.chars = 1, any.missing = any.missing,
                                   min.len = 1, max.len = max.length)) {
       stop("Entered ", what, "s must be a vector with maximum length of ",
-           max.length, " with each entry having at least 1")
+           max.length, " with each entry having at least 1 character")
     }
     
     purrr::map_int(

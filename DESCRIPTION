@@ -15,7 +15,7 @@ Depends:
     R (>= 3.5.0)
 Imports: 
     checkmate (>= 1.8.5),
-    dplyr (>= 0.7.6),
+    dplyr (>= 0.7.5),
     fs (>= 1.2.5),
     magrittr (>= 1.5),
     purrr (>= 0.2.4),

@@ -1,6 +1,6 @@
 ################################################################################
 ################################################################################
-# This is a user-friendly wrapper for p_path_internal() below.
+# This is a user-friendly wrapper for p_path_internal() below it
 #' @export
 projects_folder <- function() {
   p_path_internal(error = FALSE)
@@ -25,7 +25,33 @@ p_path_internal <- function(error = TRUE) {
 }
 ################################################################################
 ################################################################################
+# This is a user-friendly wrapper for get_default_author_internal() below it
+#' @export
+get_default_author <- function() {
+  get_default_author_internal()
+}
 
+
+get_default_author_internal <- function(error_piece    = "",
+                                        authors_tibble = authors()) {
+  
+  default_author <- Sys.getenv("PROJECTS_DEFAULT_AUTHOR")
+
+  if(default_author == "") {
+    stop(error_piece, "Default user not found. Please run set_default_author()",
+         " using an id or last_name found in the table produced by authors().")
+  }
+  
+  default_author <- validate_entry(x          = as.numeric(default_author),
+                                 what       = "author",
+                                 max.length = 1L,
+                                 rds_tibble = authors_tibble)
+  
+  return(authors_tibble[authors_tibble$id == default_author,])
+}
+
+################################################################################
+################################################################################
 
 #' @importFrom rlang .data
 #' @export
@@ -132,7 +158,7 @@ authors <- function(author, affiliations = FALSE) {
 
 #' @importFrom rlang .data
 #' @export
-projects <- function(project, PI = FALSE, investigators = FALSE) {
+projects <- function(project, PI = FALSE, authors = FALSE) {
   
   p_path          <- p_path_internal()
   projects_tibble <- 
@@ -150,7 +176,7 @@ projects <- function(project, PI = FALSE, investigators = FALSE) {
     projects_tibble <- projects_tibble %>% dplyr::filter(.data$id %in% project)
   }
   
-  if(PI == TRUE || investigators == TRUE) {
+  if(PI == TRUE || authors == TRUE) {
     
     authors_tibble <- 
       "authors" %>% 
@@ -180,16 +206,16 @@ projects <- function(project, PI = FALSE, investigators = FALSE) {
         suppressMessages
     }
     
-    if(investigators == TRUE) {
-      project_investigator_assoc <-
-        "project_investigator_assoc" %>%
+    if(authors == TRUE) {
+      project_author_assoc <-
+        "project_author_assoc" %>%
         make_rds_path(p_path) %>%
         get_rds() %>% 
         dplyr::filter(.data$id1 %in% projects_tibble$id) %>% 
         dplyr::arrange(.data$id1, .data$id2)
       
       projects_tibble <-
-        project_investigator_assoc %>%
+        project_author_assoc %>%
         dplyr::left_join(projects_tibble, by = c("id1" = "id")) %>% 
         dplyr::mutate(tmp = TRUE) %>% 
         dplyr::left_join(authors_tibble, by = c("id2" = "id")) %>% 

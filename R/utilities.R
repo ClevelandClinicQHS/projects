@@ -12,7 +12,7 @@ make_project_path <- function(project_name, p_path = p_path_internal()) {
 
 check_all_rds <- function() {
   purrr::walk(c("affiliations", "author_affiliation_assoc", "authors",
-                "project_investigator_assoc", "project_PI_assoc", "projects"),
+                "project_author_assoc", "project_PI_assoc", "projects"),
               function(x) {
                 print(x)
                 print(readRDS(fs::path(projects_folder(), "metadata", x,

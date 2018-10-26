@@ -1,7 +1,7 @@
 #' @importFrom tibble tibble
 #' @export
 #' 
-setup_projects_folder <- function(path, overwrite = FALSE) {
+initialize <- function(path, overwrite = FALSE) {
 
   path <- path %>% fs::path_tidy()
   
@@ -46,39 +46,37 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
 
   fs::dir_create(fs::path(path, c("metadata", "archive", "templates")))
   
-  readr::write_lines(CONSORT_template,
-                     fs::path(path, "templates", "CONSORT_template.Rmd"))
-  readr::write_lines(STROBE_template,
-                     fs::path(path, "templates", "STROBE_template.Rmd"))
+  if(!fs::file_exists(fs::path(path, "templates", "CONSORT_template.Rmd"))) {
+    readr::write_lines(CONSORT_template,
+                       fs::path(path, "templates", "CONSORT_template.Rmd"))
+  }
+  
+  if(!fs::file_exists(fs::path(path, "templates", "STROBE_template.Rmd"))) {
+    readr::write_lines(STROBE_template,
+                       fs::path(path, "templates", "STROBE_template.Rmd"))
+  }
   
   purrr::walk2(
-    .x = c("projects", "authors", "affiliations", "project_PI_assoc",
-           "project_investigator_assoc", "author_affiliation_assoc"),
-    .y = 
-      c(
-        list(
-          # projects
-          tibble(id            = integer(),   title    = character(),
-                 current_owner = character(), creator  = character(),
-                 stage         = character(), deadline_type = character(),
-                 deadline      = as.Date(character()),
-                 status        = character()),
-          # authors
-          tibble(id          = integer(),   last_name = character(),
-                 given_names = character(), title     = character(),
-                 degree      = character(), email     = character()),
-          # affiliations
-          tibble(id               = integer(),   department_name= character(),
-                 institution_name = character(), address        = character())),
-        
-        
-        rep(
-          # project-PI, project-investigator, and author-affiliation association
-          # tables
-          list(tibble(id1 = integer(), id2 = integer())),
-          3
-        )
-      ),
+    .x = c("projects", "authors", "affiliations",# "project_PI_assoc",
+           "project_author_assoc", "author_affiliation_assoc"),
+    .y = list(
+           # projects
+           tibble(id            = integer(),   title    = character(),
+                  current_owner = character(), creator  = character(),
+                  stage         = character(), deadline_type = character(),
+                  deadline      = as.Date(character()),
+                  status        = character()),
+           # authors
+           tibble(id          = integer(),   last_name = character(),
+                  given_names = character(), title     = character(),
+                  degree      = character(), email     = character()),
+           # affiliations
+           tibble(id               = integer(),   department_name= character(),
+                  institution_name = character(), address        = character()),
+           # project_author_assoc
+           tibble(id1 = integer(), id2 = integer()),
+           # author_affiliation_assoc
+           tibble(id1 = integer(), id2 = integer())),
     .f =
       function(rds_name, empty_tibble) {
         rds_path <- make_rds_path(rds_name, path)
@@ -88,5 +86,6 @@ setup_projects_folder <- function(path, overwrite = FALSE) {
       }
   )
   
-  message('"projects" folder created at ', path)
+  message('"projects" folder created at:')
+  return(path)
 }

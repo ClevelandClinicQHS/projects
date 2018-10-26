@@ -55,7 +55,7 @@ delete_author <- function(author) {
                new        = FALSE,
                id2        = author)
   
-  change_assoc(assoc_name = "project_investigator_assoc",
+  change_assoc(assoc_name = "project_author_assoc",
                p_path     = p_path,
                new        = FALSE,
                id2        = author)
@@ -91,7 +91,7 @@ delete_project <- function(project, archived = FALSE) {
                new        = FALSE,
                id1        = project)
   
-  change_assoc(assoc_name = "project_investigator_assoc",
+  change_assoc(assoc_name = "project_author_assoc",
                p_path     = p_path,
                new        = FALSE,
                id1        = project)
