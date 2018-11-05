@@ -18,62 +18,10 @@ get_rds <- function(rds_path) {
 
 
 ################################################################################
-#' @export
-set_default_author <- function(author, overwrite = FALSE) {
-  
-  old_default_author   <- Sys.getenv("PROJECTS_DEFAULT_AUTHOR")
-  home_Renviron_path <- fs::path(Sys.getenv("HOME"), ".Renviron")
-  
-  # If overwite == TRUE, function will run no matter what, overwriting any
-  # pre-existing value of PROJECTS_DEFAULT_AUTHOR in the home .Renviron file.
-  #
-  # If overwrite == FALSE, function will still run UNLESS a
-  # PROJECTS_DEFAULT_AUTHOR value already exists and does not match up with the
-  # user-specified path.
-  if(!overwrite && old_default_author != "" && old_default_author != author) {
-    stop('An .Renviron file (probably at ', home_Renviron_path,
-         ') indicates that the default author was already set to ',
-         old_default_author, '. To change, set overwrite = TRUE')
-  }
-  
-  authors_tibble <- authors()
-  
-  author <- validate_entry(author,
-                         what       = "author",
-                         max.length = 1,
-                         rds_tibble = authors_tibble)
-  
-  home_Renviron_file <- paste0("PROJECTS_DEFAULT_AUTHOR='", author, "'")
-  
-  # If a home .Renviron file already exists, it is overwritten with its original
-  # contents, minus any old values of PROJECTS_DEFAULT_AUTHOR, plus the new value
-  # of PROJECTS_DEFAULT_AUTHOR (i.e., the user-specified path, which could
-  # actually be the same as the old value).
-  if(fs::file_exists(home_Renviron_path)) {
-    old_home_Renviron  <- readr::read_lines(home_Renviron_path)
-    home_Renviron_file <-
-      append(
-        old_home_Renviron[!grepl("PROJECTS_DEFAULT_AUTHOR",
-                                 old_home_Renviron)],
-        # Contents of the old .Renviron file, excluding any pre-existing
-        # PROJECTS_DEFAULT_AUTHOR value
-        
-        home_Renviron_file
-      )
-  }
-  readr::write_lines(home_Renviron_file, path = home_Renviron_path)
-  
-  readRenviron(home_Renviron_path)
-  
-  message("Default author set to:")
-  return(authors_tibble[authors_tibble$id == author,])
-}
-
-################################################################################
 # Used by all the new_*(), edit_*(), and delete_*() functions
 #' @importFrom rlang .data
 change_table <- function(rds_name,
-                         p_path,
+                         p_path = p_path_internal(),
                          rds_path,
                          rds_tibble,
                          action,
@@ -109,10 +57,10 @@ change_table <- function(rds_name,
       }
     }
     else {
-      if(!(changes$id %in% rds_tibble$id)) {
-        stop('id not found. Double-check item exists using ',
-             rds_name, '() or create the record')
-      }
+      # if(!(changes$id %in% rds_tibble$id)) {
+      #   stop('id not found. Double-check item exists using ',
+      #        rds_name, '() or create the record')
+      # }
       if(action == "edit") {
         changes <-
           purrr::map2(
@@ -141,12 +89,12 @@ change_table <- function(rds_name,
   
   saveRDS(rds_tibble, rds_path)
   
-  if(action == "delete") {
-    return(deleted_item)
-  }
-  else {
+  # if(action == "delete") {
+  #   return(deleted_item)
+  # }
+  # else {
     return(changes)
-  }
+  # }
 }
 
 
@@ -154,56 +102,34 @@ change_table <- function(rds_name,
 ################################################################################
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
-change_assoc <- function(assoc_name,
-                         p_path = p_path_internal(),
+change_assoc <- function(assoc_path,
+                         assoc_tibble = get_rds(assoc_path),
                          new,
                          ...) {
   
-  assoc_change  <- tibble(...)
-  
-  # integerish_test <-
-  #   purrr::map_lgl(assoc_change,
-  #                  checkmate::test_integerish,
-  #                  lower = 1, upper = 9999, any.missing = FALSE, min.len = 1)
-  # 
-  # if(!all(integerish_test)) {
-  #   stop("For all additions and removals of affiliations, PIs, and ",
-  #        "authors, enter a vector of id numbers.")
-  # }
-  
-  rds_path      <- make_rds_path(assoc_name, p_path)
-  assoc_table   <- get_rds(rds_path)
+  assoc_change   <- tibble(...)
   
   if(new) {
-    assoc_table <- dplyr::bind_rows(assoc_change, assoc_table)
-    
-    if(anyDuplicated(assoc_table) > 0) {
-      stop("At least one of these associations already exists")
-    }
+    assoc_tibble <- dplyr::bind_rows(assoc_change, assoc_tibble)
   }
-  
   else {
-    assoc_table <- suppressMessages(dplyr::anti_join(assoc_table, assoc_change))
+    assoc_tibble <- suppressMessages(dplyr::anti_join(assoc_tibble,
+                                                      assoc_change))
   }
   
-  saveRDS(assoc_table, rds_path)
+  saveRDS(assoc_tibble, assoc_path)
   
-  #if(new) {
-    #assoc_table[assoc_table[[1]] == assoc_change[[1,1]],]
-    return(assoc_table %>% dplyr::filter(.data$id1 == assoc_change[[1,1]]))
-  # }
-  # else {
-  #   return(assoc_table)
-  # }
+  return(assoc_tibble)
 }
 
 
 ################################################################################
 validate_entry <- function(x,
                            what,
-                           max.length  = 9999L,
-                           any.missing = FALSE,
-                           rds_tibble) {
+                           max.length       = 9999L,
+                           any.missing      = FALSE,
+                           rds_tibble,
+                           message_addendum = "") {
   
   if(is.numeric(x) || any.missing == TRUE) {
     
@@ -225,7 +151,7 @@ validate_entry <- function(x,
         purrr::map_lgl(x, checkmate::test_choice, choices = rds_tibble$id)
       
       if(!all(id_checks)) {
-        stop("The following ", what, " id(s) not found: ",
+        stop("The following ", what, " id(s) not found", message_addendum, ":",
              paste(x[!id_checks], collapse = ", "))
       }
     }
@@ -263,4 +189,57 @@ validate_entry <- function(x,
       }
     )
   }
+}
+
+
+################################################################################
+#' @export
+set_default_author <- function(author, overwrite = FALSE) {
+  
+  old_default_author   <- Sys.getenv("PROJECTS_DEFAULT_AUTHOR")
+  home_Renviron_path <- fs::path(Sys.getenv("HOME"), ".Renviron")
+  
+  # If overwite == TRUE, function will run no matter what, overwriting any
+  # pre-existing value of PROJECTS_DEFAULT_AUTHOR in the home .Renviron file.
+  #
+  # If overwrite == FALSE, function will still run UNLESS a
+  # PROJECTS_DEFAULT_AUTHOR value already exists and does not match up with the
+  # user-specified path.
+  if(!overwrite && old_default_author != "" && old_default_author != author) {
+    stop('An .Renviron file (probably at ', home_Renviron_path,
+         ') indicates that the default author was already set to ',
+         old_default_author, '. To change, set overwrite = TRUE')
+  }
+  
+  authors_tibble <- authors()
+  
+  author <- validate_entry(author,
+                           what       = "author",
+                           max.length = 1,
+                           rds_tibble = authors_tibble)
+  
+  home_Renviron_file <- paste0("PROJECTS_DEFAULT_AUTHOR='", author, "'")
+  
+  # If a home .Renviron file already exists, it is overwritten with its original
+  # contents, minus any old values of PROJECTS_DEFAULT_AUTHOR, plus the new value
+  # of PROJECTS_DEFAULT_AUTHOR (i.e., the user-specified path, which could
+  # actually be the same as the old value).
+  if(fs::file_exists(home_Renviron_path)) {
+    old_home_Renviron  <- readr::read_lines(home_Renviron_path)
+    home_Renviron_file <-
+      append(
+        old_home_Renviron[!grepl("PROJECTS_DEFAULT_AUTHOR",
+                                 old_home_Renviron)],
+        # Contents of the old .Renviron file, excluding any pre-existing
+        # PROJECTS_DEFAULT_AUTHOR value
+        
+        home_Renviron_file
+      )
+  }
+  readr::write_lines(home_Renviron_file, path = home_Renviron_path)
+  
+  readRenviron(home_Renviron_path)
+  
+  message("Default author set to:")
+  return(authors_tibble[authors_tibble$id == author,])
 }

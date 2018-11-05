@@ -2,10 +2,13 @@ Package: projects
 Title: A Project Infrastructure for Researchers
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "Nik",
-           family = "Krieger",
-           role = c("aut", "cre"),
-           email = "nk@case.edu")
+    c(person(given = "Nik",
+             family = "Krieger",
+             role = c("aut", "cre"),
+             email = "nk@case.edu"),
+      person(given = "Jarrod",
+             family = "Dalton",
+             role = "aut"))
 Description: Provides a project infrastructure with a focus on
     manuscript creation. Creates a project folder with a single command,
     containing subdirectories for specific components, templates for

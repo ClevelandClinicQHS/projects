@@ -11,11 +11,11 @@ delete_affiliation <- function(affiliation) {
                                         max.length = 1,
                                         rds_tibble = affiliations_tibble)
   
-  deleted_affiliation <- change_table(rds_name   = "affiliations",
-                                      rds_path   = affiliations_path,
-                                      rds_tibble = affiliations_tibble,
-                                      action     = "delete",
-                                      id         = affiliation)
+  change_table(rds_name   = "affiliations",
+               rds_path   = affiliations_path,
+               rds_tibble = affiliations_tibble,
+               action     = "delete",
+               id         = affiliation)
   
   change_assoc(assoc_name = "author_affiliation_assoc",
                p_path     = p_path,
@@ -23,9 +23,10 @@ delete_affiliation <- function(affiliation) {
                id2        = affiliation)
   
   message("The following affiliation was deleted:")
-  return(deleted_affiliation)
+  return(dplyr::filter(affiliations_tibble, .data$id == affiliation))
 }
 
+#' @importFrom rlang .data
 #' @export
 delete_author <- function(author) {
   
@@ -39,21 +40,16 @@ delete_author <- function(author) {
                                    max.length = 1,
                                    rds_tibble = authors_tibble)
   
-  deleted_author <- change_table(rds_name   = "authors",
-                                 rds_path   = authors_path,
-                                 rds_tibble = authors_tibble,
-                                 action     = "delete",
-                                 id         = author)
+  change_table(rds_name   = "authors",
+               rds_path   = authors_path,
+               rds_tibble = authors_tibble,
+               action     = "delete",
+               id         = author)
   
   change_assoc(assoc_name = "author_affiliation_assoc",
                p_path     = p_path,
                new        = FALSE,
                id1        = author)
-  
-  change_assoc(assoc_name = "project_PI_assoc",
-               p_path     = p_path,
-               new        = FALSE,
-               id2        = author)
   
   change_assoc(assoc_name = "project_author_assoc",
                p_path     = p_path,
@@ -61,7 +57,7 @@ delete_author <- function(author) {
                id2        = author)
   
   message("The following author was deleted:")
-  return(deleted_author)
+  return(dplyr::filter(authors_tibble, .data$id == author))
 }
 
 
@@ -80,27 +76,24 @@ delete_project <- function(project, archived = FALSE) {
                                     max.length = 1,
                                     rds_tibble = projects_tibble)
   
-  deleted_project <- change_table(rds_name   = "projects",
-                                  rds_path   = projects_path,
-                                  rds_tibble = projects_tibble,
-                                  action     = "delete",
-                                  id         = project)
+  change_table(rds_name   = "projects",
+               rds_path   = projects_path,
+               rds_tibble = projects_tibble,
+               action     = "delete",
+               id         = project)
   
-  change_assoc(assoc_name = "project_PI_assoc",
-               p_path     = p_path,
+  change_assoc(assoc_path = make_rds_path("project_PI_assoc", p_path),
                new        = FALSE,
                id1        = project)
   
-  change_assoc(assoc_name = "project_author_assoc",
-               p_path     = p_path,
+  change_assoc(assoc_path = make_rds_path("project_author_assoc", p_path),
                new        = FALSE,
                id1        = project)
   
   pXXXX_path <- 
     project %>% 
     make_project_name() %>% 
-    make_project_path(p_path) %>% 
-    fs::path()
+    make_project_path(p_path)
   
   if(archived) {
     pXXXX_path <- fs::path(pXXXX_path, "archived")
@@ -110,7 +103,7 @@ delete_project <- function(project, archived = FALSE) {
   
   message("The following ", ifelse(archived, "archived ", ""),
           "project was deleted:")
-  return(deleted_project)
+  return(dplyr::filter(projects_tibble, .data$id == project))
 }
 
 
@@ -128,17 +121,17 @@ archive_project <- function(project) {
                             max.length = 1,
                             rds_tibble = projects_tibble)
   
-  archived_project <- change_table(rds_name      = "projects",
-                                   p_path        = p_path,
-                                   action        = "edit",
-                                   id            = project,
-                                   title         = NA,
-                                   current_owner = NA,
-                                   creator       = NA,
-                                   stage         = NA,
-                                   deadline_type = NA,
-                                   deadline      = as.Date(NA),
-                                   status        = "archived")
+  change_table(rds_name      = "projects",
+               p_path        = p_path,
+               action        = "edit",
+               id            = project,
+               title         = NA,
+               current_owner = NA,
+               creator       = NA,
+               stage         = NA,
+               deadline_type = NA,
+               deadline      = as.Date(NA),
+               status        = "archived")
   
   pXXXX_path <-
     project %>% 
@@ -149,5 +142,5 @@ archive_project <- function(project) {
                 new_path = fs::path(p_path, "archive"))
   
   message("The following project was archived:")
-  return(archived_project)
+  return(dplyr::filter(projects_tibble, .data$id == project))
 }

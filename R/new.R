@@ -1,78 +1,3 @@
-################################################################################
-#' @export
-new_affiliation <- function(department_name  = NA,
-                            institution_name = NA,
-                            address          = NA,
-                            id               = NA_integer_) {
-  
-  validate_entry(id, what = "affiliation", max.length = 1, any.missing = TRUE)
-  
-  message("New affiliation:")
-  
-  change_table(rds_name         = "affiliations",
-               p_path           = p_path_internal(),
-               action           = "new",
-               id               = id,
-               department_name  = department_name,
-               institution_name = institution_name,
-               address          = address)
-}
-################################################################################
-
-
-
-################################################################################
-#' @importFrom rlang .data
-#' @export
-new_author <- function(last_name = NA, given_names  = NA,
-                       title     = NA, affiliations,
-                       degree    = NA,
-                       email     = NA,
-                       id        = NA_integer_) {
-  
-  p_path         <- p_path_internal()
-  
-  validate_entry(id, what = "author", max.length = 1, any.missing = TRUE)
-  
-  affiliation_tibble <- get_rds(make_rds_path("affiliations", p_path))
-  
-  if(!missing(affiliations)) {
-    affiliations <- validate_entry(affiliations,
-                                   what        = "affiliation",
-                                   rds_tibble  = affiliation_tibble)
-  }
-  
-  new_author_row <- change_table(rds_name     = "authors", 
-                                 p_path       = p_path,
-                                 action       = "new",
-                                 id           = id,
-                                 last_name    = last_name,
-                                 given_names  = given_names,
-                                 title        = title,
-                                 degree       = degree,
-                                 email        = email)
-  
-  message("New author:")
-  print(new_author_row)
-  
-  if(!missing(affiliations)) {
-    new_author_affiliations <- 
-      change_assoc(assoc_name = "author_affiliation_assoc",
-                   p_path     = p_path,
-                   new        = TRUE,
-                   id1        = new_author_row$id,
-                   id2        = affiliations)
-    
-    message("\nNew author's affiliations:")
-    print(new_author_affiliations %>%
-            dplyr::filter(.data$id1 == new_author_row$id) %>%
-            dplyr::left_join(affiliation_tibble,
-                             by = c("id2" = "id")) %>%
-            dplyr::select(-.data$id1) %>% 
-            dplyr::rename(affiliation_id = "id2"))
-  }
-}
-################################################################################
 
 
 
@@ -82,7 +7,7 @@ new_author <- function(last_name = NA, given_names  = NA,
 new_project <- function(title         = NA,         authors,
                         current_owner = NA,         creator  = NA,
                         corresp_auth  = NA,         stage    = NA,   
-                        deadline_type = NA,         deadline = as.Date(NA),
+                        deadline_type = NA,         deadline = NA,
                         id            = NA_integer_,
                         status        = "just created",
                         protocol      = c("STROBE", "CONSORT")) {
@@ -128,7 +53,8 @@ new_project <- function(title         = NA,         authors,
   # If there is at least one author but the current_owner is blank, it is 
   # populated with the first author.
   else {
-    authors <- validate_entry(authors,
+    
+    authors <- validate_entry(all.vars(authors),
                               what       = "author",
                               rds_tibble = authors_tibble)
     if(is.na(current_owner)) {
@@ -154,8 +80,8 @@ new_project <- function(title         = NA,         authors,
   }
   ############################
   ############################
-
-
+  
+  
   ############################
   # Protocol choice processer.
   
@@ -180,7 +106,7 @@ new_project <- function(title         = NA,         authors,
   else {
     protocol <- protocol_choices[protocol_matches[1]]
     
-         if(protocol == "STROBE")  protocol <- STROBE_template
+    if(protocol == "STROBE")  protocol <- STROBE_template
     else if(protocol == "CONSORT") protocol <- CONSORT_template
   }
   
@@ -192,6 +118,8 @@ new_project <- function(title         = NA,         authors,
   ###########################
   ###########################
   
+  
+  # Add new row to project list
   new_project_row <- change_table(rds_name      = "projects",
                                   p_path        = p_path,
                                   action        = "new",
@@ -202,131 +130,37 @@ new_project <- function(title         = NA,         authors,
                                   corresp_auth  = corresp_auth,
                                   stage         = stage,
                                   deadline_type = deadline_type,
-                                  deadline      = deadline,
+                                  deadline      = as.Date(deadline),
                                   status        = status)
   
-  new_project_author_assoc <-
-    change_assoc(assoc_name = "project_author_assoc",
-                 p_path     = p_path,
-                 new        = TRUE,
-                 id1        = new_project_row$id,
-                 id2        = authors)
+  # Add row(s) to project-author association table
+  project_author_assoc <-
+    change_assoc(assoc_path   = make_rds_path("project_author_assoc", p_path),
+                 new          = TRUE,
+                 id1          = new_project_row$id,
+                 id2          = authors)
   
-  project_authors_tbl <- dplyr::filter(authors_tibble, .data$id %in% authors)
-  
-  author_affiliation_assoc <-
-    get_rds(make_rds_path("author_affiliation_assoc", p_path))
   
   affiliations_tibble <-
     get_rds(make_rds_path("affiliations", p_path))
   
-  project_affiliations <-
-    dplyr::filter(author_affiliation_assoc, .data$id1 %in% authors) %>% 
-    dplyr::left_join(affiliations_tibble, by = c("id2" = "id"))
+  author_affiliation_assoc <-
+    get_rds(make_rds_path("author_affiliation_assoc", p_path))
   
   
-  ############################################################
-  # Construction of affiliations line to go in 01_protocol.Rmd
-  
-  if(nrow(project_affiliations) > 0) {
-    
-    affiliations_lines <- character()
-    
-    unique_affiliations <-
-      project_affiliations %>% 
-      dplyr::select(-.data$id1) %>%
-      dplyr::distinct() %>% 
-      dplyr::mutate(superscript = 1:nrow(.))
-    
-    project_affiliations <- 
-      unique_affiliations %>% 
-      dplyr::select(.data$id2, .data$superscript) %>% 
-      dplyr::right_join(project_affiliations, by = "id2")
-    
-    for(a in 1:nrow(unique_affiliations)) {
-      
-      affiliation_line <- paste0("^", a, "^ ",
-                                 unique_affiliations$department_name[a])
-      if(!is.na(project_affiliations$institution_name[a])) {
-        affiliation_line <- paste0(affiliation_line, ", ",
-                                   unique_affiliations$institution_name[a])
-      }
-      if(!is.na(project_affiliations$address[a])) {
-        affiliation_line <- paste0(affiliation_line, ", ",
-                                   unique_affiliations$address[a])
-      }
-      affiliations_lines <- append(affiliations_lines, c("", affiliation_line))
-    }
-  }
-  else {
-    affiliations_lines <- ""
-  }
-  ######################################################
-  ######################################################
-  
-  
-  
-  ######################################################
-  # Construction of author line to go in 01_protocol.Rmd
-  author_line         <- "**_"
-  
-  for(x in 1:nrow(project_authors_tbl)) {
-    
-    if(x != 1) {
-      author_line <- paste0(author_line, " ")
-      
-      if(x == nrow(project_authors_tbl) && x > 1) {
-        author_line <- paste0(author_line, "and ")
-      }
-    }
-    
-    first_piece <- TRUE
-    
-    if(!is.na(project_authors_tbl$given_names[x])) {
-      author_line <- paste0(author_line, project_authors_tbl$given_names[x])
-      first_piece <- FALSE
-    }
-    
-    if(!is.na(project_authors_tbl$last_name[x])) {
-      if(!first_piece) {
-        author_line <- paste0(author_line, " ")
-      }
-      
-      author_line <- paste0(author_line, project_authors_tbl$last_name[x])
-    }
-    
-    if(!is.na(project_authors_tbl$degree[x])) {
-      author_line <- paste0(author_line, ", ", project_authors_tbl$degree[x])
-    }
-    
-    if(x != nrow(project_authors_tbl) && nrow(project_authors_tbl) > 2) {
-      author_line <- paste0(author_line, ";")
-    }
-    
-    x_affiliations <- 
-      project_affiliations %>% 
-      dplyr::filter(.data$id1 == project_authors_tbl$id[x])
-    
-    if(nrow(x_affiliations) > 0) {
-      author_line <- paste0(author_line,
-                            "^",
-                            paste(sort(x_affiliations$superscript),
-                                  collapse = ","),
-                            "^")
-    }
-  }
-  
-  author_line <- paste0(author_line, "_**")
-  ######################################################
-  ######################################################
-  
+  header <-
+    authors_affils_header(project_id               = new_project_row$id,
+                          authors_tibble           = authors_tibble,
+                          affiliations_tibble      = affiliations_tibble,
+                          project_author_assoc     = project_author_assoc,
+                          author_affiliation_assoc = author_affiliation_assoc)
   
   ######################################################
   # Write title and/or header to progs/01_protocol.Rmd
-  # 
-  header   <- c("", author_line, affiliations_lines, "", "\\pagebreak", "")
+  #
+  header   <- c("", header, "", "\\pagebreak", "")
   protocol <- append(protocol, header, after = yaml_bounds[2])
-  
+
   title    <- tools::toTitleCase(title)
   protocol <- append(protocol,
                      paste0('title: "', title, '"'),
@@ -355,14 +189,14 @@ new_project <- function(title         = NA,         authors,
   ######################################################
   ######################################################
   
-  
   message("Project ", new_project_row$id, " has been created at ", pXXXX_path)
   print(tibble::as_tibble(new_project_row) %>% 
           dplyr::select(-.data$current_owner, -.data$creator,
                         -.data$corresp_auth))
   
   message("\nNew project's authors:")
-  print(new_project_author_assoc %>% 
+  print(project_author_assoc %>% 
+          dplyr::filter(.data$id1 == new_project_row$id) %>% 
           dplyr::left_join(authors_tibble,
                            by = c("id2" = "id")) %>% 
           dplyr::select(-.data$id1) %>% 
@@ -380,24 +214,81 @@ new_project <- function(title         = NA,         authors,
 ################################################################################
 
 
+################################################################################
+#' @importFrom rlang .data
+#' @export
+new_author <- function(last_name = NA, given_names  = NA,
+                       title     = NA, affiliations,
+                       degree    = NA,
+                       email     = NA,
+                       id        = NA_integer_) {
+  
+  p_path         <- p_path_internal()
+  
+  validate_entry(id, what = "author", max.length = 1, any.missing = TRUE)
+  
+  if(!missing(affiliations)) {
+    affiliation_tibble <- get_rds(make_rds_path("affiliations", p_path))
+    affiliations       <- validate_entry(affiliations,
+                                         what        = "affiliation",
+                                         rds_tibble  = affiliation_tibble)
+  }
+  
+  new_author_row <- change_table(rds_name     = "authors", 
+                                 p_path       = p_path,
+                                 action       = "new",
+                                 id           = id,
+                                 last_name    = last_name,
+                                 given_names  = given_names,
+                                 title        = title,
+                                 degree       = degree,
+                                 email        = email)
+  
+  authors(author = new_author_row$id, affiliations = TRUE)
+  
+  message("New author:")
+  print(new_author_row)
+  
+  if(!missing(affiliations)) {
+    new_author_affiliations <- 
+      change_assoc(#assoc_name = "author_affiliation_assoc",
+                   #p_path     = p_path,
+                   assoc_path = make_rds_path("author_affiliation_assoc",
+                                              p_path),
+                   new        = TRUE,
+                   id1        = new_author_row$id,
+                   id2        = affiliations) %>% 
+      dplyr::filter(.data$id1 == new_author_row$id)
+    
+    message("\nNew author's affiliations:")
+    print(new_author_affiliations %>%
+            dplyr::filter(.data$id1 == new_author_row$id) %>%
+            dplyr::left_join(affiliation_tibble,
+                             by = c("id2" = "id")) %>%
+            dplyr::select(-.data$id1) %>% 
+            dplyr::rename(affiliation_id = "id2"))
+  }
+}
+################################################################################
+
 
 ################################################################################
+#' @export
+new_affiliation <- function(department_name  = NA,
+                            institution_name = NA,
+                            address          = NA,
+                            id               = NA_integer_) {
+  
+  validate_entry(id, what = "affiliation", max.length = 1, any.missing = TRUE)
+  
+  message("New affiliation:")
+  
+  change_table(rds_name         = "affiliations",
+               p_path           = p_path_internal(),
+               action           = "new",
+               id               = id,
+               department_name  = department_name,
+               institution_name = institution_name,
+               address          = address)
+}
 ################################################################################
-# The internal function that prints associations
-# print_association <- function(main_tibble_name, main_tibble,
-#                               assoc_name, assoc_tibble) {
-# 
-#   message("New ", main_tibble_name, ":")
-#   print(main_tibble)
-#   
-#   message("\nNew ", main_tibble_name, "'s ", assoc_name, "s:")
-#   print(assoc_tibble %>%
-#           dplyr::filter(parse(text = paste0(".data$",
-#                                             main_tibble_name, "_id %in% ",
-#                                             main_tibble, "$id"))) %>%
-#           dplyr::left_join(parse(text = paste0(assoc_tibble, ", by = c(\"",
-#                                                assoc_name,
-#                                                "_id\" = \"id\")"))) %>%
-#           dplyr::select(parse(text = paste0("-.data$",
-#                                             main_tibble_name, "_id"))))
-# }
