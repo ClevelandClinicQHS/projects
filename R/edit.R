@@ -104,7 +104,8 @@ edit_project <- function(project,               title         = NA,
                                   stage         = stage,
                                   deadline_type = deadline_type,
                                   deadline      = as.Date(deadline),
-                                  status        = status)
+                                  status        = status,
+                                  path          = NA_character_)
   
   if(length(authors$remove) > 0) {
     assoc_tibble <-
