@@ -3,7 +3,7 @@
 #' 
 initialize <- function(path, overwrite = FALSE) {
 
-  path <- path %>% fs::path_tidy()
+  path <- fs::path_tidy(path)
   
   if(tolower(fs::path_file(path)) != "projects") {
     path <- fs::path(path, "projects")
@@ -62,14 +62,15 @@ initialize <- function(path, overwrite = FALSE) {
     .y = list(
            # projects
            tibble(id            = integer(),   title    = character(),
-                  current_owner = character(), creator  = character(),
-                  stage         = character(), deadline_type = character(),
-                  deadline      = as.Date(character()),
-                  status        = character()),
+                  current_owner = integer(),   creator  = integer(),
+                  corresp_auth  = integer(),   stage    = character(),
+                  deadline_type = character(), deadline = as.Date(character()),
+                  status        = character(), path     = character()),
            # authors
            tibble(id          = integer(),   last_name = character(),
                   given_names = character(), title     = character(),
-                  degree      = character(), email     = character()),
+                  degree      = character(), email     = character(),
+                  phone       = character(), default   = logical()),
            # affiliations
            tibble(id               = integer(),   department_name= character(),
                   institution_name = character(), address        = character()),
@@ -78,14 +79,37 @@ initialize <- function(path, overwrite = FALSE) {
            # author_affiliation_assoc
            tibble(id1 = integer(), id2 = integer())),
     .f =
-      function(rds_name, empty_tibble) {
+      function(rds_name, tibble) {
         rds_path <- make_rds_path(rds_name, path)
-        if(isFALSE(fs::file_exists(rds_path))) {
-          saveRDS(object = empty_tibble, file = rds_path)
+        if(fs::file_exists(rds_path)) {
+          tibble <- dplyr::bind_rows(readRDS(rds_path), tibble)
         }
+        saveRDS(object = tibble, file = rds_path)
       }
   )
   
-  message('"projects" folder created at:')
-  return(path)
+  message('"projects" folder created at\n', path, '\nAdd affiliations with ', 
+          'new_affiliation(), then add authors with new_author(), then create ',
+          'projects with new_project()')
+  
+}
+
+
+
+#' @export
+setup_projects_folder <- function(path) {
+  
+  p_path <- p_path_internal()
+  
+  path   <- fs::path(p_path, path)
+  
+  if(fs::path_ext(path) != "") {
+    stop("folder must not have a file extension (i.e., text after a period)")
+  }
+  
+  if(fs::dir_exists(path)) {
+    stop("folder already exists")
+  }
+  
+  fs::dir_create(path)
 }

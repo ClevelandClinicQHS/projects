@@ -10,7 +10,7 @@ get_rds <- function(rds_path) {
   
   if(!fs::file_exists(rds_path)) {
     stop(fs::path_file(rds_path), " file not found at ", rds_path,
-         ". Please restore the file or [re]run setup_projects_folder()")
+         ". Please restore the file or [re]run initialize()")
   }
   
   readRDS(rds_path)
@@ -20,81 +20,44 @@ get_rds <- function(rds_path) {
 ################################################################################
 # Used by all the new_*(), edit_*(), and delete_*() functions
 #' @importFrom rlang .data
-change_table <- function(rds_name,
-                         p_path = p_path_internal(),
+change_table <- function(action = c("new", "edit", "delete"),
                          rds_path,
                          rds_tibble,
-                         action,
                          ...) {
   
+  action     <- match.arg(action)
   changes    <- list(...)
   
-  if(missing(rds_path) || missing(rds_tibble)) {
-    rds_path   <- make_rds_path(rds_name, p_path)
-    rds_tibble <- get_rds(rds_path)
+  if(isTRUE(changes$default) && nrow(rds_tibble) > 0) {
+    rds_tibble$default <- FALSE
   }
   
-  if(is.na(changes$id)) {
-    
-    changes$id <- max(rds_tibble$id, 0L) + 1L
-    
-    if(changes$id > 9999) {
-      if(!all(1:9999 %in% rds_tibble$id)) {
-        changes$id <- min(setdiff(1L:9999L, rds_tibble$id))
-      }
-      else {
-        stop("Maximum number of ", rds_name, " reached.")
-      }
-    }
+  if(action == "edit") {
+    changes <-
+      purrr::map2(
+        .x = changes,
+        .y = as.list(dplyr::filter(rds_tibble, .data$id == changes$id)),
+        .f = function(new, old) {
+          if(is.null(new)) {
+            return(NA)
+          }
+          if(is.na(new)) {
+            return(old)
+          }
+          return(new)
+        })
   }
-  else {
-    changes$id <- as.integer(changes$id)
-    
-    if(action == "new") {
-      if(changes$id %in% rds_tibble$id) {
-        stop('id already taken. Try a different one or leave the argument ',
-             'blank for automatic selection.')
-      }
-    }
-    else {
-      # if(!(changes$id %in% rds_tibble$id)) {
-      #   stop('id not found. Double-check item exists using ',
-      #        rds_name, '() or create the record')
-      # }
-      if(action == "edit") {
-        changes <-
-          purrr::map2(
-            .x = changes,
-            .y = as.list(dplyr::filter(rds_tibble, .data$id == changes$id)),
-            .f = function(x, y) {
-              if(is.null(x)) {
-                return(NA)
-              }
-              if(is.na(x)) {
-                return(y)
-              }
-              return(x)
-            })
-      }
-      else {
-        deleted_item <- rds_tibble %>% dplyr::filter(.data$id == changes$id)
-      }
-      rds_tibble <- rds_tibble %>% dplyr::filter(.data$id != changes$id)
-    }
-  }
+  
+  rds_tibble <- dplyr::filter(rds_tibble, .data$id != changes$id)
   
   if(action != "delete") {
     rds_tibble <- dplyr::bind_rows(changes, rds_tibble)
+    changes    <- tibble::as_tibble(changes)
   }
   
   saveRDS(rds_tibble, rds_path)
   
-  # if(action == "delete") {
-  #   return(deleted_item)
-  # }
-  # else {
-    return(changes)
-  # }
+  return(changes)
 }
 
 
@@ -103,14 +66,27 @@ change_table <- function(rds_name,
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 change_assoc <- function(assoc_path,
-                         assoc_tibble = get_rds(assoc_path),
+                         assoc_tibble,
                          new,
                          ...) {
   
   assoc_change   <- tibble(...)
   
   if(new) {
-    assoc_tibble <- dplyr::bind_rows(assoc_change, assoc_tibble)
+    # This sorts the current assoc_tibble so that rows sharing the same id1 as
+    # the new row are put at the bottom
+    assoc_tibble <-
+      dplyr::bind_rows(dplyr::anti_join(assoc_tibble, assoc_change, by = "id1"),
+                       dplyr::semi_join(assoc_tibble, assoc_change, by = "id1"))
+    
+    # The use of head() and tail() ensures that new authors will be inserted
+    # right before the last element on the list unless there had been only one
+    # element in the list--in that case, elements are added to the end of the
+    # list.
+    assoc_tibble <- dplyr::bind_rows(head(assoc_tibble, n = 1),
+                                     head(tail(assoc_tibble, n = -1), n = -1),
+                                     assoc_change,
+                                     tail(tail(assoc_tibble, n = -1), n =  1))
   }
   else {
     assoc_tibble <- suppressMessages(dplyr::anti_join(assoc_tibble,
@@ -122,74 +98,6 @@ change_assoc <- function(assoc_path,
   return(assoc_tibble)
 }
 
-
-################################################################################
-validate_entry <- function(x,
-                           what,
-                           max.length       = 9999L,
-                           any.missing      = FALSE,
-                           rds_tibble,
-                           message_addendum = "") {
-  
-  if(is.numeric(x) || any.missing == TRUE) {
-    
-    if(!checkmate::test_integerish(x, lower = 1, upper = 9999,
-                                   any.missing = any.missing,
-                                   min.len = 1, max.len = max.length)) {
-      
-      if(max.length == 1) {
-        stop("Please enter the ", what, " id as a single integer.")
-      }
-      else {
-        stop("Please enter the ", what, " ids as a vector of integers.")
-      }
-    }
-    
-    if(!missing(rds_tibble)) {
-      
-      id_checks <-
-        purrr::map_lgl(x, checkmate::test_choice, choices = rds_tibble$id)
-      
-      if(!all(id_checks)) {
-        stop("The following ", what, " id(s) not found", message_addendum, ":",
-             paste(x[!id_checks], collapse = ", "))
-      }
-    }
-    return(x)
-  }
-  else {
-    
-    if(missing(rds_tibble)) {
-      stop("id must be an integer")
-    }
-    
-    if(!checkmate::test_character(x, min.chars = 1, any.missing = any.missing,
-                                  min.len = 1, max.len = max.length)) {
-      stop("Entered ", what, "s must be a vector with maximum length of ",
-           max.length, " with each entry having at least 1 character")
-    }
-    
-    purrr::map_int(
-      x,
-      function(string) {
-        matches <- grep(string, rds_tibble[[2]], ignore.case = TRUE)
-        if(length(matches) != 1) {
-          if(length(matches) == 0) {
-            stop("No ", what, " found containing ", string, " in the ",
-                 colnames(rds_tibble)[2])
-          }
-          else if(length(matches) > 1) {
-            print(rds_tibble[matches, ])
-            stop(string, " matches the ", colnames(rds_tibble)[2],
-                 " of all of the above ", what, "s. Be more specific to ",
-                 "differentiate or enter their ", what, " id numbers instead.")
-          }
-        }
-        return(rds_tibble$id[matches])
-      }
-    )
-  }
-}
 
 
 ################################################################################
