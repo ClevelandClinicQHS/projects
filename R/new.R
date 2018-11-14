@@ -1,44 +1,119 @@
-#' Create a new project
+#' Create or edit projects, authors, and affiliations
+#'
+#' These functions create or edit rows in the \code{\link{projects}},
+#' \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
+#' stored in the \emph{.metadata} subdirectory of the main
+#' \code{\link{projects_folder}}.
 #'
 #' \code{new_project()} creates a new R project folder that is automatically
 #' filled with a .Rproj file, helpful subdirectories, and .Rmd files to get your
-#' project workflow started.
+#' project workflow started. The \code{edit_()} functions and the other
+#' \code{new_()} functions only create or edit rows in the \emph{.metadata}
+#' tibbles.
 #'
-#' The folder and .Rproj file both have names of the form "pXXXX", where "XXXX"
-#' denotes the project \code{id} number. The folder will be an immediate
-#' subdirectory of the main projects folder (see \code{\link{setup_projects()}})
-#' unless the argument \code{path} specifies a deeper subdirectory. The user may
-#' enter various metadata about the project that is stored and may be called
-#' forth using the \code{\link{projects()}} function. Some of this metadata will
-#' automatically be added to a \code{\link{header}} atop the automatically
-#' created .Rmd files called progs/01_protocol.Rmd and progs/04_report.Rmd.
+#' Newly created project folders (and the .Rproj files they contain) both have
+#' names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
+#' \code{id} number. The folder will be an immediate subdirectory of the main
+#' projects folder (see \code{\link{setup_projects()}}) unless the argument
+#' \code{path} specifies a deeper subdirectory. The user may enter various
+#' metadata about the project that is stored and may be called forth using the
+#' \code{\link{projects()}} function. Some of this metadata will automatically
+#' be added to the \code{\link{header}} atop the automatically created
+#' \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
+#' \emph{progs/04_report.Rmd}.
 #'
-#' @param title Title of project. Coerced to title case using
-#'   \code{tools::toTitleCase()}.
-#' @param short_title A nickname for the project that can be used to more easily
-#'   select the project when other functions are called (e.g.,
-#'   \code{\link{projects()}} or \code{\link{edit_project()}}).
-#' @param authors A vector of author
-#'   \code{last_names}/\code{given_names}/\code{ids}. Order will be preserved.
-#'   Each element must match a row in the \code{\link{authors()}} table.
-#' @param current_owner A \code{last_names}/\code{given_names}/\code{ids} of one
-#'   of the authors in the \code{\link{authors()}} table.
-#' @param creator A \code{last_names}/\code{given_names}/\code{ids} of one of
-#'   the authors in the \code{\link{authors()}} table. If left blank (i.g.,
-#'   \code{NA}), it will be filled with the \code{id} of the \code{default}
-#'   author.
-#' @param corresp_auth A \code{last_name}/\code{given_names}/\code{id} of one of
-#'   the authors in the \code{\link{authors()}} table. If not left blank, (i.e.,
-#'   \code{NA}), this author's information
-#' @param stage
-#' @param deadline_type
-#' @param deadline
-#' @param id
-#' @param status
-#' @param path
-#' @param protocol
-#' @param make_directories
-#' @param use_bib
+#' @param id An integer that will become the item's permanent identification
+#'   number. Must be in the range 1-9999 or left blank. If left blank, the
+#'   lowest available integer in the aforemntioned range will be selected.
+#'
+#'   For \code{new_project}, this number will also determine the project
+#'   folder's and \emph{.Rproj} file's names, which are of the form
+#'   "p\emph{XXXX}". If the \code{id} number is not four digits long, it will be
+#'   padded on the left side with 0s.
+#' @param title For the \code{_project()} functions, the title of the project;
+#'   for \code{new_project()} only, the user input is coerced to title case
+#'   using \code{tools::toTitleCase()}.
+#'
+#'   For the \code{_author()} functions, the job title of the author.
+#' @param short_title A nickname for the project. Can be used in other
+#'   \code{projects} package functions whenever needing to specify a project.
+#' @param given_names,last_name,department_name,institution_name Each a single
+#'   character string. Can be used whenever needing to specify a specific
+#'   author/affiliation.
+#' @param degree A character string (preferably an abbreviation) denoting the
+#'   author's academic degree(s). Will be written next to author names in the
+#'   \code{\link{header}}.
+#' @param email,phone A charcter string denoting the email/phone of the author.
+#'   Email will be coerced to lowercase. When a project is given a
+#'   \code{corresp_auth}, these items will be included in the
+#'   \code{\link{header}}.
+#' @param address A character string indicating the address of the affiliation.
+#' @param author,affiliation The \code{id} or unambiguous
+#'   \code{given_names}/\code{last_name} or
+#'   \code{department_name}/\code{institution_name} of a specific
+#'   author/affiliation to edit.
+#' @param authors,affiliations For \code{new_project()}/\code{new_author()}, a
+#'   vector of \code{id}s or unambiguous \code{given_names}/\code{last_name} or
+#'   \code{department_name}/\code{institution_name} of
+#'   \code{\link{authors}}/\code{\link{affiliations}}. Order will be preserved.
+#'
+#'   For \code{edit_project()}/\code{edit_author()}, a formula specifying
+#'   \code\{\link{authors}}/\code{\link{affiliations}} to add or remove from the
+#'   project/author. Formulas must have no lefthand side (i.e., begin with \code{~})
+#'   and use \code{+} to add authors and \code{-} to remove authors. Authors may
+#'   be specified by \code{id} or name.
+#'
+#'   Each element must match a row in the \code{\link{authors}} tibble.
+#' @param creator,default \code{creator} is an \code{id} or unambiguous
+#'   \code{last_name}/\code{given_names} of one of the authors in the
+#'   \code{\link{authors}} table. If left blank (e.g., \code{NA}), it will be
+#'   filled with the \code{id} of the \code{default} author.
+#'
+#'   \code{default}, when \code{TRUE}, flags the default author. Setting an
+#'   author with \code{default = TRUE} will automatically set all other authors
+#'   to \code{default = FALSE}.
+#' @param corresp_auth,current_owner An \code{id} or unambiguous
+#'   \code{last_name}/\code{given_names} of one of the authors in the
+#'   \code{\link{authors}} table.
+#'
+#'   If \code{corresp_auth} is specified, all of this author's contact
+#'   information will be especially included in the project's
+#'   \code{\link{header}}.
+#' @param stage A factor with the levels \code{c("design", "data collection",
+#'   "analysis", "manuscript", "under review", "accepted")}, communicating the
+#'   stage the project is in.
+#' @param deadline_type A free text field, intended to communicate the meaning
+#'   of the next field, \code{deadline}.
+#' @param deadline A \code{Date} or a character string that can be coerced to a
+#'   \code{Date}.
+#' @param status A free text field, intended to communicate the most current
+#'   condition the project is in.
+#'
+#'   For \code{new_project()}, default is \code{"just created"}.
+#' @param path A character string that can be read as a file path. It may be a
+#'   relative path to be added to the end of the main
+#'   \code{\link{project_folder}}, or it may contain the
+#'   \code{\link{project_folder}}'s path as its parent path. Either way, the
+#'   result is that the new project folder will be a subdirectory of the main
+#'   \code{\link{project_folder}}. See also \code{\link{setup_projects()}}.
+#' @param protocol A character string matching one of the included
+#'   protocol/report templates (viz., one of \code{c("STROBE", "CONSORT")}), or
+#'   the file name of a custom template in the .templates subdirectory within
+#'   the main \code{\link{projects_folder}}. If using a custom template, make
+#'   sure to match the case and file extension exactly.
+#' @param make_directories Logical, indicating whether or \code{new_project()}
+#'   should create subdirectories specified in the \code{path} argument that do
+#'   not already exist. Ignored if \code{path} is left blank or if all
+#'   directories in \code{path} already exist.
+#' @param use_bib Logical. If \code{TRUE}, a blank \emph{.bib} file will be
+#'   written into the \strong{progs} subdirectory of the newly created project
+#'   folder. Its name will be of the form "\emph{pXXXX.bib}", and the YAML
+#'   header of \emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd} will
+#'   include the line "bibliography: pXXXX.bib".
+#' @param datawork_template,analysis_template Optional file names of custom
+#'   templates to be used to create \emph{progs/02_datawork.Rmd} and/or
+#'   \emph{progs/03_analysis.Rmd}. Make sure to match the case and file
+#'   extension exactly.
 #'
 #' @importFrom rlang .data
 #' @importFrom tibble tibble
@@ -254,6 +329,7 @@ new_project <- function(title    = NA,                     short_title   = NA,
 
 
 ################################################################################
+#' @rdname new_project
 #' @importFrom rlang .data
 #' @export
 new_author <- function(given_names = NA,    last_name    = NA,
@@ -341,6 +417,7 @@ new_author <- function(given_names = NA,    last_name    = NA,
 
 
 ################################################################################
+#' @rdname new_project
 #' @export
 new_affiliation <- function(department_name  = NA, institution_name = NA,
                             address          = NA, id               = NA) {

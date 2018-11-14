@@ -2,6 +2,7 @@
 % Please edit documentation in R/getters.R
 \name{projects}
 \alias{projects}
+\alias{}
 \title{View the tibble of all projects.}
 \usage{
 projects(project, authors = FALSE)

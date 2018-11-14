@@ -1,4 +1,5 @@
 ################################################################################
+#' @rdname new_project
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
@@ -177,6 +178,7 @@ edit_project <- function(project,            title          = NA,
 
 
 ################################################################################
+#' @rdname new_project
 #' @importFrom rlang .data
 #' @export
 edit_author <- function(author,            given_names   = NA,
@@ -269,6 +271,7 @@ edit_author <- function(author,            given_names   = NA,
 
 
 ################################################################################
+#' @rdname new_project
 #' @export
 edit_affiliation <- function(affiliation,           department_name  = NA,
                              institution_name = NA, address          = NA) {
@@ -295,6 +298,156 @@ edit_affiliation <- function(affiliation,           department_name  = NA,
 }
 ################################################################################
 
+
+
+#' @importFrom rlang .data
+#' @export
+delete_project <- function(project) {
+
+  p_path          <- p_path_internal()
+
+  projects_path   <- make_rds_path("projects", p_path)
+  projects_tibble <- get_rds(projects_path)
+
+  project         <- validate_entry(project,
+                                    what       = "project",
+                                    max.length = 1,
+                                    rds_tibble = projects_tibble)
+
+  pa_assoc_path   <- make_rds_path("project_author_assoc", p_path)
+  pa_assoc_tibble <- get_rds(pa_assoc_path)
+
+  project_row     <- dplyr::filter(projects_tibble, .data$id == project)
+
+  print(project_row)
+
+  if(!fs::dir_exists(project_row$path)) {
+    user_prompt(
+      msg   = paste0("Project folder not found at\n", project_row$path,
+                     "\nDelete only its metadata? (y/n)"),
+      # y_msg = paste0(""),
+      n_msg = paste0("Deletion not completed. Restore folder to ",
+                     project_row$path, ' or rerun this command, inputting "y" ',
+                     'instead of "n" when asked whether or not to continue.'))
+  }
+  else {
+    user_prompt(
+      msg   = paste0("Are you sure you want to delete the above project and ",
+                     "its entire folder, which is located at\n",
+                     project_row$path, "\n? (y/n)"),
+      n_msg = paste0('Deletion not completed. If deletion is desired, try ',
+                     'again and enter "y".'))
+    fs::dir_delete(path = project_row$path)
+  }
+
+  change_table(action     = "delete",        rds_path   = projects_path,
+               rds_tibble = projects_tibble, id         = project)
+
+  change_assoc(assoc_path   = pa_assoc_path, assoc_tibble = pa_assoc_tibble,
+               new          = FALSE,         id1          = project)
+
+  print(project_row)
+  message("The above project was deleted.")
+  return(invisible(project_row))
+}
+
+
+
+#' @importFrom rlang .data
+#' @export
+delete_author <- function(author) {
+
+  p_path          <- p_path_internal()
+
+  projects_path   <- make_rds_path("projects", p_path)
+  projects_tibble <- get_rds(projects_path)
+
+  authors_path    <- make_rds_path("authors", p_path)
+  authors_tibble  <- get_rds(authors_path)
+
+  author          <- validate_entry(author,
+                                    what       = "author",
+                                    max.length = 1,
+                                    rds_tibble = authors_tibble)
+
+  pa_assoc_path   <- make_rds_path("project_author_assoc", p_path)
+  pa_assoc_tibble <- get_rds(pa_assoc_path)
+
+  aa_assoc_path   <- make_rds_path("author_affiliation_assoc", p_path)
+  aa_assoc_tibble <- get_rds(aa_assoc_path)
+
+  author_row      <- dplyr::filter(authors_tibble, .data$id == author)
+
+  print(author_row)
+  user_prompt(
+    msg   = "Are you sure you want to delete the above author? (y/n)",
+    n_msg = paste0('Deletion not completed. If deletion is desired, ',
+                   'input "y" next time.'))
+
+  change_table(action     = "delete",
+               rds_path   = authors_path,
+               rds_tibble = authors_tibble,
+               id         = author)
+
+  clear_special_author(author          = author,
+                       projects_path   = projects_path,
+                       projects_tibble = projects_tibble)
+
+  change_assoc(assoc_path   = pa_assoc_path,
+               assoc_tibble = pa_assoc_tibble,
+               new          = FALSE,
+               id2          = author)
+
+  change_assoc(assoc_path   = aa_assoc_path,
+               assoc_tibble = aa_assoc_tibble,
+               new          = FALSE,
+               id1          = author)
+
+  print(author_row)
+  message("The above author was deleted.")
+}
+
+
+
+#' @importFrom rlang .data
+#' @export
+delete_affiliation <- function(affiliation) {
+
+  p_path              <- p_path_internal()
+
+  affiliations_path   <- make_rds_path("affiliations", p_path)
+  affiliations_tibble <- get_rds(affiliations_path)
+
+  aa_assoc_path       <- make_rds_path("author_affiliation_assoc", p_path)
+  aa_assoc_tibble     <- get_rds(aa_assoc_path)
+
+  affiliation         <- validate_entry(affiliation,
+                                        what       = "affiliation",
+                                        max.length = 1,
+                                        rds_tibble = affiliations_tibble)
+
+  affiliation_row     <- dplyr::filter(affiliations_tibble,
+                                       .data$id == affiliation)
+
+  print(affiliation_row)
+  user_prompt(
+    msg   = "Are you sure you want to delete the above affiliation? (y/n)",
+    n_msg = paste0('Deletion not completed. If deletion is desired, ',
+                   'input "y" next time.'))
+
+  change_table(action     = "delete",
+               rds_path   = affiliations_path,
+               rds_tibble = affiliations_tibble,
+               id         = affiliation)
+
+  change_assoc(assoc_path   = aa_assoc_path,
+               assoc_tibble = aa_assoc_tibble,
+               new          = FALSE,
+               id2          = affiliation)
+
+  print(affiliation_row)
+  message("The above affiliation was deleted.")
+}
 
 
 
