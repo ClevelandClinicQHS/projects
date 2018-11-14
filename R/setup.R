@@ -1,17 +1,17 @@
 #' @importFrom tibble tibble
 #' @export
-#' 
-initialize <- function(path, overwrite = FALSE) {
+#'
+setup_projects <- function(path, overwrite = FALSE) {
 
   path <- fs::path_tidy(path)
-  
+
   if(tolower(fs::path_file(path)) != "projects") {
     path <- fs::path(path, "projects")
   }
-  
+
   old_path           <- Sys.getenv("PROJECTS_FOLDER_PATH")
   home_Renviron_path <- fs::path(Sys.getenv("HOME"), ".Renviron")
-  
+
   # If overwite == TRUE, function will run no matter what, overwriting any
   # pre-existing value of PROJECTS_FOLDER_PATH in the home .Renviron file.
   #
@@ -23,7 +23,7 @@ initialize <- function(path, overwrite = FALSE) {
          ') indicates that a "projects" folder already exists at ',
          old_path, '. Rerun with that path OR set overwrite = TRUE')
   }
-  
+
   home_Renviron_file <- paste0("PROJECTS_FOLDER_PATH='", path, "'")
 
   # If a home .Renviron file already exists, it is overwritten with its original
@@ -37,35 +37,36 @@ initialize <- function(path, overwrite = FALSE) {
         old_home_Renviron[!grepl("PROJECTS_FOLDER_PATH", old_home_Renviron)],
         # Contents of the old .Renviron file, excluding any pre-existing
         # PROJECTS_FOLDER_PATH value
-        
+
         home_Renviron_file)
   }
   readr::write_lines(home_Renviron_file, path = home_Renviron_path)
-  
+
   readRenviron(home_Renviron_path)
 
-  fs::dir_create(fs::path(path, c("metadata", "archive", "templates")))
-  
-  if(!fs::file_exists(fs::path(path, "templates", "CONSORT_template.Rmd"))) {
+  fs::dir_create(fs::path(path, c(".metadata", ".templates")))
+
+  if(!fs::file_exists(fs::path(path, ".templates", "CONSORT_template.Rmd"))) {
     readr::write_lines(CONSORT_template,
-                       fs::path(path, "templates", "CONSORT_template.Rmd"))
+                       fs::path(path, ".templates", "CONSORT_template.Rmd"))
   }
-  
-  if(!fs::file_exists(fs::path(path, "templates", "STROBE_template.Rmd"))) {
+
+  if(!fs::file_exists(fs::path(path, ".templates", "STROBE_template.Rmd"))) {
     readr::write_lines(STROBE_template,
-                       fs::path(path, "templates", "STROBE_template.Rmd"))
+                       fs::path(path, ".templates", "STROBE_template.Rmd"))
   }
-  
+
   purrr::walk2(
-    .x = c("projects", "authors", "affiliations",# "project_PI_assoc",
+    .x = c("projects", "authors", "affiliations",
            "project_author_assoc", "author_affiliation_assoc"),
     .y = list(
            # projects
-           tibble(id            = integer(),   title    = character(),
-                  current_owner = integer(),   creator  = integer(),
-                  corresp_auth  = integer(),   stage    = character(),
-                  deadline_type = character(), deadline = as.Date(character()),
-                  status        = character(), path     = character()),
+           tibble(id          = integer(),         title         = character(),
+                  short_title = character(),       current_owner = integer(),
+                  creator     = integer(),         corresp_auth  = integer(),
+                  stage       = character(),       deadline_type = character(),
+                  deadline    = as.Date(character()),
+                  status      = character(),       path          = character()),
            # authors
            tibble(id          = integer(),   last_name = character(),
                   given_names = character(), title     = character(),
@@ -87,29 +88,9 @@ initialize <- function(path, overwrite = FALSE) {
         saveRDS(object = tibble, file = rds_path)
       }
   )
-  
-  message('"projects" folder created at\n', path, '\nAdd affiliations with ', 
+
+  message('"projects" folder created at\n', path, '\nAdd affiliations with ',
           'new_affiliation(), then add authors with new_author(), then create ',
           'projects with new_project()')
-  
-}
 
-
-
-#' @export
-setup_projects_folder <- function(path) {
-  
-  p_path <- p_path_internal()
-  
-  path   <- fs::path(p_path, path)
-  
-  if(fs::path_ext(path) != "") {
-    stop("folder must not have a file extension (i.e., text after a period)")
-  }
-  
-  if(fs::dir_exists(path)) {
-    stop("folder already exists")
-  }
-  
-  fs::dir_create(path)
 }
