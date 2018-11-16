@@ -21,10 +21,12 @@ validate_int <- function(x, what, rds_tibble = NULL, max.length) {
                                  min.len = 1, max.len = max.length)) {
 
     if(max.length == 1) {
-      stop("Please enter the ", what, " id as a single integer.")
+      stop("Please enter the ", what,
+           " id as a single integer between 1 and 9999.")
     }
     else {
-      stop("Please enter the ", what, " ids as a vector of integers.")
+      stop("Please enter the ", what,
+           " ids as a vector of integers, all between 1 and 9999.")
     }
   }
 
@@ -137,15 +139,14 @@ validate_new <- function(id, what, rds_tibble) {
     id <- min(setdiff(1L:9999L, rds_tibble$id))
   }
   else {
-    if(!dplyr::between(id, 1L, 9999L)) {
-      stop("id must be between 1 and 9999.")
-    }
+
+    id <- validate_int(x = id, what = what, max.length = 1)
+
     if(id %in% rds_tibble$id) {
       stop('id number already taken. Try a different one or leave the ',
            'argument blank for automatic selection ',
            '(the lowest counting number still available).')
     }
-    id <- as.integer(id)
   }
 
   return(id)
@@ -156,16 +157,21 @@ validate_directory <- function(path,
                                p_path = p_path_internal(),
                                make_directories = FALSE) {
 
-  if(fs::path_ext(path) != "") {
-    stop("path must not have a file extension.")
-  }
+  path <- fs::path_tidy(path)
 
-  if(!fs::path_has_parent(path, p_path)) {
-    path <- fs::path(p_path, path)
+  if(is.null(p_path)) {
+    if(tolower(fs::path_file(path)) == "projects") {
+      path <- fs::path_dir(path)
+    }
+  }
+  else {
+    if(!fs::path_has_parent(path, p_path)) {
+      path <- fs::path(p_path, path)
+    }
   }
 
   if(!make_directories && !fs::dir_exists(path)) {
-    stop("Specified path does not exist. Create it or set ",
+    stop("Specified directory does not exist. Create it or set ",
          "make_directories = TRUE.")
   }
 

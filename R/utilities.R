@@ -18,7 +18,14 @@ check_all_rds <- function() {
 }
 
 user_prompt <- function(msg, y_msg, n_msg, error = TRUE) {
-  prompt <- NULL
+
+  if(isTRUE(getOption('knitr.in.progress'))) {
+    prompt <- "y"
+  }
+  else {
+    prompt <- NULL
+  }
+
   while(is.null(prompt) || !(prompt %in% c("y", "n"))) {
     if(!is.null(prompt)) {
       message("\nInvalid input.\n")
@@ -47,59 +54,64 @@ fix_metadata <- function(path = ".metadata") {
   purrr::walk(
     .x = c("projects", "authors", "affiliations",
            "project_author_assoc", "author_affiliation_assoc"),
-    .f = 
+    .f =
       function(x) {
         tibble <- readRDS(file = fs::path(p_path, path, x, ext = "rds"))
         if(x == "projects") {
           tibble$id <- as.integer(tibble$id)
-          
+
           tibble$deadline <- as.Date(tibble$deadline)
-          
+
+          tibble$stage <- factor(tibble$stage,
+                                 levels = c("1: design", "2: data collection",
+                                              "3: analysis", "4: manuscript",
+                                              "5: under review", "6: accepted"))
+
           if(is.null(tibble$creator)) {
             tibble$creator <- NA_integer_
           }
           else {
             tibble$creator <- as.integer(tibble$creator)
           }
-          
+
           if(is.null(tibble$current_owner)) {
             tibble$current_owner <- NA_integer_
           }
           else {
             tibble$current_owner <- as.integer(tibble$current_owner)
           }
-          
+
           if(is.null(tibble$corresp_auth)) {
             tibble$corresp_auth <- NA_integer_
           }
           else {
             tibble$corresp_auth <- as.integer(tibble$corresp_auth)
           }
-          
+
           if(is.null(tibble$creator)) {
             tibble$creator <- NA_integer_
           }
           else {
             tibble$creator <- as.integer(tibble$creator)
           }
-          
+
           if(is.null(tibble$path)) {
             tibble <-
               dplyr::mutate(
                 tibble,
                 path = fs::path(p_path, make_project_name(.data$id)))
           }
-          
+
           if(is.null(tibble$short_title)) {
             tibble$short_title <- NA_character_
           }
-          
+
           tibble <- dplyr::select(
             tibble,
             id, title, short_title, current_owner, creator, corresp_auth,
             stage, deadline_type, deadline, status, path)
         }
-        
+
         if(x == "authors") {
           tibble$id <- as.integer(tibble$id)
           if(is.null(tibble$phone)) {
@@ -108,37 +120,41 @@ fix_metadata <- function(path = ".metadata") {
           if(is.null(tibble$default)) {
             tibble$default <- FALSE
           }
-          
+
           tibble <-
             dplyr::select(
               tibble,
               id, given_names, last_name, title, degree, email, phone, default)
         }
-        
+
         if(x == "affiliations") {
           tibble$id <- as.integer(tibble$id)
         }
-        
+
         if(x == "project_author_assoc") {
-          
+
           if(fs::file_exists(fs::path(p_path, path, "project_PI_assoc",
                                       ext = "rds"))) {
             PI <-
               readRDS(file = fs::path(p_path, path, "project_PI_assoc",
                                       ext = "rds")) %>%
-              dplyr::mutate(id1 = as.integer(id1), id2 = as.integer(id2))
-            
-            tibble <- dplyr::mutate(id1 = as.integer(id1), id2 = as.integer(id2))
+              dplyr::mutate(id1 = as.integer(.data$id1),
+                            id2 = as.integer(.data$id2))
+
+            tibble <- dplyr::mutate(tibble,
+                                    id1 = as.integer(.data$id1),
+                                    id2 = as.integer(.data$id2))
             tibble <- dplyr::bind_rows(PI, tibble)
           }
-  
+
         }
-        
+
         if(x == "author_affiliation_assoc") {
-          tibble <- dplyr::mutate(tibble, 
-                                  id1 = as.integer(id1), id2 = as.integer(id2))
+          tibble <- dplyr::mutate(tibble,
+                                  id1 = as.integer(.data$id1),
+                                  id2 = as.integer(.data$id2))
         }
-        
+browser()
         saveRDS(tibble, file = fs::path(p_path, ".metadata", x, ext = "rds"))
       })
 }
@@ -159,7 +175,7 @@ print_header_internal <- function(
 {
   project_authors <-
     dplyr::filter(project_author_assoc, .data$id1 == project_id)$id2
-  
+
   taa_to_console(
     title  = project_row$title,
     header = aa_header(project_id               = project_id,
@@ -182,13 +198,13 @@ build_protocol_report <- function(protocol, p_path, project_id, title,
                                   corresp_auth, authors_tibble,
                                   affiliations_tibble, project_authors,
                                   aa_assoc_tibble, use_bib, pXXXX_name) {
-  
+
   protocol        <- protocol_selector(selection = protocol, p_path = pa_path)
-  
+
   protocol_report <- list(protocol, report)
-  
+
   yaml_bounds     <- lapply(X = protocol_report, FUN = yaml_bounds)
-  
+
   if(!missing(project_authors)) {
     protocol_report <- purrr::map2(
       .x = protocol_report,
@@ -202,7 +218,7 @@ build_protocol_report <- function(protocol, p_path, project_id, title,
                       project_authors          = project_authors,
                       author_affiliation_assoc = aa_assoc_tibble))
   }
-  
+
   protocol_report <- purrr::map2(
     .x = protocol_report,
     .y = yaml_bounds,
@@ -212,7 +228,7 @@ build_protocol_report <- function(protocol, p_path, project_id, title,
                                use_bib     = use_bib,
                                pXXXX_name  = pXXXX_name)
   )
-  
+
   return(setNames(protocol_report, c("protocol", "report")))
 }
 
@@ -224,46 +240,46 @@ protocol_selector <- function(selection, p_path) {
   protocol_upper   <- toupper(selection)
   protocol_choices <- eval(formals("new_project")[["protocol"]])
   protocol_matches <- pmatch(protocol_upper, protocol_choices)
-  
+
   # If the user did not leave protocol blank or choose "STROBE" or "CONSORT"
   if(identical(protocol_matches, NA_integer_)) {
-    
+
     protocol_path <- fs::path(p_path, ".templates", selection)
-    
+
     if(!fs::file_exists(protocol_path)) {
       stop("protocol does not match ", paste(protocol_choices, collapse = ", "),
            ", and no custom template found at the file path ", selection,
            " (check the case, and don't forget file extension).")
     }
-    
+
     selection  <- readr::read_lines(protocol_path)
   }
-  
+
   else {
     selection <- protocol_choices[protocol_matches[1]]
-    
+
     if(selection == "STROBE") {
       selection <- STROBE_template
     }
     else if(selection == "CONSORT") {
       selection <- CONSORT_template
     }
-    
+
     selection <- append(selection, protocol, after = 0L)
   }
-  
+
   return(selection)
 }
 
 
 yaml_bounds <- function(vector) {
-  
+
   yaml_bounds <- grep("^---$", vector)
   if(length(yaml_bounds) < 2) {
     stop("Custom template must have a yaml header. (Check that there are no ",
          "spaces before or after each ---)")
   }
-  
+
   return(yaml_bounds)
 }
 
@@ -271,18 +287,18 @@ yaml_bounds <- function(vector) {
 insert_aa <- function(vector, project_id, yaml_bounds, corresp_auth,
                       authors_tibble, affiliations_tibble,
                       project_authors, author_affiliation_assoc) {
-  
+
   aa_header   <- aa_header(project_id = project_id,
                            corresp_auth = corresp_auth,
                            authors_tibble = authors_tibble,
                            affiliations_tibble = affiliations_tibble,
                            project_authors          = project_authors,
                            author_affiliation_assoc = author_affiliation_assoc)
-  
+
   vector <- append(x      = vector,
                    values = c("", aa_header, "", "\\pagebreak", ""),
                    after  = yaml_bounds[2])
-  
+
   return(vector)
 }
 
@@ -290,34 +306,34 @@ insert_aa <- function(vector, project_id, yaml_bounds, corresp_auth,
 
 protocol_report_yaml <- function(vector, title, yaml_bounds, use_bib,
                                  pXXXX_name) {
-  
+
   yaml <- c(paste0('title: "', title, '"'),
             "output:",
             "  word_document: default",
             "  html_document:",
             "    css: style.css")
-  
+
   if(use_bib) {
     yaml <- append(yaml, paste0("bibliography: ", pXXXX_name, ".bib"))
   }
-  
+
   vector <- append(x      = vector,
                    values = yaml,
                    after  = yaml_bounds[1])
-  
+
   return(vector)
 }
 
 
 build_datawork_analysis <- function(template, what, p_path, pXXXX_name) {
-  
+
   if(is.null(template)) {
     template <- get(what)
   }
   else {
-    
+
     template_path <- fs::path(p_path, ".templates", template)
-    
+
     if(fs::file_exists(path = template_path)) {
       template <- readr::read_lines(file = template_path)
     }
@@ -326,13 +342,13 @@ build_datawork_analysis <- function(template, what, p_path, pXXXX_name) {
            "\nCheck case and file extensions.")
     }
   }
-  
+
   yaml_bounds <- yaml_bounds(vector = template)
-  
+
   template    <- append(x      = template,
                         values = paste0('title: "', pXXXX_name, ' ', what, '"'),
                         after  = yaml_bounds[1])
-  
+
   return(template)
 }
 
@@ -343,12 +359,12 @@ build_datawork_analysis <- function(template, what, p_path, pXXXX_name) {
 aa_header <- function(project_id, corresp_auth, authors_tibble,
                       affiliations_tibble, project_authors,
                       author_affiliation_assoc) {
-  
+
   # The left_join/select/rename combo was used instead of semi_join so that the
   # order in project_author_assoc would be preserved
   project_authors <-
     dplyr::left_join(tibble(id = project_authors), authors_tibble, by = "id")
-  
+
   # In effect, this is author_affiliations_assoc (1) filtered to only include
   # authors on the project who have at least one affiliation and (2) all
   # affiliation information filled in.
@@ -360,13 +376,13 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
     dplyr::select("id1" = "id") %>%
     dplyr::inner_join(author_affiliation_assoc, by = "id1") %>%
     dplyr::left_join(affiliations_tibble, by = c("id2" = "id"))
-  
-  
+
+
   ############################################################
   # Construction of affiliations line to go in 01_protocol.Rmd
-  
+
   if(nrow(aa_assoc_complete) > 0) {
-    
+
     # A tibble of the unique affiliations associated with the project, with a
     # superscript assigned to each
     unique_affiliations <-
@@ -374,31 +390,31 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
       dplyr::select(-"id1") %>%
       dplyr::distinct() %>%
       dplyr::mutate(superscript = 1:nrow(.))
-    
+
     # In effect this adds the superscripts created in the previous command to
     # aa_assoc_complete
     aa_assoc_complete <-
       unique_affiliations %>%
       dplyr::select(.data$id2, .data$superscript) %>%
       dplyr::right_join(aa_assoc_complete, by = "id2")
-    
-    
+
+
     affiliations_lines <- ""
     for(a in 1:nrow(unique_affiliations)) {
-      
+
       affiliation_line <- paste0("| ^", a, "^ ",
                                  unique_affiliations$department_name[a])
-      
+
       if(!is.na(unique_affiliations$institution_name[a])) {
         affiliation_line <- paste0(affiliation_line, ", ",
                                    unique_affiliations$institution_name[a])
       }
-      
+
       if(!is.na(unique_affiliations$address[a])) {
         affiliation_line <- paste0(affiliation_line, ", ",
                                    unique_affiliations$address[a])
       }
-      
+
       affiliations_lines <- append(affiliations_lines, affiliation_line)
     }
   }
@@ -407,48 +423,48 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
   }
   ######################################################
   ######################################################
-  
+
   ######################################################
   # Construction of author line to go in 01_protocol.Rmd
   if(nrow(project_authors) > 0) {
     author_line         <- "**_"
-    
+
     for(x in 1:nrow(project_authors)) {
-      
+
       if(x != 1) {
         author_line <- paste0(author_line, " ")
-        
+
         if(x == nrow(project_authors) && x > 1) {
           author_line <- paste0(author_line, "and ")
         }
       }
-      
+
       first_piece <- TRUE
-      
+
       if(!is.na(project_authors$given_names[x])) {
         author_line <- paste0(author_line, project_authors$given_names[x])
         first_piece <- FALSE
       }
-      
+
       if(!is.na(project_authors$last_name[x])) {
         if(!first_piece) {
           author_line <- paste0(author_line, " ")
         }
-        
+
         author_line <- paste0(author_line, project_authors$last_name[x])
       }
-      
+
       if(!is.na(project_authors$degree[x])) {
         author_line <- paste0(author_line, ", ", project_authors$degree[x])
       }
-      
+
       if(x != nrow(project_authors) && nrow(project_authors) > 2) {
         author_line <- paste0(author_line, ";")
       }
-      
+
       x_affiliations <- dplyr::filter(aa_assoc_complete,
                                       .data$id1 == project_authors$id[x])
-      
+
       if(nrow(x_affiliations) > 0) {
         author_line <-
           paste0(author_line,
@@ -460,18 +476,18 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
                  #   no   = ""),
                  "^")
       }
-      
+
       if(isTRUE(project_authors$id[x] == corresp_auth)) {
         author_line <- paste0(author_line, "\\*")
       }
     }
-    
+
     author_line <- paste0(author_line, "_**")
   }
   else {
     author_line <- character()
   }
-  
+
   if(is.na(corresp_auth)) {
     corresp_lines <- character()
   }
@@ -481,26 +497,26 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
                                       .data$id1 == corresp_auth)
     corresp_lines    <- c(ifelse(length(affiliations_lines) == 0, "", "|"),
                           "| \\* Corresponding author")
-    
+
     if(nrow(corresp_affils) > 0) {
       corresp_lines <- append(corresp_lines,
                               paste0("|   ", corresp_affils$address[1]))
     }
-    
+
     if(!is.na(corresp_auth_row$phone)) {
       corresp_lines <- append(corresp_lines,
                               paste0("|   ", corresp_auth_row$phone))
     }
-    
+
     if(!is.na(corresp_auth_row$email)) {
       corresp_lines <- append(corresp_lines,
                               paste0("|   ", corresp_auth_row$email))
     }
   }
-  
+
   ######################################################
   ######################################################
-  
+
   return(c(author_line, affiliations_lines, corresp_lines, "", "Funding:"))
 }
 
@@ -508,42 +524,42 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
 
 write_project_files <- function(pXXXX_path, protocol_report, datawork, analysis,
                                 use_bib, pXXXX_name) {
-  
+
   fs::dir_create(fs::path(pXXXX_path, c("data", "data_raw", "progs",
                                         "manuscript", "figures")))
-  
+
   readr::write_lines(protocol_report$protocol,
                      fs::path(pXXXX_path, "progs/01_protocol", ext = "Rmd"))
-  
+
   readr::write_lines(datawork,
                      fs::path(pXXXX_path, "progs/02_datawork", ext = "Rmd"))
-  
+
   readr::write_lines(analysis,
                      fs::path(pXXXX_path, "progs/03_analysis", ext = "Rmd"))
-  
+
   readr::write_lines(protocol_report$report,
                      fs::path(pXXXX_path, "progs/04_report", ext = "Rmd"))
-  
+
   if(use_bib) {
     readr::write_lines("",
                        fs::path(pXXXX_path, "progs", pXXXX_name, ext = "bib"))
   }
-  
+
   readr::write_lines(css,
                      fs::path(pXXXX_path, "progs/style", ext = "css"))
-  
+
   readr::write_lines(Rproj_template, # Rproj_template is in sysdata.Rda
                      fs::path(pXXXX_path, pXXXX_name, ext = "Rproj"))
 }
 
 
 clear_special_author <- function(author, projects_path, projects_tibble) {
-  
+
   is.na(projects_tibble[c("current_owner", "creator", "corresp_auth")]) <-
     projects_tibble[c("current_owner", "creator", "corresp_auth")] == author
-  
+
   saveRDS(object = projects_tibble, file = projects_path)
-  
+
   return(projects_tibble)
 }
 

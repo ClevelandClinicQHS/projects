@@ -1,4 +1,6 @@
-#' Create or edit projects, authors, and affiliations
+#' @name new_edit_delete
+#'
+#' @title Create or edit projects, authors, and affiliations
 #'
 #' These functions create or edit rows in the \code{\link{projects}},
 #' \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
@@ -58,10 +60,10 @@
 #'   \code{\link{authors}}/\code{\link{affiliations}}. Order will be preserved.
 #'
 #'   For \code{edit_project()}/\code{edit_author()}, a formula specifying
-#'   \code\{\link{authors}}/\code{\link{affiliations}} to add or remove from the
-#'   project/author. Formulas must have no lefthand side (i.e., begin with \code{~})
-#'   and use \code{+} to add authors and \code{-} to remove authors. Authors may
-#'   be specified by \code{id} or name.
+#'   \code{\link{authors}}/\code{\link{affiliations}} to add or remove from the
+#'   project/author. Formulas must have no lefthand side (i.e., begin with
+#'   \code{~}) and use \code{+} to add authors and \code{-} to remove authors.
+#'   Authors may be specified by \code{id} or name.
 #'
 #'   Each element must match a row in the \code{\link{authors}} tibble.
 #' @param creator,default \code{creator} is an \code{id} or unambiguous
@@ -118,12 +120,20 @@
 #' @importFrom rlang .data
 #' @importFrom tibble tibble
 #' @export
-new_project <- function(title    = NA,                     short_title   = NA,
-                        authors,                           current_owner = NA,
-                        creator  = NA,                     corresp_auth  = NA,
-                        stage    = NA,                     deadline_type = NA,
-                        deadline = NA,                     id            = NA,
-                        status   = "just created",         path          = "",
+new_project <- function(title             = NA,
+                        short_title       = NA,
+                        authors,
+                        current_owner     = NA,
+                        creator           = NA,
+                        corresp_auth      = NA,
+                        stage             = c("1: design", "2: data collection",
+                                              "3: analysis", "4: manuscript",
+                                              "5: under review", "6: accepted"),
+                        deadline_type     = NA,
+                        deadline          = NA,
+                        id                = NA,
+                        status            = "just created",
+                        path              = "",
                         protocol          = c("STROBE", "CONSORT"),
                         make_directories  = FALSE,
                         use_bib           = FALSE,
@@ -159,7 +169,11 @@ new_project <- function(title    = NA,                     short_title   = NA,
   ########################
   ########################
 
-  title <- tools::toTitleCase(title)
+  if(!is.na(title)) {
+    title <- tools::toTitleCase(title)
+  }
+
+  stage <- factor(match.arg(stage), levels = eval(formals()$stage))
 
   ########################
   # Validation of authors, creator, corresp_auth, current_owner
@@ -257,7 +271,7 @@ new_project <- function(title    = NA,                     short_title   = NA,
                                   current_owner = as.integer(current_owner),
                                   creator       = as.integer(creator),
                                   corresp_auth  = as.integer(corresp_auth),
-                                  stage         = as.character(stage),
+                                  stage         = stage,
                                   deadline_type = as.character(deadline_type),
                                   deadline      = as.Date(deadline),
                                   status        = as.character(status),
@@ -329,7 +343,7 @@ new_project <- function(title    = NA,                     short_title   = NA,
 
 
 ################################################################################
-#' @rdname new_project
+#' @rdname new_edit_delete
 #' @importFrom rlang .data
 #' @export
 new_author <- function(given_names = NA,    last_name    = NA,
@@ -417,7 +431,7 @@ new_author <- function(given_names = NA,    last_name    = NA,
 
 
 ################################################################################
-#' @rdname new_project
+#' @rdname new_edit_delete
 #' @export
 new_affiliation <- function(department_name  = NA, institution_name = NA,
                             address          = NA, id               = NA) {

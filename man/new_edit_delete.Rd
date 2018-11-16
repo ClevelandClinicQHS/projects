@@ -4,15 +4,42 @@
 \alias{edit_project}
 \alias{edit_author}
 \alias{edit_affiliation}
+\alias{delete_project}
+\alias{delete_author}
+\alias{delete_affiliation}
+\alias{new_edit_delete}
 \alias{new_project}
 \alias{new_author}
 \alias{new_affiliation}
-\title{Create or edit projects, authors, and affiliations}
+\title{Create or edit projects, authors, and affiliations
+
+These functions create or edit rows in the \code{\link{projects}},
+\code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
+stored in the \emph{.metadata} subdirectory of the main
+\code{\link{projects_folder}}.
+
+\code{new_project()} creates a new R project folder that is automatically
+filled with a .Rproj file, helpful subdirectories, and .Rmd files to get your
+project workflow started. The \code{edit_()} functions and the other
+\code{new_()} functions only create or edit rows in the \emph{.metadata}
+tibbles.
+
+Newly created project folders (and the .Rproj files they contain) both have
+names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
+\code{id} number. The folder will be an immediate subdirectory of the main
+projects folder (see \code{\link{setup_projects()}}) unless the argument
+\code{path} specifies a deeper subdirectory. The user may enter various
+metadata about the project that is stored and may be called forth using the
+\code{\link{projects()}} function. Some of this metadata will automatically
+be added to the \code{\link{header}} atop the automatically created
+\emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
+\emph{progs/04_report.Rmd}.}
 \usage{
 edit_project(project, title = NA, short_title = NA, authors,
-  current_owner = NA, creator = NA, corresp_auth = NA, stage = NA,
-  deadline_type = NA, deadline = NA, status = NA,
-  reprint_header = TRUE)
+  current_owner = NA, creator = NA, corresp_auth = NA,
+  stage = c("1: design", "2: data collection", "3: analysis",
+  "4: manuscript", "5: under review", "6: accepted"), deadline_type = NA,
+  deadline = NA, status = NA, reprint_header = TRUE)
 
 edit_author(author, given_names = NA, last_name = NA, affiliations,
   title = NA, degree = NA, email = NA, phone = NA,
@@ -21,12 +48,20 @@ edit_author(author, given_names = NA, last_name = NA, affiliations,
 edit_affiliation(affiliation, department_name = NA,
   institution_name = NA, address = NA)
 
+delete_project(project)
+
+delete_author(author)
+
+delete_affiliation(affiliation)
+
 new_project(title = NA, short_title = NA, authors,
-  current_owner = NA, creator = NA, corresp_auth = NA, stage = NA,
-  deadline_type = NA, deadline = NA, id = NA,
-  status = "just created", path = "", protocol = c("STROBE",
-  "CONSORT"), make_directories = FALSE, use_bib = FALSE,
-  datawork_template = NULL, analysis_template = NULL)
+  current_owner = NA, creator = NA, corresp_auth = NA,
+  stage = c("1: design", "2: data collection", "3: analysis",
+  "4: manuscript", "5: under review", "6: accepted"), deadline_type = NA,
+  deadline = NA, id = NA, status = "just created", path = "",
+  protocol = c("STROBE", "CONSORT"), make_directories = FALSE,
+  use_bib = FALSE, datawork_template = NULL,
+  analysis_template = NULL)
 
 new_author(given_names = NA, last_name = NA, title = NA,
   affiliations, degree = NA, email = NA, phone = NA, id = NA,
@@ -44,6 +79,19 @@ new_affiliation(department_name = NA, institution_name = NA,
 
 \item{short_title}{A nickname for the project. Can be used in other
 \code{projects} package functions whenever needing to specify a project.}
+
+\item{authors, affiliations}{For \code{new_project()}/\code{new_author()}, a
+  vector of \code{id}s or unambiguous \code{given_names}/\code{last_name} or
+  \code{department_name}/\code{institution_name} of
+  \code{\link{authors}}/\code{\link{affiliations}}. Order will be preserved.
+
+  For \code{edit_project()}/\code{edit_author()}, a formula specifying
+  \code{\link{authors}}/\code{\link{affiliations}} to add or remove from the
+  project/author. Formulas must have no lefthand side (i.e., begin with
+  \code{~}) and use \code{+} to add authors and \code{-} to remove authors.
+  Authors may be specified by \code{id} or name.
+
+  Each element must match a row in the \code{\link{authors}} tibble.}
 
 \item{creator, default}{\code{creator} is an \code{id} or unambiguous
   \code{last_name}/\code{given_names} of one of the authors in the
@@ -136,12 +184,13 @@ templates to be used to create \emph{progs/02_datawork.Rmd} and/or
 extension exactly.}
 }
 \description{
+Create or edit projects, authors, and affiliations
+
 These functions create or edit rows in the \code{\link{projects}},
 \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
 stored in the \emph{.metadata} subdirectory of the main
 \code{\link{projects_folder}}.
-}
-\details{
+
 \code{new_project()} creates a new R project folder that is automatically
 filled with a .Rproj file, helpful subdirectories, and .Rmd files to get your
 project workflow started. The \code{edit_()} functions and the other

@@ -1,14 +1,22 @@
 ################################################################################
-#' @rdname new_project
+#' @rdname new_edit_delete
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
-edit_project <- function(project,            title          = NA,
-                         short_title   = NA, authors,
-                         current_owner = NA, creator        = NA,
-                         corresp_auth  = NA, stage          = NA,
-                         deadline_type = NA, deadline       = NA,
-                         status        = NA, reprint_header = TRUE) {
+edit_project <- function(project,
+                         title          = NA,
+                         short_title    = NA,
+                         authors,
+                         current_owner  = NA,
+                         creator        = NA,
+                         corresp_auth   = NA,
+                         stage          = c("1: design", "2: data collection",
+                                            "3: analysis", "4: manuscript",
+                                            "5: under review", "6: accepted"),
+                         deadline_type  = NA,
+                         deadline       = NA,
+                         status         = NA,
+                         reprint_header = TRUE) {
 
   p_path          <- p_path_internal()
 
@@ -28,6 +36,8 @@ edit_project <- function(project,            title          = NA,
   assoc_tibble    <- get_rds(assoc_path)
 
   filtered_assoc  <- dplyr::filter(assoc_tibble, .data$id1 == project)
+
+  stage <- factor(match.arg(stage), levels = eval(formals()$stage))
 
   ###########################################
   # Handling of adding or removing authors
@@ -178,7 +188,7 @@ edit_project <- function(project,            title          = NA,
 
 
 ################################################################################
-#' @rdname new_project
+#' @rdname new_edit_delete
 #' @importFrom rlang .data
 #' @export
 edit_author <- function(author,            given_names   = NA,
@@ -271,7 +281,7 @@ edit_author <- function(author,            given_names   = NA,
 
 
 ################################################################################
-#' @rdname new_project
+#' @rdname new_edit_delete
 #' @export
 edit_affiliation <- function(affiliation,           department_name  = NA,
                              institution_name = NA, address          = NA) {
@@ -299,7 +309,7 @@ edit_affiliation <- function(affiliation,           department_name  = NA,
 ################################################################################
 
 
-
+#' @rdname new_edit_delete
 #' @importFrom rlang .data
 #' @export
 delete_project <- function(project) {
@@ -332,10 +342,10 @@ delete_project <- function(project) {
   }
   else {
     user_prompt(
-      msg   = paste0("Are you sure you want to delete the above project and ",
-                     "its entire folder, which is located at\n",
-                     project_row$path, "\n? (y/n)"),
-      n_msg = paste0('Deletion not completed. If deletion is desired, try ',
+      msg   = paste0("\nAre you sure you want to delete the above project ",
+                     "and its entire folder, which is located at\n\n",
+                     project_row$path, "\n\n? (y/n)"),
+      n_msg = paste0('\nDeletion not completed. If deletion is desired, try ',
                      'again and enter "y".'))
     fs::dir_delete(path = project_row$path)
   }
@@ -347,12 +357,12 @@ delete_project <- function(project) {
                new          = FALSE,         id1          = project)
 
   print(project_row)
-  message("The above project was deleted.")
+  message("\nThe above project was deleted.")
   return(invisible(project_row))
 }
 
 
-
+#' @rdname new_edit_delete
 #' @importFrom rlang .data
 #' @export
 delete_author <- function(author) {
@@ -408,7 +418,7 @@ delete_author <- function(author) {
 }
 
 
-
+#' @rdname new_edit_delete
 #' @importFrom rlang .data
 #' @export
 delete_affiliation <- function(affiliation) {

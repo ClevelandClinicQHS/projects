@@ -1,13 +1,12 @@
 #' @importFrom tibble tibble
 #' @export
-#'
-setup_projects <- function(path, overwrite = FALSE) {
+setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
 
-  path <- fs::path_tidy(path)
+  path <- validate_directory(path             = path,
+                             p_path           = NULL,
+                             make_directories = make_directories)
 
-  if(tolower(fs::path_file(path)) != "projects") {
-    path <- fs::path(path, "projects")
-  }
+  path <- fs::path(path, "projects")
 
   old_path           <- Sys.getenv("PROJECTS_FOLDER_PATH")
   home_Renviron_path <- fs::path(Sys.getenv("HOME"), ".Renviron")
@@ -40,6 +39,24 @@ setup_projects <- function(path, overwrite = FALSE) {
 
         home_Renviron_file)
   }
+
+  user_prompt(
+    msg =
+      dplyr::case_when(
+        old_path == ""   ~ paste0("\nAre you sure you want the main projects ",
+                                  "folder to have the file path\n", path,
+                                  "\n\n? (y/n)"),
+        old_path == path ~ paste0("\nAre you sure you want to restore the ",
+                                  "main projects folder at the file path\n",
+                                  path, "\n\n? (no projects, authors, ",
+                                  "affiliations, or templates will be deleted)",
+                                  "\n\n(y/n)"),
+        TRUE             ~ paste0("\nAre you sure you want to abandon the old ",
+                                  "projects folder at\n", old_path, "\n\nand ",
+                                  "create a new one at\n", path,
+                                  "\n\n? (y/n)")),
+    n_msg = paste0("Projects folder not created. No changes made."))
+
   readr::write_lines(home_Renviron_file, path = home_Renviron_path)
 
   readRenviron(home_Renviron_path)
@@ -61,12 +78,14 @@ setup_projects <- function(path, overwrite = FALSE) {
            "project_author_assoc", "author_affiliation_assoc"),
     .y = list(
            # projects
-           tibble(id          = integer(),         title         = character(),
-                  short_title = character(),       current_owner = integer(),
-                  creator     = integer(),         corresp_auth  = integer(),
-                  stage       = character(),       deadline_type = character(),
-                  deadline    = as.Date(character()),
-                  status      = character(),       path          = character()),
+           tibble(id          = integer(),     title         = character(),
+                  short_title = character(),   current_owner = integer(),
+                  creator     = integer(),     corresp_auth  = integer(),
+                  stage = factor(levels = c("1: design", "2: data collection",
+                                            "3: analysis", "4: manuscript",
+                                            "5: under review", "6: accepted")),
+                  deadline_type = character(), deadline = as.Date(character()),
+                  status        = character(), path     = character()),
            # authors
            tibble(id          = integer(),   last_name = character(),
                   given_names = character(), title     = character(),
@@ -89,8 +108,7 @@ setup_projects <- function(path, overwrite = FALSE) {
       }
   )
 
-  message('"projects" folder created at\n', path, '\nAdd affiliations with ',
+  message('"projects" folder created at\n', path, '\n\nAdd affiliations with ',
           'new_affiliation(), then add authors with new_author(), then create ',
           'projects with new_project()')
-
 }
