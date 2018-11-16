@@ -250,8 +250,8 @@ archive_project <- function(project) {
 
   project         <- validate_entry(x          = project,
                                     what       = "project",
-                                    max.length = 1,
-                                    rds_tibble = projects_tibble)
+                                    rds_tibble = projects_tibble,
+                                    max.length = 1)
 
   project_row     <- dplyr::filter(projects_tibble, .data$id == project)
 

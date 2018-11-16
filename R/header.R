@@ -19,8 +19,8 @@ header <- function(project) {
 
   project <- validate_entry(project,
                             what       = "project",
-                            max.length = 1,
-                            rds_tibble = projects_tibble)
+                            rds_tibble = projects_tibble,
+                            max.length = 1)
 
   print_header_internal(project_id  = project,
                         p_path      = p_path,

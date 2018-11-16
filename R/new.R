@@ -186,9 +186,9 @@ new_project <- function(title             = NA,
 
   if(!is.na(corresp_auth)) {
     corresp_auth <- validate_entry(corresp_auth,
-                                   what        = "author",
-                                   max.length = 1,
-                                   rds_tibble = authors_tibble)
+                                   what       = "author",
+                                   rds_tibble = authors_tibble,
+                                   max.length = 1)
   }
 
   # If creator is left blank, the default author is used. If the default author
@@ -199,15 +199,15 @@ new_project <- function(title             = NA,
   else {
     creator <- validate_entry(creator,
                               what       = "author",
-                              max.length = 1,
-                              rds_tibble = authors_tibble)
+                              rds_tibble = authors_tibble,
+                              max.length = 1)
   }
 
   if(!is.na(current_owner)) {
     current_owner <- validate_entry(current_owner,
                                     what       = "author",
-                                    max.length = 1,
-                                    rds_tibble = authors_tibble)
+                                    rds_tibble = authors_tibble,
+                                    max.length = 1)
   }
 
   if(missing(authors)) {
@@ -223,8 +223,7 @@ new_project <- function(title             = NA,
   else {
     authors <- validate_entry(authors,
                               what       = "author",
-                              rds_tibble = authors_tibble,
-                              max.length = 9999)
+                              rds_tibble = authors_tibble)
     if(is.na(current_owner)) {
       current_owner <- authors[1]
     }

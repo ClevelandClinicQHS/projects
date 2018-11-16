@@ -162,21 +162,9 @@ Project Management Tools
 
 Upon installation, the `projects` package must be set up using `setup_projects()`. The user is to input the file path of the directory wherein the "projects" folder is to be located.
 
-```{r setup_proj2, eval = FALSE}
+```{r setup_projects}
 library(projects)
-setup_projects("/main_server/seymourjc")
-```
-
-```{r setup_proj, include = FALSE}
-library(projects)
-setup_projects("/home/kriegen/Projects/projects/test/projects",
-               overwrite = TRUE)
-```
-
-```{r fake_message, echo = FALSE}
-message('"projects" folder created at\n', "/main_server/seymourjc",
-        '\n\nAdd affiliations with ', 'new_affiliation(), then add authors ',
-        'with new_author(), then create projects with new_project()')
+setup_projects("/home/kriegen/Projects/projects/test")
 ```
 
 As the message suggests, it is in the user's best interest to add affilliations, followed by authors and projects.
@@ -187,17 +175,29 @@ new_affiliation(department_name  = "Department of Physics",
                 address = "314 Planck Blvd, Springfield CT 06003")
 ```
 
-This affiliation has been successfully added to the "affiliations" table in the `projects` relational database. The next code chunk creates a few more affiliations (output not included)
+This affiliation has been successfully added to the "affiliations" table in the `projects` relational database. The next code chunk creates a few more affiliations (output not included).
 
-```{r affiliation2}
+```{r affiliation2, include = FALSE}
 new_affiliation(department_name  = "Impossibles Investigation Team",
                 institution_name = "Creekshirebrook Academy of Thinks",
                 address = "Let Gade 27182, 1566 Copenhagen, Denmark")
 new_affiliation(department_name  = "Statistical Consulting Unit",
                 institution_name = "Creekshirebrook Academy of Thinks",
-                address = "196 Normal Ave, Columbus, OH ")
+                address = "196 Normal Ave, Columbus, OH ", id = 50)
 ```
 
+Note that we chose a specific `id` number (50) for the affiliation called the "Impossibles Investigation Team."
+
+Now we are ready to add authors to the "authors" table of the `projects` database.
+
+```{r authors1}
+new_author(given_names = "Scott", last_name = "Bug", title = "Professor",
+           affiliations = c(2, "Physics"), degree = "Ph.D.",
+           email = "scottbug@impossible.net", phone = "965-555-5556",
+           default = TRUE)
+```
+
+Notice that in creating associations between Scott Bug and his affiliations, we were able to enter both the `id` number of one (2) and a substring of the `department_name` of the other ("Physics").
 
 * Make some authors and affiliations. Do both for one person. Then, some lines of code that complete the other 4-5 people. Then show what the authors() and affiliations() tables look like.
 

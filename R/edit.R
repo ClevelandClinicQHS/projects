@@ -63,7 +63,8 @@ edit_project <- function(project,
   else if(!is.null(current_owner)) {
     current_owner <- validate_entry(x          = current_owner,
                                     what       = "author",
-                                    rds_tibble = authors_tibble)
+                                    rds_tibble = authors_tibble,
+                                    max.length = 1)
 
     if(current_owner %in% authors$remove) {
       stop("The value of current_owner must not be slated for removal in the",
@@ -90,7 +91,8 @@ edit_project <- function(project,
   else if(!is.null(corresp_auth)) {
     corresp_auth <- validate_entry(x          = corresp_auth,
                                    what       = "author",
-                                   rds_tibble = authors_tibble)
+                                   rds_tibble = authors_tibble,
+                                   max.length = 1)
 
     if(corresp_auth %in% authors$remove) {
       stop("The value of corresp_auth must not be slated for removal in the ",
@@ -117,7 +119,8 @@ edit_project <- function(project,
   else if(!is.null(creator)) {
     creator <- validate_entry(x          = creator,
                               what       = "author",
-                              rds_tibble = authors_tibble)
+                              rds_tibble = authors_tibble,
+                              max.length = 1)
   }
   ###########################################
   ###########################################
@@ -321,8 +324,8 @@ delete_project <- function(project) {
 
   project         <- validate_entry(project,
                                     what       = "project",
-                                    max.length = 1,
-                                    rds_tibble = projects_tibble)
+                                    rds_tibble = projects_tibble,
+                                    max.length = 1)
 
   pa_assoc_path   <- make_rds_path("project_author_assoc", p_path)
   pa_assoc_tibble <- get_rds(pa_assoc_path)
@@ -377,8 +380,8 @@ delete_author <- function(author) {
 
   author          <- validate_entry(author,
                                     what       = "author",
-                                    max.length = 1,
-                                    rds_tibble = authors_tibble)
+                                    rds_tibble = authors_tibble,
+                                    max.length = 1)
 
   pa_assoc_path   <- make_rds_path("project_author_assoc", p_path)
   pa_assoc_tibble <- get_rds(pa_assoc_path)
@@ -433,8 +436,8 @@ delete_affiliation <- function(affiliation) {
 
   affiliation         <- validate_entry(affiliation,
                                         what       = "affiliation",
-                                        max.length = 1,
-                                        rds_tibble = affiliations_tibble)
+                                        rds_tibble = affiliations_tibble,
+                                        max.length = 1)
 
   affiliation_row     <- dplyr::filter(affiliations_tibble,
                                        .data$id == affiliation)
@@ -506,7 +509,7 @@ parse_formula <- function(formula, what, what2, main_tibble, assoc_tibble) {
     # Validates the remove list against the main database, making sure that the
     # authors or affiliations actually exist in the database, first turning any
     # IDs into numbers (via the ifelse() statement)
-    remove <- validate_mixed(vector = remove, what = what, tibble = main_tibble)
+    remove <- validate_entry(x = remove, what = what, rds_tibble = main_tibble)
 
     # Makes sure the elements to remove are actually listed as elements of
     # the user-specified project/author
@@ -523,7 +526,7 @@ parse_formula <- function(formula, what, what2, main_tibble, assoc_tibble) {
     # Validates the remove list against the author tibble, first
     # turning any author IDs from characters to integers (via the ifelse()
     # statement)
-    add <- validate_mixed(vector = add, what = what, tibble = main_tibble)
+    add <- validate_entry(x = add, what = what, rds_tibble = main_tibble)
 
     # Makes sure the formula in add are not already in the
     # user-specified project's author list
@@ -646,7 +649,7 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc) {
     }
     names(user_order) <-
       names(user_order) %>%
-      validate_mixed(what  = rds2, tibble      = rds2_tibble) %>%
+      validate_entry(what  = rds2, rds_tibble  = rds2_tibble) %>%
       validate_assoc(what  = rds2, rds_tibble  = rds2_tibble,
                      what2 = rds1, rds_tibble2 = filtered_assoc)
 
@@ -657,7 +660,7 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc) {
 
     user_order <-
       sapply(X = user_order, FUN = as.character) %>%
-      validate_mixed(what  = rds2, tibble      = rds2_tibble) %>%
+      validate_entry(what  = rds2, rds_tibble  = rds2_tibble) %>%
       validate_assoc(what  = rds2, rds_tibble  = rds2_tibble,
                      what2 = rds1, rds_tibble2 = filtered_assoc)
 
