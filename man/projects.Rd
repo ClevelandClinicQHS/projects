@@ -5,7 +5,7 @@
 \alias{}
 \title{View the tibble of all projects.}
 \usage{
-projects(project, authors = FALSE)
+projects(project, authors = FALSE, archived = FALSE)
 }
 \arguments{
 \item{project}{An optional vector of project

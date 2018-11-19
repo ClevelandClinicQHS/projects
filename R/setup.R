@@ -80,7 +80,7 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
            # projects
            tibble(id          = integer(),     title         = character(),
                   short_title = character(),   current_owner = integer(),
-                  creator     = integer(),     corresp_auth  = integer(),
+                  creator     = character(),   corresp_auth  = integer(),
                   stage = factor(levels = c("1: design", "2: data collection",
                                             "3: analysis", "4: manuscript",
                                             "5: under review", "6: accepted")),
@@ -90,7 +90,7 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
            tibble(id          = integer(),   last_name = character(),
                   given_names = character(), title     = character(),
                   degree      = character(), email     = character(),
-                  phone       = character(), default   = logical()),
+                  phone       = character()),
            # affiliations
            tibble(id               = integer(),   department_name= character(),
                   institution_name = character(), address        = character()),

@@ -37,7 +37,7 @@ edit_project <- function(project,
 
   filtered_assoc  <- dplyr::filter(assoc_tibble, .data$id1 == project)
 
-  stage <- factor(match.arg(stage), levels = eval(formals()$stage))
+  stage <- validate_stage(stage, choices = eval(formals()$stage))
 
   ###########################################
   # Handling of adding or removing authors
@@ -332,13 +332,14 @@ delete_project <- function(project) {
 
   project_row     <- dplyr::filter(projects_tibble, .data$id == project)
 
-  print(project_row)
+  if(isFALSE(getOption('knitr.in.progress'))) {
+    print(project_row)
+  }
 
   if(!fs::dir_exists(project_row$path)) {
     user_prompt(
       msg   = paste0("Project folder not found at\n", project_row$path,
                      "\nDelete only its metadata? (y/n)"),
-      # y_msg = paste0(""),
       n_msg = paste0("Deletion not completed. Restore folder to ",
                      project_row$path, ' or rerun this command, inputting "y" ',
                      'instead of "n" when asked whether or not to continue.'))
@@ -391,10 +392,13 @@ delete_author <- function(author) {
 
   author_row      <- dplyr::filter(authors_tibble, .data$id == author)
 
-  print(author_row)
+  if(isFALSE(getOption('knitr.in.progress'))) {
+    print(author_row)
+  }
+
   user_prompt(
-    msg   = "Are you sure you want to delete the above author? (y/n)",
-    n_msg = paste0('Deletion not completed. If deletion is desired, ',
+    msg   = "\nAre you sure you want to delete the above author? (y/n)",
+    n_msg = paste0('\nDeletion not completed. If deletion is desired, ',
                    'input "y" next time.'))
 
   change_table(action     = "delete",
@@ -442,10 +446,13 @@ delete_affiliation <- function(affiliation) {
   affiliation_row     <- dplyr::filter(affiliations_tibble,
                                        .data$id == affiliation)
 
-  print(affiliation_row)
+  if(isFALSE(getOption('knitr.in.progress'))) {
+    print(affiliation_row)
+  }
+
   user_prompt(
-    msg   = "Are you sure you want to delete the above affiliation? (y/n)",
-    n_msg = paste0('Deletion not completed. If deletion is desired, ',
+    msg   = "\nAre you sure you want to delete the above affiliation? (y/n)",
+    n_msg = paste0('\nDeletion not completed. If deletion is desired, ',
                    'input "y" next time.'))
 
   change_table(action     = "delete",

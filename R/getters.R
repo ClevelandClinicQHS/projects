@@ -63,9 +63,13 @@ affiliations <- function(affiliation, authors = FALSE) {
     dplyr::arrange(.data$department_name, .data$institution_name)
 
   if(!missing(affiliation)) {
-    affiliation         <- validate_entry(affiliation,
-                                          what        = "affiliation",
-                                          rds_tibble  = affiliations_tibble)
+    affiliation         <-
+      validate_entry(affiliation,
+                     what        = "affiliation",
+                     rds_tibble  = affiliations_tibble,
+                     allow_dups = TRUE) %>%
+      unique()
+
     affiliations_tibble <-
       dplyr::filter(affiliations_tibble, .data$id %in% affiliation)
   }
@@ -117,9 +121,12 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
     dplyr::arrange(.data$last_name, .data$given_names)
 
   if(!missing(author)) {
-    author         <- validate_entry(author,
-                                     what       = "author",
-                                     rds_tibble = authors_tibble)
+    author         <-
+      validate_entry(author,
+                     what       = "author",
+                     rds_tibble = authors_tibble,
+                     allow_dups = TRUE) %>%
+      unique()
 
     authors_tibble <- dplyr::filter(authors_tibble, .data$id %in% author)
   }
@@ -205,7 +212,7 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #'
 #' @importFrom rlang .data
 #' @export
-projects <- function(project, authors = FALSE) {
+projects <- function(project, authors = FALSE, archived = FALSE) {
 
   p_path          <- p_path_internal()
   projects_tibble <-
@@ -216,9 +223,12 @@ projects <- function(project, authors = FALSE) {
 
   if(!missing(project)) {
 
-    project         <- validate_entry(project,
-                                      what       = "project",
-                                      rds_tibble = projects_tibble)
+    project         <-
+      validate_entry(project,
+                     what       = "project",
+                     rds_tibble = projects_tibble,
+                     allow_dups = TRUE) %>%
+      unique()
 
     projects_tibble <- dplyr::filter(projects_tibble, .data$id %in% project)
   }
@@ -244,21 +254,12 @@ projects <- function(project, authors = FALSE) {
       dplyr::left_join(authors_tibble, by = c("id2" = "id"),
                        suffix = c("_of_project", "_of_author")) %>%
       dplyr::rename("author_id" = "id2")
+  }
 
-    # project_author_assoc %>%
-    # dplyr::left_join(projects_tibble, by = c("id1" = "id")) %>%
-    # dplyr::mutate(tmp = TRUE) %>%
-    # dplyr::left_join(authors_tibble, by = c("id2" = "id")) %>%
-    # dplyr::rename(id                   = id1,
-    #               investig_id          = id2,
-    #               investig_last_name   = last_name,
-    #               investig_given_names = given_names) %>%
-    # dplyr::full_join(projects_tibble) %>%
-    # dplyr::select(.data$id, .data$title:.data$tmp, .data$investig_id,
-    #               .data$investig_last_name:.data$investig_given_names) %>%
-    # dplyr::select(-.data$tmp) %>%
-    # dplyr::arrange(.data$id) %>%
-    # suppressMessages
+  if(!archived) {
+    projects_tibble <-
+      dplyr::filter(projects_tibble,
+                    fs::path_file(fs::path_dir(.data$path)) != "archive")
   }
 
   return(projects_tibble)

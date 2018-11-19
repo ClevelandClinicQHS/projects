@@ -13,27 +13,27 @@
 \alias{new_affiliation}
 \title{Create or edit projects, authors, and affiliations
 
-These functions create or edit rows in the \code{\link{projects}},
-\code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
-stored in the \emph{.metadata} subdirectory of the main
-\code{\link{projects_folder}}.
+  These functions create or edit rows in the \code{\link{projects}},
+  \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
+  stored in the \emph{.metadata} subdirectory of the main
+  \code{\link{projects_folder}}.
 
-\code{new_project()} creates a new R project folder that is automatically
-filled with a .Rproj file, helpful subdirectories, and .Rmd files to get your
-project workflow started. The \code{edit_()} functions and the other
-\code{new_()} functions only create or edit rows in the \emph{.metadata}
-tibbles.
+  \code{new_project()} creates a new R project folder that is automatically
+  filled with a .Rproj file, helpful subdirectories, and .Rmd files to get
+  your project workflow started. The \code{edit_()} functions and the other
+  \code{new_()} functions only create or edit rows in the \emph{.metadata}
+  tibbles.
 
-Newly created project folders (and the .Rproj files they contain) both have
-names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
-\code{id} number. The folder will be an immediate subdirectory of the main
-projects folder (see \code{\link{setup_projects()}}) unless the argument
-\code{path} specifies a deeper subdirectory. The user may enter various
-metadata about the project that is stored and may be called forth using the
-\code{\link{projects()}} function. Some of this metadata will automatically
-be added to the \code{\link{header}} atop the automatically created
-\emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
-\emph{progs/04_report.Rmd}.}
+  Newly created project folders (and the .Rproj files they contain) both have
+  names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
+  \code{id} number. The folder will be an immediate subdirectory of the main
+  projects folder (see \code{\link{setup_projects()}}) unless the argument
+  \code{path} specifies a deeper subdirectory. The user may enter various
+  metadata about the project that is stored and may be called forth using the
+  \code{\link{projects()}} function. Some of this metadata will automatically
+  be added to the \code{\link{header}} atop the automatically created
+  \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
+  \emph{progs/04_report.Rmd}.}
 \usage{
 edit_project(project, title = NA, short_title = NA, authors,
   current_owner = NA, creator = NA, corresp_auth = NA,
@@ -55,13 +55,13 @@ delete_author(author)
 delete_affiliation(affiliation)
 
 new_project(title = NA, short_title = NA, authors,
-  current_owner = NA, creator = NA, corresp_auth = NA,
-  stage = c("1: design", "2: data collection", "3: analysis",
-  "4: manuscript", "5: under review", "6: accepted"), deadline_type = NA,
-  deadline = NA, id = NA, status = "just created", path = "",
-  protocol = c("STROBE", "CONSORT"), make_directories = FALSE,
-  use_bib = FALSE, datawork_template = NULL,
-  analysis_template = NULL)
+  current_owner = NA, creator = Sys.info()["user"],
+  corresp_auth = NA, stage = c("1: design", "2: data collection",
+  "3: analysis", "4: manuscript", "5: under review", "6: accepted"),
+  deadline_type = NA, deadline = NA, id = NA,
+  status = "just created", path = "", protocol = c("STROBE",
+  "CONSORT"), make_directories = FALSE, use_bib = FALSE,
+  datawork_template = NULL, analysis_template = NULL)
 
 new_author(given_names = NA, last_name = NA, title = NA,
   affiliations, degree = NA, email = NA, phone = NA, id = NA,
@@ -93,14 +93,10 @@ new_affiliation(department_name = NA, institution_name = NA,
 
   Each element must match a row in the \code{\link{authors}} tibble.}
 
-\item{creator, default}{\code{creator} is an \code{id} or unambiguous
-  \code{last_name}/\code{given_names} of one of the authors in the
-  \code{\link{authors}} table. If left blank (e.g., \code{NA}), it will be
-  filled with the \code{id} of the \code{default} author.
-
-  \code{default}, when \code{TRUE}, flags the default author. Setting an
-  author with \code{default = TRUE} will automatically set all other authors
-  to \code{default = FALSE}.}
+\item{creator}{The author who created the project. If it is equal to
+\code{Sys.info()["user"]} (the default value), it is kept as is. Otherwise
+it will be validated against the \code{authors()} tibble and populated with
+the matching author \code{id}.}
 
 \item{corresp_auth, current_owner}{An \code{id} or unambiguous
   \code{last_name}/\code{given_names} of one of the authors in the
@@ -186,25 +182,25 @@ extension exactly.}
 \description{
 Create or edit projects, authors, and affiliations
 
-These functions create or edit rows in the \code{\link{projects}},
-\code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
-stored in the \emph{.metadata} subdirectory of the main
-\code{\link{projects_folder}}.
+  These functions create or edit rows in the \code{\link{projects}},
+  \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
+  stored in the \emph{.metadata} subdirectory of the main
+  \code{\link{projects_folder}}.
 
-\code{new_project()} creates a new R project folder that is automatically
-filled with a .Rproj file, helpful subdirectories, and .Rmd files to get your
-project workflow started. The \code{edit_()} functions and the other
-\code{new_()} functions only create or edit rows in the \emph{.metadata}
-tibbles.
+  \code{new_project()} creates a new R project folder that is automatically
+  filled with a .Rproj file, helpful subdirectories, and .Rmd files to get
+  your project workflow started. The \code{edit_()} functions and the other
+  \code{new_()} functions only create or edit rows in the \emph{.metadata}
+  tibbles.
 
-Newly created project folders (and the .Rproj files they contain) both have
-names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
-\code{id} number. The folder will be an immediate subdirectory of the main
-projects folder (see \code{\link{setup_projects()}}) unless the argument
-\code{path} specifies a deeper subdirectory. The user may enter various
-metadata about the project that is stored and may be called forth using the
-\code{\link{projects()}} function. Some of this metadata will automatically
-be added to the \code{\link{header}} atop the automatically created
-\emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
-\emph{progs/04_report.Rmd}.
+  Newly created project folders (and the .Rproj files they contain) both have
+  names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
+  \code{id} number. The folder will be an immediate subdirectory of the main
+  projects folder (see \code{\link{setup_projects()}}) unless the argument
+  \code{path} specifies a deeper subdirectory. The user may enter various
+  metadata about the project that is stored and may be called forth using the
+  \code{\link{projects()}} function. Some of this metadata will automatically
+  be added to the \code{\link{header}} atop the automatically created
+  \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
+  \emph{progs/04_report.Rmd}.
 }

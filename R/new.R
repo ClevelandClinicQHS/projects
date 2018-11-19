@@ -2,27 +2,27 @@
 #'
 #' @title Create or edit projects, authors, and affiliations
 #'
-#' These functions create or edit rows in the \code{\link{projects}},
-#' \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
-#' stored in the \emph{.metadata} subdirectory of the main
-#' \code{\link{projects_folder}}.
+#'   These functions create or edit rows in the \code{\link{projects}},
+#'   \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
+#'   stored in the \emph{.metadata} subdirectory of the main
+#'   \code{\link{projects_folder}}.
 #'
-#' \code{new_project()} creates a new R project folder that is automatically
-#' filled with a .Rproj file, helpful subdirectories, and .Rmd files to get your
-#' project workflow started. The \code{edit_()} functions and the other
-#' \code{new_()} functions only create or edit rows in the \emph{.metadata}
-#' tibbles.
+#'   \code{new_project()} creates a new R project folder that is automatically
+#'   filled with a .Rproj file, helpful subdirectories, and .Rmd files to get
+#'   your project workflow started. The \code{edit_()} functions and the other
+#'   \code{new_()} functions only create or edit rows in the \emph{.metadata}
+#'   tibbles.
 #'
-#' Newly created project folders (and the .Rproj files they contain) both have
-#' names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
-#' \code{id} number. The folder will be an immediate subdirectory of the main
-#' projects folder (see \code{\link{setup_projects()}}) unless the argument
-#' \code{path} specifies a deeper subdirectory. The user may enter various
-#' metadata about the project that is stored and may be called forth using the
-#' \code{\link{projects()}} function. Some of this metadata will automatically
-#' be added to the \code{\link{header}} atop the automatically created
-#' \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
-#' \emph{progs/04_report.Rmd}.
+#'   Newly created project folders (and the .Rproj files they contain) both have
+#'   names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
+#'   \code{id} number. The folder will be an immediate subdirectory of the main
+#'   projects folder (see \code{\link{setup_projects()}}) unless the argument
+#'   \code{path} specifies a deeper subdirectory. The user may enter various
+#'   metadata about the project that is stored and may be called forth using the
+#'   \code{\link{projects()}} function. Some of this metadata will automatically
+#'   be added to the \code{\link{header}} atop the automatically created
+#'   \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
+#'   \emph{progs/04_report.Rmd}.
 #'
 #' @param id An integer that will become the item's permanent identification
 #'   number. Must be in the range 1-9999 or left blank. If left blank, the
@@ -66,14 +66,10 @@
 #'   Authors may be specified by \code{id} or name.
 #'
 #'   Each element must match a row in the \code{\link{authors}} tibble.
-#' @param creator,default \code{creator} is an \code{id} or unambiguous
-#'   \code{last_name}/\code{given_names} of one of the authors in the
-#'   \code{\link{authors}} table. If left blank (e.g., \code{NA}), it will be
-#'   filled with the \code{id} of the \code{default} author.
-#'
-#'   \code{default}, when \code{TRUE}, flags the default author. Setting an
-#'   author with \code{default = TRUE} will automatically set all other authors
-#'   to \code{default = FALSE}.
+#' @param creator The author who created the project. If it is equal to
+#'   \code{Sys.info()["user"]} (the default value), it is kept as is. Otherwise
+#'   it will be validated against the \code{authors()} tibble and populated with
+#'   the matching author \code{id}.
 #' @param corresp_auth,current_owner An \code{id} or unambiguous
 #'   \code{last_name}/\code{given_names} of one of the authors in the
 #'   \code{\link{authors}} table.
@@ -124,7 +120,7 @@ new_project <- function(title             = NA,
                         short_title       = NA,
                         authors,
                         current_owner     = NA,
-                        creator           = NA,
+                        creator           = Sys.info()["user"],
                         corresp_auth      = NA,
                         stage             = c("1: design", "2: data collection",
                                               "3: analysis", "4: manuscript",
@@ -173,17 +169,21 @@ new_project <- function(title             = NA,
     title <- tools::toTitleCase(title)
   }
 
-  stage <- factor(match.arg(stage), levels = eval(formals()$stage))
+  stage <- validate_stage(stage, choices = eval(formals()$stage))
 
   ########################
   # Validation of authors, creator, corresp_auth, current_owner
 
-  if(nrow(authors_tibble) == 0 && !all(is.na(creator), is.na(corresp_auth),
-                                       is.na(current_owner), missing(authors))){
+  # Won't let new_project() continue if there are no authors and the user is
+  # trying to add authors
+  if(nrow(authors_tibble) == 0 &&
+     !all(creator == Sys.info()["user"], is.na(corresp_auth),
+          is.na(current_owner), missing(authors))) {
     stop("Can't set authors, creator, corresp_auth, or current owner until an",
          " author is created. Run new_author()")
   }
 
+  # Validate corresp_auth
   if(!is.na(corresp_auth)) {
     corresp_auth <- validate_entry(corresp_auth,
                                    what       = "author",
@@ -191,18 +191,20 @@ new_project <- function(title             = NA,
                                    max.length = 1)
   }
 
-  # If creator is left blank, the default author is used. If the default author
-  # is not set, it will be NA.
+  # creator is validated against the authors tibble only if it's different from
+  # Sys.info()["user"]. If the user cleverly tries to set creator as NA, it will
+  # be set to Sys.info()["user"].
   if(is.na(creator)) {
-    creator <- get_default_author_internal(authors_tibble = authors_tibble)
+    creator <- Sys.info()["user"]
   }
-  else {
-    creator <- validate_entry(creator,
-                              what       = "author",
-                              rds_tibble = authors_tibble,
-                              max.length = 1)
+  else if(creator != Sys.info()["user"]) {
+      creator <- validate_entry(creator,
+                                what       = "author",
+                                rds_tibble = authors_tibble,
+                                max.length = 1)
   }
 
+  # Validate current_owner
   if(!is.na(current_owner)) {
     current_owner <- validate_entry(current_owner,
                                     what       = "author",
@@ -210,13 +212,16 @@ new_project <- function(title             = NA,
                                     max.length = 1)
   }
 
+  # If authors is left blank and current_owner isn't, authors is populated with
+  # current_owner.
+  # If current_owner is blank and authors isn't, current_owner is populated with
+  # the first author.
+  # If neither are blank and current_owner isn't in authors, current_owner is
+  # added to authors immediately preceding the last author (unless there was
+  # only one author in authors; in that case, it's made to be the second one).
+  # If both authors and current_owner are blank, they're left blank.
   if(missing(authors)) {
-    if(is.na(current_owner)) {
-      if(!is.na(creator)) {
-        authors <- current_owner <- creator
-      }
-    }
-    else {
+    if(!is.na(current_owner)) {
       authors <- current_owner
     }
   }
@@ -268,7 +273,7 @@ new_project <- function(title             = NA,
                                   title         = title,
                                   short_title   = as.character(short_title),
                                   current_owner = as.integer(current_owner),
-                                  creator       = as.integer(creator),
+                                  creator       = creator,
                                   corresp_auth  = as.integer(corresp_auth),
                                   stage         = stage,
                                   deadline_type = as.character(deadline_type),
@@ -322,8 +327,8 @@ new_project <- function(title             = NA,
   }
 
   message("\nCreator:")
-  if(is.na(creator)) {
-    print("None.")
+  if(creator == Sys.info()["user"]) {
+    print(creator)
   }
   else {
     print(dplyr::filter(authors_tibble, .data$id == creator))

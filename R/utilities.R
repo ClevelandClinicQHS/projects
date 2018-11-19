@@ -68,10 +68,10 @@ fix_metadata <- function(path = ".metadata") {
                                               "5: under review", "6: accepted"))
 
           if(is.null(tibble$creator)) {
-            tibble$creator <- NA_integer_
+            tibble$creator <- NA_character_
           }
           else {
-            tibble$creator <- as.integer(tibble$creator)
+            tibble$creator <- as.character(tibble$creator)
           }
 
           if(is.null(tibble$current_owner)) {
@@ -86,13 +86,6 @@ fix_metadata <- function(path = ".metadata") {
           }
           else {
             tibble$corresp_auth <- as.integer(tibble$corresp_auth)
-          }
-
-          if(is.null(tibble$creator)) {
-            tibble$creator <- NA_integer_
-          }
-          else {
-            tibble$creator <- as.integer(tibble$creator)
           }
 
           if(is.null(tibble$path)) {
@@ -154,10 +147,12 @@ fix_metadata <- function(path = ".metadata") {
                                   id1 = as.integer(.data$id1),
                                   id2 = as.integer(.data$id2))
         }
-browser()
+
         saveRDS(tibble, file = fs::path(p_path, ".metadata", x, ext = "rds"))
       })
 }
+
+
 
 #' @importFrom rlang .data
 print_header_internal <- function(
@@ -555,8 +550,13 @@ write_project_files <- function(pXXXX_path, protocol_report, datawork, analysis,
 
 clear_special_author <- function(author, projects_path, projects_tibble) {
 
-  is.na(projects_tibble[c("current_owner", "creator", "corresp_auth")]) <-
-    projects_tibble[c("current_owner", "creator", "corresp_auth")] == author
+  if(nrow(projects_tibble) > 0) {
+    is.na(projects_tibble[c("current_owner", "creator", "corresp_auth")]) <-
+      dplyr::transmute(projects_tibble,
+                       current_owner = .data$current_owner,
+                       creator       = as.integer(.data$creator),
+                       corresp_auth  = .data$corresp_auth) == author
+  }
 
   saveRDS(object = projects_tibble, file = projects_path)
 
@@ -564,3 +564,12 @@ clear_special_author <- function(author, projects_path, projects_tibble) {
 }
 
 
+
+delete_all_rds <- function() {
+  old_knit <- options('knitr.in.progress' = TRUE)
+  on.exit(options(old_knit))
+
+  purrr::walk(authors()$id, delete_author)
+  purrr::walk(affiliations()$id, delete_affiliation)
+  purrr::walk(projects()$id, delete_project)
+}

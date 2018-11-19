@@ -19,26 +19,28 @@ validate_new <- function(id, what, rds_tibble) {
 }
 
 
-validate_entry <- function(x, what, rds_tibble = NULL, max.length = 9999) {
+validate_entry <- function(x, what, rds_tibble = NULL, max.length = 9999,
+                           allow_dups = FALSE) {
 
   if(!checkmate::test_vector(x = x, any.missing = FALSE, min.len = 1,
                              max.len = max.length, unique = TRUE)) {
     stop("Must enter ", what, " as a vector of minimum length 1, maximum ",
-         "length ", max.length, " and no missing values.")
+         "length ", max.length, " and no missing values or duplicate values.")
   }
 
   ids <-
-    sapply(X   = x,
+    lapply(X   = x,
            FUN = function(char) {
              num <- suppressWarnings(as.numeric(char))
              if(is.na(num)) {
-               validate_char(x = char, what = what, rds_tibble = rds_tibble)
+               validate_char(x = char, what = what, rds_tibble = rds_tibble,
+                             allow_dups = allow_dups)
              }
              else {
                validate_int(x = num, what = what, rds_tibble = rds_tibble)
              }
-           },
-           USE.NAMES = FALSE)
+           }) %>%
+    unlist()
 
   if(anyDuplicated(ids) > 0) {
     stop("The following ", what, "s are duplicates: ",
@@ -73,38 +75,35 @@ validate_int <- function(x, what, rds_tibble) {
   return(x)
 }
 
-validate_char <- function(x, what, rds_tibble) {
+
+
+validate_char <- function(x, what, rds_tibble, allow_dups) {
 
   if(!checkmate::test_character(x, min.chars = 1)) {
     stop("Each ", what, " entered as a character strings must contain at ",
          "least 1 character")
   }
 
-  x <-
-    purrr::map_int(
-      x,
-      function(string) {
-        matches <- grep(pattern     = string,
-                        x           = paste(rds_tibble[[2]], rds_tibble[[3]]),
-                        ignore.case = TRUE)
-        if(length(matches) != 1) {
-          if(length(matches) == 0) {
-            stop("No ", what, " found containing \'", string, "\' in the ",
-                 colnames(rds_tibble)[2], "+", colnames(rds_tibble)[3])
-          }
-          else if(length(matches) > 1) {
-            print(rds_tibble[matches, ])
-            stop(string, " matches the ", colnames(rds_tibble)[2], "+",
-                 colnames(rds_tibble)[3], " of all of the above ", what,
-                 "s. Be more specific to differentiate or enter their ", what,
-                 " id numbers instead.")
-          }
-        }
-        return(rds_tibble$id[matches])
-      }
-    )
+  matches <- grep(pattern     = x,
+                  x           = paste(rds_tibble[[2]], rds_tibble[[3]]),
+                  ignore.case = TRUE)
 
-  return(x)
+  if(length(matches) != 1) {
+
+    if(length(matches) == 0) {
+      stop("No ", what, " found containing \'", x, "\' in the ",
+           colnames(rds_tibble)[2], "+", colnames(rds_tibble)[3])
+    }
+    else if(length(matches) > 1 && !allow_dups) {
+      print(rds_tibble[matches, ])
+      stop(x, " matches the ", colnames(rds_tibble)[2], "+",
+           colnames(rds_tibble)[3], " of all of the above ", what,
+           "s. Be more specific to differentiate or enter their ", what,
+           " id numbers instead.")
+    }
+  }
+
+  return(rds_tibble$id[matches])
 }
 
 
@@ -146,4 +145,34 @@ validate_directory <- function(path,
   }
 
   return(unclass(path))
+}
+
+
+validate_stage <- function(stage, choices) {
+
+  if(is.na(stage)) {
+
+    return(choices[1])
+
+  }
+  else {
+
+    stage <- as.character(stage)
+
+    checkmate::assert_character(stage, min.chars = 1, any.missing = FALSE,
+                                len = 1)
+
+    stage <- factor(x      = grep(pattern     = stage,
+                                  x           = choices,
+                                  ignore.case = TRUE,
+                                  value       = TRUE),
+                    levels = choices)
+
+    if(length(stage) != 1) {
+      stop("User input for the 'stage' argument must match exactly one of ",
+           "the following:\n", paste(choices, collapse = "\n"))
+    }
+
+    return(stage)
+  }
 }
