@@ -48,111 +48,6 @@ user_prompt <- function(msg, y_msg, n_msg, error = TRUE) {
 }
 
 
-#' @importFrom rlang .data
-fix_metadata <- function(path = ".metadata") {
-  p_path <- p_path_internal()
-  purrr::walk(
-    .x = c("projects", "authors", "affiliations",
-           "project_author_assoc", "author_affiliation_assoc"),
-    .f =
-      function(x) {
-        tibble <- readRDS(file = fs::path(p_path, path, x, ext = "rds"))
-        if(x == "projects") {
-          tibble$id <- as.integer(tibble$id)
-
-          tibble$deadline <- as.Date(tibble$deadline)
-
-          tibble$stage <- factor(tibble$stage,
-                                 levels = c("1: design", "2: data collection",
-                                              "3: analysis", "4: manuscript",
-                                              "5: under review", "6: accepted"))
-
-          if(is.null(tibble$creator)) {
-            tibble$creator <- NA_character_
-          }
-          else {
-            tibble$creator <- as.character(tibble$creator)
-          }
-
-          if(is.null(tibble$current_owner)) {
-            tibble$current_owner <- NA_integer_
-          }
-          else {
-            tibble$current_owner <- as.integer(tibble$current_owner)
-          }
-
-          if(is.null(tibble$corresp_auth)) {
-            tibble$corresp_auth <- NA_integer_
-          }
-          else {
-            tibble$corresp_auth <- as.integer(tibble$corresp_auth)
-          }
-
-          if(is.null(tibble$path)) {
-            tibble <-
-              dplyr::mutate(
-                tibble,
-                path = fs::path(p_path, make_project_name(.data$id)))
-          }
-
-          if(is.null(tibble$short_title)) {
-            tibble$short_title <- NA_character_
-          }
-
-          tibble <- dplyr::select(
-            tibble,
-            id, title, short_title, current_owner, creator, corresp_auth,
-            stage, deadline_type, deadline, status, path)
-        }
-
-        if(x == "authors") {
-          tibble$id <- as.integer(tibble$id)
-          if(is.null(tibble$phone)) {
-            tibble$phone <- NA_character_
-          }
-          if(is.null(tibble$default)) {
-            tibble$default <- FALSE
-          }
-
-          tibble <-
-            dplyr::select(
-              tibble,
-              id, given_names, last_name, title, degree, email, phone, default)
-        }
-
-        if(x == "affiliations") {
-          tibble$id <- as.integer(tibble$id)
-        }
-
-        if(x == "project_author_assoc") {
-
-          if(fs::file_exists(fs::path(p_path, path, "project_PI_assoc",
-                                      ext = "rds"))) {
-            PI <-
-              readRDS(file = fs::path(p_path, path, "project_PI_assoc",
-                                      ext = "rds")) %>%
-              dplyr::mutate(id1 = as.integer(.data$id1),
-                            id2 = as.integer(.data$id2))
-
-            tibble <- dplyr::mutate(tibble,
-                                    id1 = as.integer(.data$id1),
-                                    id2 = as.integer(.data$id2))
-            tibble <- dplyr::bind_rows(PI, tibble)
-          }
-
-        }
-
-        if(x == "author_affiliation_assoc") {
-          tibble <- dplyr::mutate(tibble,
-                                  id1 = as.integer(.data$id1),
-                                  id2 = as.integer(.data$id2))
-        }
-
-        saveRDS(tibble, file = fs::path(p_path, ".metadata", x, ext = "rds"))
-      })
-}
-
-
 
 #' @importFrom rlang .data
 print_header_internal <- function(
@@ -194,7 +89,7 @@ build_protocol_report <- function(protocol, p_path, project_id, title,
                                   affiliations_tibble, project_authors,
                                   aa_assoc_tibble, use_bib, pXXXX_name) {
 
-  protocol        <- protocol_selector(selection = protocol, p_path = pa_path)
+  protocol        <- protocol_selector(selection = protocol, p_path = p_path)
 
   protocol_report <- list(protocol, report)
 
@@ -254,10 +149,53 @@ protocol_selector <- function(selection, p_path) {
     selection <- protocol_choices[protocol_matches[1]]
 
     if(selection == "STROBE") {
-      selection <- STROBE_template
+
+      protocol_path <- fs::path(p_path, ".templates/STROBE_template.Rmd")
+
+      if(fs::file_exists(protocol_path)) {
+        selection <- readr::read_lines(protocol_path)
+      }
+
+      else {
+
+        if(user_prompt(
+          msg   = paste0("STROBE protocol template not found at\n",
+                         protocol_path, "\n\nDo you want the default STROBE ",
+                         "template to be restored? (y/n)"),
+          y_msg = paste0("\nThe default STROBE template was restored at\n",
+                         protocol_path),
+          error = FALSE)) {
+          readr::write_lines(STROBE_template, protocol_path)
+        }
+
+        selection <- STROBE_template
+      }
     }
     else if(selection == "CONSORT") {
-      selection <- CONSORT_template
+
+      protocol_path <- fs::path(p_path, ".templates/CONSORT_template.Rmd")
+
+      if(fs::file_exists(protocol_path)) {
+        selection <- readr::read_lines(protocol_path)
+      }
+
+      else {
+
+        if(user_prompt(
+          msg   = paste0("CONSORT protocol template not found at\n",
+                         protocol_path, "\n\nDo you want the default CONSORT ",
+                         "template to be restored? (y/n)"),
+          y_msg = paste0("\nThe default CONSORT template was restored at\n",
+                         protocol_path),
+          error = FALSE)) {
+          readr::write_lines(CONSORT_template, protocol_path)
+        }
+
+        selection <- CONSORT_template
+      }
+    }
+    else {
+      stop("Invalid protocol selection: ", selection)
     }
 
     selection <- append(selection, protocol, after = 0L)
@@ -333,8 +271,8 @@ build_datawork_analysis <- function(template, what, p_path, pXXXX_name) {
       template <- readr::read_lines(file = template_path)
     }
     else {
-      stop(toupper(what), " template does not exist at:\n", template_path,
-           "\nCheck case and file extensions.")
+      stop(what, " template does not exist at:\n", template_path,
+           "\n\nCheck case and file extensions.")
     }
   }
 
@@ -551,11 +489,12 @@ write_project_files <- function(pXXXX_path, protocol_report, datawork, analysis,
 clear_special_author <- function(author, projects_path, projects_tibble) {
 
   if(nrow(projects_tibble) > 0) {
+
     is.na(projects_tibble[c("current_owner", "creator", "corresp_auth")]) <-
-      dplyr::transmute(projects_tibble,
-                       current_owner = .data$current_owner,
-                       creator       = as.integer(.data$creator),
-                       corresp_auth  = .data$corresp_auth) == author
+      projects_tibble %>%
+      dplyr::select("current_owner", "creator", "corresp_auth") %>%
+      dplyr::mutate(
+        creator = suppressWarnings(as.integer(.data$creator))) == author
   }
 
   saveRDS(object = projects_tibble, file = projects_path)
@@ -572,4 +511,106 @@ delete_all_rds <- function() {
   purrr::walk(authors()$id, delete_author)
   purrr::walk(affiliations()$id, delete_affiliation)
   purrr::walk(projects()$id, delete_project)
+}
+
+
+#' @importFrom rlang .data
+#' @export
+fix_metadata <- function(path = ".metadata") {
+  p_path <- p_path_internal()
+  purrr::walk(
+    .x = c("projects", "authors", "affiliations",
+           "project_author_assoc", "author_affiliation_assoc"),
+    .f =
+      function(x) {
+        tibble <- readRDS(file = fs::path(p_path, path, x, ext = "rds"))
+        if(x == "projects") {
+          tibble$id <- as.integer(tibble$id)
+
+          tibble$deadline <- as.Date(tibble$deadline)
+
+          tibble$stage <- factor(tibble$stage,
+                                 levels = c("1: design", "2: data collection",
+                                            "3: analysis", "4: manuscript",
+                                            "5: under review", "6: accepted"))
+
+          if(is.null(tibble$creator)) {
+            tibble$creator <- NA_character_
+          }
+          else {
+            tibble$creator <- as.character(tibble$creator)
+          }
+
+          if(is.null(tibble$current_owner)) {
+            tibble$current_owner <- NA_integer_
+          }
+          else {
+            tibble$current_owner <- as.integer(tibble$current_owner)
+          }
+
+          if(is.null(tibble$corresp_auth)) {
+            tibble$corresp_auth <- NA_integer_
+          }
+          else {
+            tibble$corresp_auth <- as.integer(tibble$corresp_auth)
+          }
+
+          if(is.null(tibble$path)) {
+            tibble <-
+              dplyr::mutate(
+                tibble,
+                path = fs::path(p_path, make_project_name(.data$id)))
+          }
+
+          if(is.null(tibble$short_title)) {
+            tibble$short_title <- NA_character_
+          }
+
+          tibble <- dplyr::select(
+            tibble,
+            id, title, short_title, current_owner, status, deadline_type,
+            deadline, stage, path, corresp_auth, creator)
+        }
+
+        if(x == "authors") {
+          tibble$id <- as.integer(tibble$id)
+          if(is.null(tibble$phone)) {
+            tibble$phone <- NA_character_
+          }
+          tibble <-
+            dplyr::select(
+              tibble,
+              id, given_names, last_name, title, degree, email, phone)
+        }
+
+        if(x == "affiliations") {
+          tibble$id <- as.integer(tibble$id)
+        }
+
+        if(x == "project_author_assoc") {
+
+          if(fs::file_exists(fs::path(p_path, path, "project_PI_assoc",
+                                      ext = "rds"))) {
+            PI <-
+              readRDS(file = fs::path(p_path, path, "project_PI_assoc",
+                                      ext = "rds")) %>%
+              dplyr::mutate(id1 = as.integer(.data$id1),
+                            id2 = as.integer(.data$id2))
+
+            tibble <- dplyr::mutate(tibble,
+                                    id1 = as.integer(.data$id1),
+                                    id2 = as.integer(.data$id2))
+            tibble <- dplyr::bind_rows(PI, tibble)
+          }
+
+        }
+
+        if(x == "author_affiliation_assoc") {
+          tibble <- dplyr::mutate(tibble,
+                                  id1 = as.integer(.data$id1),
+                                  id2 = as.integer(.data$id2))
+        }
+
+        saveRDS(tibble, file = fs::path(p_path, ".metadata", x, ext = "rds"))
+      })
 }

@@ -2,29 +2,35 @@
 #'
 #' @title Tools for Organizing and Managing Project Files
 #'
-#' @description
-#'   Projects can be moved (\code{move_project}), copied (\code{copy_project}),
-#'   deleted (\code{delete_project}) or archived (\code{archive_project}). The
-#'   difference between delete_project and archive_project is that the latter will
-#'   just move the project to a directory called 'archive', located in the same
-#'   parent directory as the project. This directory gets created if it doesn't yet
-#'   exist.
+#' @description Projects can be moved (\code{move_project}), copied
+#'   (\code{copy_project}), deleted (\code{\link{delete_project}}) or archived
+#'   (\code{archive_project}). The difference between \code{delete_project} and
+#'   \code{archive_project} is that the latter will just move the project to a
+#'   directory called 'archive', located in the same parent directory as the
+#'   project. This directory gets created if it doesn't yet exist.
 #'
-#'   Projects can also be organized into groups. By default, all projects are created
-#'   within the main \code{\link{projects_folder}}. To create a project group, which
-#'   essentially is a subfolder of projects that sits within the main
-#'   \code{\link{projects_folder}} (or recursively within another project group's
-#'   folder), use \code{new_project_group()}.
+#'   Projects can also be organized into groups. By default, all projects are
+#'   created within the main \code{\link{projects_folder}}. To create a project
+#'   group, which essentially is a subfolder of projects that sits within the
+#'   main \code{\link{projects_folder}} (or recursively within another project
+#'   group's folder), use \code{new_project_group()}.
 #'
-#' @param path A valid path string. See \code{help(new_project)} for details.
+#' @param path A valid path string. See the \code{path} argument in
+#'   \link{new_project} for details.
 #'
-#' @param project Project ID or unambiguous substring of the project name from the projects tibble.
+#' @param project Project \code{id} or unambiguous substring of the project name
+#'   from the \code{\link{projects()}} tibble.
 #'
-#' @param make_directories Logical. If the path represented by the \code{path} parameter does not exist, should the needed directories be created?
+#' @param make_directories Logical. If the path represented by the \code{path}
+#'   parameter does not exist, should the needed directories be created?
 #'
-#' @param project_to_copy Project ID or unambiguous substring of the project name corresponding to the project that is to be copied.
+#' @param project_to_copy Project \code{id} or unambiguous substring of the
+#'   project name corresponding to the project that is to be copied.
 #'
-#' @param new_id Optional integer, ranging from 0 to 9999, used as the newly-created project ID. Must not already exist as a ProjectID (in the \code{projects()} tibble).
+#' @param new_id Optional integer, ranging from 1 to 9999, used as the
+#'   newly-created project ID. Must not already exist in
+#'   \code{\link{projects()}$id}. If left blank, the lowest available `id` will
+#'   be automatically used.
 #'
 #' @seealso \code{\link{new_project}}, \code{\link{delete_project}}
 #'
@@ -46,7 +52,6 @@
 #' copy_project(2, "kidney/clinical")
 #'
 #' archive_project(3)
-#'
 #' }
 #' @importFrom rlang .data
 #' @export

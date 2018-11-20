@@ -8,14 +8,14 @@ edit_project <- function(project,
                          short_title    = NA,
                          authors,
                          current_owner  = NA,
-                         creator        = NA,
-                         corresp_auth   = NA,
+                         status         = NA,
+                         deadline_type  = NA,
+                         deadline       = NA,
                          stage          = c("1: design", "2: data collection",
                                             "3: analysis", "4: manuscript",
                                             "5: under review", "6: accepted"),
-                         deadline_type  = NA,
-                         deadline       = NA,
-                         status         = NA,
+                         corresp_auth   = NA,
+                         creator        = NA,
                          reprint_header = TRUE) {
 
   p_path          <- p_path_internal()
@@ -112,7 +112,8 @@ edit_project <- function(project,
 
 
   if(is.na(creator)) {
-    if(old_project_row$creator %in% authors$remove) {
+    if(suppressWarnings(as.integer(old_project_row$creator)) %in%
+       authors$remove) {
       creator <- NULL
     }
   }
@@ -132,13 +133,13 @@ edit_project <- function(project,
                                   title         = title,
                                   short_title   = short_title,
                                   current_owner = current_owner,
-                                  corresp_auth  = corresp_auth,
-                                  creator       = creator,
-                                  stage         = stage,
+                                  status        = status,
                                   deadline_type = deadline_type,
                                   deadline      = as.Date(deadline),
-                                  status        = status,
-                                  path          = NA_character_)
+                                  stage         = stage,
+                                  path          = NA_character_,
+                                  corresp_auth  = corresp_auth,
+                                  creator       = as.character(creator))
 
   if(length(authors$remove) > 0) {
     assoc_tibble <-
@@ -197,8 +198,7 @@ edit_project <- function(project,
 edit_author <- function(author,            given_names   = NA,
                         last_name = NA,    affiliations,
                         title     = NA,    degree        = NA,
-                        email     = NA,    phone         = NA,
-                        default   = FALSE) {
+                        email     = NA,    phone         = NA) {
 
   p_path              <- p_path_internal()
 
@@ -215,10 +215,6 @@ edit_author <- function(author,            given_names   = NA,
 
   assoc_path          <- make_rds_path("author_affiliation_assoc", p_path)
   assoc_tibble        <- get_rds(assoc_path)
-
-  if(!is.logical(default)) {
-    stop("The value of the 'default' argument must be either TRUE or FALSE")
-  }
 
   if(missing(affiliations)) {
     affiliations <- list(add = list(), remove = list())
@@ -242,17 +238,8 @@ edit_author <- function(author,            given_names   = NA,
                                  title       = title,
                                  degree      = degree,
                                  email       = tolower(email),
-                                 phone       = phone,
-                                 default     = default)
+                                 phone       = phone)
 
-  if(length(affiliations$add) > 0) {
-    assoc_tibble <-
-      change_assoc(assoc_path   = assoc_path,
-                   assoc_tibble = assoc_tibble,
-                   new          = TRUE,
-                   id1          = author,
-                   id2          = affiliations$add)
-  }
   if(length(affiliations$remove) > 0) {
     assoc_tibble <-
       change_assoc(assoc_path   = assoc_path,
@@ -261,6 +248,15 @@ edit_author <- function(author,            given_names   = NA,
                    id1          = author,
                    id2          = affiliations$remove)
   }
+  if(length(affiliations$add) > 0) {
+    assoc_tibble <-
+      change_assoc(assoc_path   = assoc_path,
+                   assoc_tibble = assoc_tibble,
+                   new          = TRUE,
+                   id1          = author,
+                   id2          = affiliations$add)
+  }
+
 
   filtered_assoc <- dplyr::filter(assoc_tibble, .data$id1 == author)
 
@@ -591,6 +587,77 @@ recursive_number_namer <- function(formula) {
 
 # Reordering functions
 ################################################################################
+
+#' Reordering authors and affiliations
+#'
+#' These functions allow the user to reorder authors on a project or to reorder
+#' an author's affiliations.
+#'
+#' The order of these affects the order of authors and affiliations in
+#' \code{\link{header}}s.
+#'
+#' When specifying explicit ranks, enter \code{...} as name-value pairs, in
+#' which the names are names of authors/affiliations (or even their [back]quoted
+#' \code{id}s) and the values are integer ranks you want them to occupy. If
+#' entering an integer greater than the total number of authors/affiliations,
+#' the element will be put at the end. The \code{after} argument will be ignored
+#' in this case.
+#'
+#' When not specifying explicit ranks, simply enter author/affiliations
+#' \code{id}s or names in the order you want them, and the ones you entered will
+#' be inserted after the position specified by the \code{after} argument. By
+#' default (\code{after = 0}), the authors/affiliations in \code{...} will be
+#' moved to the front.
+#'
+#' @param project,author The \code{id} or unambiguous names of a project/author
+#'   whose authors/affiliations you want to reorder.
+#' @param ... The \code{id}s or names of authors/affiliations you want to
+#'   reorder, optionally with their new ranks explicitly stated. See details.
+#' @param after If not specifying explicit ranks in \code{...}, the position you
+#'   want the elements to come after. Works like the \code{after} argument in
+#'   \code{\link[base]{append}} or \code{forcats::fct_relevel}.
+#'
+#'   Ignored if ranks are explicitly provided in \code{...}.
+#' @param reprint_header Should the \code{project}'s header be printed to the
+#'   console?
+#'
+#' @examples
+#'
+#' # Imagine the author order on project 1 was originally:
+#' tibble::tribble(
+#'   ~id,  ~given_names,  ~last_name,
+#'     5,  "Adam",        "Smith",
+#'    22,  "Britney",     "Jones",
+#'     9,  "Caroline",    "Perry",
+#'   100,  "David",       "Herman",
+#'    47,  "Esther",      "Ireland")
+#'
+#' # The following examples are sequential to improve readability.
+#'
+#' \dontrun{
+#' reorder_authors(project = 1, "David", 22, "47", after = 1)
+#' }
+#' tibble::tribble(
+#'   ~id,  ~given_names,  ~last_name,
+#'     5,  "Adam",        "Smith",
+#'   100,  "David",       "Herman",
+#'    22,  "Britney",     "Jones",
+#'    47,  "Esther",      "Ireland",
+#'     9,  "Caroline",    "Perry")
+#'
+#' # rearranging the rearrangement:
+#' \dontrun{
+#' reorder_authors(1, Jones = 99, `47` = 2, "100" = 1)
+#' }
+#' tibble::tribble(
+#'   ~id,  ~given_names,  ~last_name,
+#'   100,  "David",       "Herman",
+#'    47,  "Esther",      "Ireland",
+#'     5,  "Adam",        "Smith",
+#'     9,  "Caroline",    "Perry",
+#'    22,  "Britney",     "Jones")
+#'
+#' @name reordering
 #' @export
 reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE) {
 
@@ -602,6 +669,7 @@ reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE) {
                 assoc          = "project_author_assoc")
 }
 
+#' @rdname reordering
 #' @export
 reorder_affiliations <- function(author, ..., after = 0L) {
 

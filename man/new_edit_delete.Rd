@@ -36,14 +36,13 @@
   \emph{progs/04_report.Rmd}.}
 \usage{
 edit_project(project, title = NA, short_title = NA, authors,
-  current_owner = NA, creator = NA, corresp_auth = NA,
-  stage = c("1: design", "2: data collection", "3: analysis",
-  "4: manuscript", "5: under review", "6: accepted"), deadline_type = NA,
-  deadline = NA, status = NA, reprint_header = TRUE)
+  current_owner = NA, status = NA, deadline_type = NA,
+  deadline = NA, stage = c("1: design", "2: data collection",
+  "3: analysis", "4: manuscript", "5: under review", "6: accepted"),
+  corresp_auth = NA, creator = NA, reprint_header = TRUE)
 
 edit_author(author, given_names = NA, last_name = NA, affiliations,
-  title = NA, degree = NA, email = NA, phone = NA,
-  default = FALSE)
+  title = NA, degree = NA, email = NA, phone = NA)
 
 edit_affiliation(affiliation, department_name = NA,
   institution_name = NA, address = NA)
@@ -55,22 +54,24 @@ delete_author(author)
 delete_affiliation(affiliation)
 
 new_project(title = NA, short_title = NA, authors,
-  current_owner = NA, creator = Sys.info()["user"],
-  corresp_auth = NA, stage = c("1: design", "2: data collection",
+  current_owner = NA, status = "just created", deadline_type = NA,
+  deadline = NA, stage = c("1: design", "2: data collection",
   "3: analysis", "4: manuscript", "5: under review", "6: accepted"),
-  deadline_type = NA, deadline = NA, id = NA,
-  status = "just created", path = "", protocol = c("STROBE",
-  "CONSORT"), make_directories = FALSE, use_bib = FALSE,
+  path = "", corresp_auth = NA, creator = Sys.info()["user"],
+  id = NA, protocol = c("STROBE", "CONSORT"),
+  make_directories = FALSE, use_bib = FALSE,
   datawork_template = NULL, analysis_template = NULL)
 
 new_author(given_names = NA, last_name = NA, title = NA,
-  affiliations, degree = NA, email = NA, phone = NA, id = NA,
-  default = FALSE)
+  affiliations, degree = NA, email = NA, phone = NA, id = NA)
 
 new_affiliation(department_name = NA, institution_name = NA,
   address = NA, id = NA)
 }
 \arguments{
+\item{project, author, affiliation}{The \code{id} or unambiguous names of a
+project/author/affiliation to edit or delete.}
+
 \item{title}{For the \code{_project()} functions, the title of the project;
   for \code{new_project()} only, the user input is coerced to title case
   using \code{tools::toTitleCase()}.
@@ -93,10 +94,20 @@ new_affiliation(department_name = NA, institution_name = NA,
 
   Each element must match a row in the \code{\link{authors}} tibble.}
 
-\item{creator}{The author who created the project. If it is equal to
-\code{Sys.info()["user"]} (the default value), it is kept as is. Otherwise
-it will be validated against the \code{authors()} tibble and populated with
-the matching author \code{id}.}
+\item{status}{A free text field, intended to communicate the most current
+  condition the project is in.
+
+  For \code{new_project()}, default is \code{"just created"}.}
+
+\item{deadline_type}{A free text field, intended to communicate the meaning
+of the next field, \code{deadline}.}
+
+\item{deadline}{A \code{Date} or a character string that can be coerced to a
+\code{Date}.}
+
+\item{stage}{A factor with the levels \code{c("design", "data collection",
+"analysis", "manuscript", "under review", "accepted")}, communicating the
+stage the project is in.}
 
 \item{corresp_auth, current_owner}{An \code{id} or unambiguous
   \code{last_name}/\code{given_names} of one of the authors in the
@@ -106,25 +117,10 @@ the matching author \code{id}.}
   information will be especially included in the project's
   \code{\link{header}}.}
 
-\item{stage}{A factor with the levels \code{c("design", "data collection",
-"analysis", "manuscript", "under review", "accepted")}, communicating the
-stage the project is in.}
-
-\item{deadline_type}{A free text field, intended to communicate the meaning
-of the next field, \code{deadline}.}
-
-\item{deadline}{A \code{Date} or a character string that can be coerced to a
-\code{Date}.}
-
-\item{status}{A free text field, intended to communicate the most current
-  condition the project is in.
-
-  For \code{new_project()}, default is \code{"just created"}.}
-
-\item{author, affiliation}{The \code{id} or unambiguous
-\code{given_names}/\code{last_name} or
-\code{department_name}/\code{institution_name} of a specific
-author/affiliation to edit.}
+\item{creator}{The author who created the project. If it is equal to
+\code{Sys.info()["user"]} (the default value), it is kept as is. Otherwise
+it will be validated against the \code{authors()} tibble and populated with
+the matching author \code{id}.}
 
 \item{given_names, last_name, department_name, institution_name}{Each a single
 character string. Can be used whenever needing to specify a specific
@@ -141,6 +137,13 @@ Email will be coerced to lowercase. When a project is given a
 
 \item{address}{A character string indicating the address of the affiliation.}
 
+\item{path}{A character string that can be read as a file path. It may be a
+relative path to be added to the end of the main
+\code{\link{project_folder}}, or it may contain the
+\code{\link{project_folder}}'s path as its parent path. Either way, the
+result is that the new project folder will be a subdirectory of the main
+\code{\link{project_folder}}. See also \code{\link{setup_projects()}}.}
+
 \item{id}{An integer that will become the item's permanent identification
   number. Must be in the range 1-9999 or left blank. If left blank, the
   lowest available integer in the aforemntioned range will be selected.
@@ -149,13 +152,6 @@ Email will be coerced to lowercase. When a project is given a
   folder's and \emph{.Rproj} file's names, which are of the form
   "p\emph{XXXX}". If the \code{id} number is not four digits long, it will be
   padded on the left side with 0s.}
-
-\item{path}{A character string that can be read as a file path. It may be a
-relative path to be added to the end of the main
-\code{\link{project_folder}}, or it may contain the
-\code{\link{project_folder}}'s path as its parent path. Either way, the
-result is that the new project folder will be a subdirectory of the main
-\code{\link{project_folder}}. See also \code{\link{setup_projects()}}.}
 
 \item{protocol}{A character string matching one of the included
 protocol/report templates (viz., one of \code{c("STROBE", "CONSORT")}), or

@@ -1,3 +1,28 @@
+#' Set up the projects folder
+#'
+#' Creates or restores the projects folder at the user-specified path.
+#'
+#' If \code{overwrite = TRUE}, the function will run no matter what. Use with
+#' caution.
+#'
+#' If the user has a pre-existing projects folder and runs this command with the
+#' pre-existing projects folder's path, nothing will be deleted.
+#'
+#' Therefore, if the user "broke" the projects folder (e.g., by deleting
+#' metadata; by changing the "PROJECTS_FOLDER_PATH" line in the .Renviron file),
+#' the user can "fix" the projects folder by running this command with the
+#' folder's actual file path.
+#'
+#' @param path The full file path where the user would like a directory called
+#'   "projects" to be created, wherein all \code{projects} and their data will
+#'   dwell.
+#' @param overwrite Logical indicating whether or not to abandon any previously
+#'   stored projects folders stored in the system.
+#' @param make_directories Logical indicating whether or not the function should
+#'   write any directories specified in the \code{path} argument that don't
+#'   already exist.
+#'
+#' @aliases setup_projects()
 #' @importFrom tibble tibble
 #' @export
 setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
@@ -78,14 +103,19 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
            "project_author_assoc", "author_affiliation_assoc"),
     .y = list(
            # projects
-           tibble(id          = integer(),     title         = character(),
-                  short_title = character(),   current_owner = integer(),
-                  creator     = character(),   corresp_auth  = integer(),
-                  stage = factor(levels = c("1: design", "2: data collection",
-                                            "3: analysis", "4: manuscript",
-                                            "5: under review", "6: accepted")),
-                  deadline_type = character(), deadline = as.Date(character()),
-                  status        = character(), path     = character()),
+           tibble(
+             id            = integer(),            title         = character(),
+             short_title   = character(),          current_owner = integer(),
+             status        = character(),          deadline_type = character(),
+             deadline      = as.Date(character()),
+
+             stage =
+               factor(
+                 levels = c("1: design", "2: data collection", "3: analysis",
+                            "4: manuscript", "5: under review", "6: accepted")),
+
+             path          = character(),          corresp_auth  = integer(),
+             creator       = character()),
            # authors
            tibble(id          = integer(),   last_name = character(),
                   given_names = character(), title     = character(),
@@ -108,7 +138,7 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
       }
   )
 
-  message('"projects" folder created at\n', path, '\n\nAdd affiliations with ',
-          'new_affiliation(), then add authors with new_author(), then create ',
-          'projects with new_project()')
+  message('"projects" folder created at\n', path,
+          '\n\nAdd affiliations with new_affiliation(), then add authors with ',
+          'new_author(),\nthen create projects with new_project()')
 }

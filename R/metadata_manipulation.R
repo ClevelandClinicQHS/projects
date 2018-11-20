@@ -10,7 +10,7 @@ get_rds <- function(rds_path) {
 
   if(!fs::file_exists(rds_path)) {
     stop(fs::path_file(rds_path), " file not found at ", rds_path,
-         ". Please restore the file or [re]run initialize()")
+         ". Please restore the file or [re]run setup_projects()")
   }
 
   readRDS(rds_path)
@@ -27,10 +27,6 @@ change_table <- function(action = c("new", "edit", "delete"),
 
   action     <- match.arg(action)
   changes    <- list(...)
-
-  if(isTRUE(changes$default) && nrow(rds_tibble) > 0) {
-    rds_tibble$default <- FALSE
-  }
 
   if(action == "edit") {
     changes <-

@@ -1,6 +1,22 @@
 ################################################################################
 ################################################################################
-# This is a user-friendly wrapper for p_path_internal() below it
+
+#' Get file path of main projects folder
+#'
+#' Returns the file path of the main projects folder if it has been established.
+#'
+#' The file path is returned as a simple chracter string. It simply returns the
+#' value of \code{\link[base]{Sys.getenv}("PRJOECTS_FOLDER_PATH")}, provided
+#' that its value is a file path of a directory that actually exists (i.e.,
+#' \code{\link{setup_projects()}} has been successfully run).
+#'
+#' If it can't find a directory with that path, it returns this string:
+#'
+#' \code{"projects" folder not found. Please run \link{setup_projects()}}
+#'
+#' @examples
+#' projects_folder()
+#'
 #' @export
 projects_folder <- function() {
   p_path_internal(error = FALSE)
@@ -14,7 +30,7 @@ p_path_internal <- function(error = TRUE) {
     return(path)
   }
   else {
-    notice <- '"projects" folder not found. Please run initialize()'
+    notice <- '"projects" folder not found. Please run setup_projects()'
     if(error) {
       stop(notice)
     }
@@ -23,35 +39,14 @@ p_path_internal <- function(error = TRUE) {
     }
   }
 }
+
+
 ################################################################################
 ################################################################################
-# This is a user-friendly wrapper for get_default_author_internal() below it
-#' @export
-default_author <- function() {
-  get_default_author_internal(get_rds(make_rds_path("authors")))
-}
 
-
-
+#' @rdname display_metadata
 #' @importFrom rlang .data
-get_default_author_internal <- function(authors_tibble) {
-
-  default_author <- dplyr::filter(authors_tibble, .data$default)$id
-
-  if(length(default_author) == 0) {
-    message("Default author not set. Add one with new_author() or set an ",
-            "existing author as default with edit_author(), setting default = ",
-            "TRUE")
-    default_author <- NA_integer_
-  }
-
-  return(default_author)
-}
-
-################################################################################
-################################################################################
-
-#' @importFrom rlang .data
+#' @aliases affilitions()
 #' @export
 affiliations <- function(affiliation, authors = FALSE) {
 
@@ -78,29 +73,18 @@ affiliations <- function(affiliation, authors = FALSE) {
     authors_tibble <-
       "authors" %>%
       make_rds_path(p_path) %>%
-      get_rds() #%>%
-      #dplyr::select("id", "last_name", "given_names")
+      get_rds()
 
     author_affiliation_assoc <-
       "author_affiliation_assoc" %>%
       make_rds_path(p_path) %>%
-      get_rds() #%>%
-      #dplyr::filter(.data$id2 %in% affiliations_tibble$id) %>%
-      #dplyr::arrange(.data$id2, .data$id1)
+      get_rds()
 
     affiliations_tibble <-
       affiliations_tibble %>%
       dplyr::left_join(author_affiliation_assoc, by = c("id" = "id2")) %>%
       dplyr::left_join(authors_tibble, by = c("id1" = "id")) %>%
       dplyr::rename("author_id" = "id1")
-
-        # dplyr::left_join(affiliations_tibble, by = c("id2" = "id")) %>%
-        # dplyr::left_join(authors_tibble, by = c("id1" = "id")) %>%
-        # dplyr::rename(id = id2, author_id = id1) %>%
-        # dplyr::full_join(affiliations_tibble) %>%
-        # dplyr::select(id,        department_name:address,
-        #               author_id, last_name:given_names) %>%
-        # suppressMessages())
   }
 
   return(affiliations_tibble)
@@ -109,7 +93,9 @@ affiliations <- function(affiliation, authors = FALSE) {
 
 
 
+#' @rdname display_metadata
 #' @importFrom rlang .data
+#' @aliases authors()
 #' @export
 authors <- function(author, affiliations = FALSE, projects = FALSE) {
 
@@ -135,30 +121,18 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
     affiliations_tibble <-
       "affiliations" %>%
       make_rds_path(p_path) %>%
-      get_rds() #%>%
-      #dplyr::select("id", "department_name", "institution_name")
+      get_rds()
 
     author_affiliation_assoc <-
       "author_affiliation_assoc" %>%
       make_rds_path(p_path) %>%
-      get_rds() #%>%
-      # dplyr::filter(.data$id1 %in% authors_tibble$id) %>%
-      # dplyr::arrange(.data$id1, .data$id2)
+      get_rds()
 
     authors_tibble <-
       authors_tibble %>%
       dplyr::left_join(author_affiliation_assoc, by = c("id" = "id1")) %>%
       dplyr::left_join(affiliations_tibble, by = c("id2" = "id")) %>%
       dplyr::rename("affiliation_id" = "id2")
-
-      # author_affiliation_assoc %>%
-      # dplyr::left_join(authors_tibble, by = c("id1" = "id")) %>%
-      # dplyr::left_join(affiliations_tibble, by = c("id2" = "id")) %>%
-      # dplyr::rename(id = id1, affiliation_id = id2) %>%
-      # dplyr::full_join(authors_tibble) %>%
-      # dplyr::select(id,             last_name:email,
-      #               affiliation_id, department_name:institution_name) %>%
-      # suppressMessages
   }
 
   if(projects) {
@@ -178,15 +152,6 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
       dplyr::left_join(projects_tibble, by = c("id1" = "id"),
                         suffix = c("_of_author", "_of_project")) %>%
       dplyr::rename("project_id" = "id1")
-
-      # project_author_assoc %>%
-      # dplyr::left_join(authors_tibble, by = c("id1" = "id")) %>%
-      # dplyr::left_join(affiliations_tibble, by = c("id2" = "id")) %>%
-      # dplyr::rename(id = id1, affiliation_id = id2) %>%
-      # dplyr::full_join(authors_tibble) %>%
-      # dplyr::select(id,             last_name:email,
-      #               affiliation_id, department_name:institution_name) %>%
-      # suppressMessages
   }
 
   return(authors_tibble)
@@ -195,21 +160,46 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 
 
 
-#' View the tibble of all projects.
+#' View the \code{projects()}, \code{authors()}, and \code{affiliations()}
+#' tables
 #'
-#' Returns a tibble of all projects in the main projects folder, with the option
-#' to filter by project and/or display the projects' authors as well.
+#' Returns a tibble of the projects/authors/affiliations, filtered and joined
+#' according to the entirely optional arguments.
 #'
-#' @param project An optional vector of project
-#'   \code{titles}/\code{short_titles}/\code{ids}. If each element matches a
-#'   project in the database, only those projects will be returned.
-#' @param authors Logical indicating whether or not projects' authors will be
-#'   included in the resulting tibble. If \code{TRUE}, a left join is performed,
-#'   so that projects with multiple authors will have multiple rows in the
-#'   resulting tibble.
+#' If setting one or more of the \code{projects}, \code{authors}, or
+#' \code{affiliations} arguments to \code{TRUE}, a left join is performed, with
+#' the "left" table being the one sharing the name of the function being used.
+#' As such, rows that don't have matches in any other tables will still show up
+#' in the output, and rows that have multiple matches in other tables will yield
+#' multiple rows in the output. The "right" table's id column will be renamed.
 #'
-#' @aliases
+#' Since all these functions return \code{link[tibble]{tibble}}s, the user can
+#' further manipulate them using \code{link[dplyr]{dplyr}} functions like
+#' \code{link[dplyr]{select}} and \code{link[dplyr]{filter}}. See the last
+#' example.
 #'
+#' @param project,author,affiliation An optional (unique) vector of \code{id}s
+#'   and/or names. Only rows matching one or more entries will be returned.
+#' @param projects,authors,affiliations Logical values indicating whether or not
+#'   to perform a left join with another metadata tibble. All \code{FALSE} by
+#'   default.
+#' @param archived Logical, indicating whether or not to include projects that
+#'   have been archived using \code{\link{archive_project()}} are not displayed
+#'   by default.
+#'
+#' @examples
+#' \dontrun{
+#' projects("Cholesterol") %>% dplyr::filter(current_owner == 10)
+#'
+#' authors(affiliations = TRUE) %>%
+#'   dplyr::distinct(id, .keep_all = TRUE) %>%
+#'   dplyr::select(id, given_names, last_name, email, phone, address)
+#'
+#' affiliations()
+#' }
+#'
+#' @aliases projects()
+#' @name display_metadata
 #' @importFrom rlang .data
 #' @export
 projects <- function(project, authors = FALSE, archived = FALSE) {
@@ -218,8 +208,7 @@ projects <- function(project, authors = FALSE, archived = FALSE) {
   projects_tibble <-
     "projects" %>%
     make_rds_path(p_path) %>%
-    get_rds() %>%
-    dplyr::arrange(.data$id)
+    get_rds()
 
   if(!missing(project)) {
 
@@ -238,15 +227,12 @@ projects <- function(project, authors = FALSE, archived = FALSE) {
     authors_tibble <-
       "authors" %>%
       make_rds_path(p_path) %>%
-      get_rds() #%>%
-    #dplyr::select("id", "last_name", "given_names")
+      get_rds()
 
     project_author_assoc <-
       "project_author_assoc" %>%
       make_rds_path(p_path) %>%
-      get_rds() #%>%
-    # dplyr::filter(.data$id1 %in% projects_tibble$id) %>%
-    # dplyr::arrange(.data$id1, .data$id2)
+      get_rds()
 
     projects_tibble <-
       projects_tibble %>%

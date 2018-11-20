@@ -50,10 +50,8 @@
 #'   \code{corresp_auth}, these items will be included in the
 #'   \code{\link{header}}.
 #' @param address A character string indicating the address of the affiliation.
-#' @param author,affiliation The \code{id} or unambiguous
-#'   \code{given_names}/\code{last_name} or
-#'   \code{department_name}/\code{institution_name} of a specific
-#'   author/affiliation to edit.
+#' @param project,author,affiliation The \code{id} or unambiguous names of a
+#'   project/author/affiliation to edit or delete.
 #' @param authors,affiliations For \code{new_project()}/\code{new_author()}, a
 #'   vector of \code{id}s or unambiguous \code{given_names}/\code{last_name} or
 #'   \code{department_name}/\code{institution_name} of
@@ -66,10 +64,6 @@
 #'   Authors may be specified by \code{id} or name.
 #'
 #'   Each element must match a row in the \code{\link{authors}} tibble.
-#' @param creator The author who created the project. If it is equal to
-#'   \code{Sys.info()["user"]} (the default value), it is kept as is. Otherwise
-#'   it will be validated against the \code{authors()} tibble and populated with
-#'   the matching author \code{id}.
 #' @param corresp_auth,current_owner An \code{id} or unambiguous
 #'   \code{last_name}/\code{given_names} of one of the authors in the
 #'   \code{\link{authors}} table.
@@ -77,23 +71,27 @@
 #'   If \code{corresp_auth} is specified, all of this author's contact
 #'   information will be especially included in the project's
 #'   \code{\link{header}}.
-#' @param stage A factor with the levels \code{c("design", "data collection",
-#'   "analysis", "manuscript", "under review", "accepted")}, communicating the
-#'   stage the project is in.
-#' @param deadline_type A free text field, intended to communicate the meaning
-#'   of the next field, \code{deadline}.
-#' @param deadline A \code{Date} or a character string that can be coerced to a
-#'   \code{Date}.
+#' @param creator The author who created the project. If it is equal to
+#'   \code{Sys.info()["user"]} (the default value), it is kept as is. Otherwise
+#'   it will be validated against the \code{authors()} tibble and populated with
+#'   the matching author \code{id}.
 #' @param status A free text field, intended to communicate the most current
 #'   condition the project is in.
 #'
 #'   For \code{new_project()}, default is \code{"just created"}.
+#' @param deadline_type A free text field, intended to communicate the meaning
+#'   of the next field, \code{deadline}.
+#' @param deadline A \code{Date} or a character string that can be coerced to a
+#'   \code{Date}.
 #' @param path A character string that can be read as a file path. It may be a
 #'   relative path to be added to the end of the main
 #'   \code{\link{project_folder}}, or it may contain the
 #'   \code{\link{project_folder}}'s path as its parent path. Either way, the
 #'   result is that the new project folder will be a subdirectory of the main
 #'   \code{\link{project_folder}}. See also \code{\link{setup_projects()}}.
+#' @param stage A factor with the levels \code{c("design", "data collection",
+#'   "analysis", "manuscript", "under review", "accepted")}, communicating the
+#'   stage the project is in.
 #' @param protocol A character string matching one of the included
 #'   protocol/report templates (viz., one of \code{c("STROBE", "CONSORT")}), or
 #'   the file name of a custom template in the .templates subdirectory within
@@ -120,16 +118,16 @@ new_project <- function(title             = NA,
                         short_title       = NA,
                         authors,
                         current_owner     = NA,
-                        creator           = Sys.info()["user"],
-                        corresp_auth      = NA,
+                        status            = "just created",
+                        deadline_type     = NA,
+                        deadline          = NA,
                         stage             = c("1: design", "2: data collection",
                                               "3: analysis", "4: manuscript",
                                               "5: under review", "6: accepted"),
-                        deadline_type     = NA,
-                        deadline          = NA,
-                        id                = NA,
-                        status            = "just created",
                         path              = "",
+                        corresp_auth      = NA,
+                        creator           = Sys.info()["user"],
+                        id                = NA,
                         protocol          = c("STROBE", "CONSORT"),
                         make_directories  = FALSE,
                         use_bib           = FALSE,
@@ -198,10 +196,10 @@ new_project <- function(title             = NA,
     creator <- Sys.info()["user"]
   }
   else if(creator != Sys.info()["user"]) {
-      creator <- validate_entry(creator,
-                                what       = "author",
-                                rds_tibble = authors_tibble,
-                                max.length = 1)
+    creator <- validate_entry(creator,
+                              what       = "author",
+                              rds_tibble = authors_tibble,
+                              max.length = 1)
   }
 
   # Validate current_owner
@@ -273,13 +271,13 @@ new_project <- function(title             = NA,
                                   title         = title,
                                   short_title   = as.character(short_title),
                                   current_owner = as.integer(current_owner),
-                                  creator       = creator,
-                                  corresp_auth  = as.integer(corresp_auth),
-                                  stage         = stage,
+                                  status        = as.character(status),
                                   deadline_type = as.character(deadline_type),
                                   deadline      = as.Date(deadline),
-                                  status        = as.character(status),
-                                  path          = pXXXX_path)
+                                  stage         = stage,
+                                  path          = pXXXX_path,
+                                  corresp_auth  = as.integer(corresp_auth),
+                                  creator       = as.character(creator))
 
   # Add row(s) to project-author association table
   if(!missing(authors)) {
@@ -300,8 +298,7 @@ new_project <- function(title             = NA,
                       pXXXX_name      = pXXXX_name)
 
 
-
-  message("\nProject ", id, " has been created at ", pXXXX_path)
+  message("\nProject ", id, " has been created at\n", pXXXX_path)
   print(dplyr::select(new_project_row,
                       -c("current_owner", "creator", "corresp_auth")))
 
@@ -326,20 +323,20 @@ new_project <- function(title             = NA,
     print(dplyr::filter(authors_tibble, .data$id == current_owner))
   }
 
-  message("\nCreator:")
-  if(creator == Sys.info()["user"]) {
-    print(creator)
-  }
-  else {
-    print(dplyr::filter(authors_tibble, .data$id == creator))
-  }
-
   message("\nCorresponding author:")
   if(is.na(corresp_auth)) {
     print("None.")
   }
   else {
     print(dplyr::filter(authors_tibble, .data$id == corresp_auth))
+  }
+
+  if(creator == Sys.info()["user"]) {
+    message("\nCreator:", creator)
+  }
+  else {
+    message("\nCreator:")
+    print(dplyr::filter(authors_tibble, .data$id == creator))
   }
 }
 ################################################################################
@@ -353,8 +350,7 @@ new_project <- function(title             = NA,
 new_author <- function(given_names = NA,    last_name    = NA,
                        title       = NA,    affiliations,
                        degree      = NA,    email        = NA,
-                       phone       = NA,    id           = NA,
-                       default     = FALSE) {
+                       phone       = NA,    id           = NA) {
 
   p_path         <- p_path_internal()
 
@@ -380,21 +376,6 @@ new_author <- function(given_names = NA,    last_name    = NA,
                                           rds_tibble  = affiliations_tibble)
   }
 
-  #######################
-  # Handling of default
-  if(!is.logical(default)) {
-    stop("The argument 'default' must be either TRUE or FALSE")
-  }
-
-  if(nrow(authors_tibble) == 0 && !default) {
-    default <-
-      user_prompt(msg   = paste0("This is the first author. Do you want to ",
-                                 "make this author the default author? (y/n)"),
-                  error = FALSE)
-  }
-  ######################
-  ######################
-
   new_author_row <- change_table(action      = "new",
                                  rds_path    = authors_path,
                                  rds_tibble  = authors_tibble,
@@ -404,8 +385,7 @@ new_author <- function(given_names = NA,    last_name    = NA,
                                  title       = title,
                                  degree      = degree,
                                  email       = tolower(email),
-                                 phone       = phone,
-                                 default     = default)
+                                 phone       = phone)
 
   message("New author:")
   print(new_author_row)

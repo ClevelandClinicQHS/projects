@@ -42,7 +42,7 @@ validate_entry <- function(x, what, rds_tibble = NULL, max.length = 9999,
            }) %>%
     unlist()
 
-  if(anyDuplicated(ids) > 0) {
+  if(!allow_dups && anyDuplicated(ids) > 0) {
     stop("The following ", what, "s are duplicates: ",
          paste(x[duplicated(ids)], collapse = ", "), ". Check all names/",
          "titles and id numbers.")
