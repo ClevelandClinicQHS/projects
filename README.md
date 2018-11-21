@@ -26,7 +26,7 @@ At its outset, the `projects` package creates a folder called */projects* in a u
 
 Reproducibility in research is the focus of the much debated replication crisis and is therefore an increasingly central goal of the contemporary scientific process. In addition to a final report of study results, reproducible research processes include the entire workflow that the researchers used to generate those results. Actively maintaining and archiving this workflow is important to the evaluation and validation of the research. If other researchers can follow the same workflow to achieve the same results, it corroborates the results as scientific knowledge. When results are not produced by the same workflow, however, scientific knowledge is still advanced, as the workflow is shown not to yield generalizable results. (Baker 2016)
 
-There exist today widely available tools that aid with reproducible research, such as R and other statistical programming languages, that allow for precise documentation of some of the most detail-oriented portions of a project workflow. Researchers can distribute their code scripts alongside their results in order to communicate the integrity of their data processing and analysis. Unfortunately, statistical programming languages per se only contribute to research reproducibility insofar as individual statistical programmers are able (1) to use these tools effectively and (2) to integrate their own use of these tools with their collaborators' work---which may not necessarily be oriented towards reproducibility.
+There exist today widely available tools that aid with reproducible research, such as R and other statistical programming languages, that allow for precise documentation of some of the most detail-oriented portions of a project workflow. Researchers can distribute their code scripts alongside their results in order to communicate the integrity of their data processing and analysis. Unfortunately, statistical programming languages per se only contribute to research reproducibility insofar as individual statistical programmers are able (1) to use these tools effectively and (2) to integrate their own use of these tools with their collaborators' work—which may not necessarily be oriented towards reproducibility.
 
 ![](README_figures/workflow.png)
 
@@ -36,7 +36,7 @@ When navigating this workflow, researchers strive for reproducibility wherever p
 
 The middle stage of the assumed study workflow can be performed with near perfect reproducibility, but the beginning and ending stages may not. Researchers cannot document every thought process, literature probe and informal conversation that contributes to the development of the initial study protocol, but they should strive to document it as meticulously as possible. Databases tend to be dynamic such that a given analytic data set is merely a snapshot in time. As for the final stages of project development, journals require that manuscripts adhere to specific and unique stylistic guidelines and that they be digitally submitted with file types that are not independently conducive to reproducibility (e.g., *.pdf*). For instance, even as RStudio supports the creation of submission-ready documents directly from frozen datasets, the vast majority of project teams include experts who do not use RStudio; therefore, the collaborative manuscript editing process ultimately takes place in an environment (e.g., Microsoft Word) that only supports total reproducibility with extraordinary effort. In light of these realities, researchers must do their best during manuscript creation, keeping the process in reproducible environments for as long as possible and otherwise documenting significant changes and alterations.
 
-# The projects package
+# The `projects` package
 
 ## Installation
 
@@ -49,13 +49,13 @@ devtools::install_github("NikKrieger/projects")
 
 ## Initial Setup 
 
-All projects that the user creates with the `projects` package---as well as its infrastructure---reside in a main folder called */projects*. Users need not manually create this directory, and in fact they are encouraged not to manually manipulate any folders that the `projects` package involves. Instead, users run the function `setup_projects()`, providing the full file path of the directory in which the user wants the */projects* folder to reside.
+All projects that the user creates with the `projects` package—as well as its infrastructure—reside in a main folder called */projects*. Users need not manually create this directory, and in fact they are encouraged not to manually manipulate any folders that the `projects` package involves. Instead, users run the function `setup_projects()`, providing the full file path of the directory in which the user wants the */projects* folder to reside.
 
 ## Metadata
 
-Data about authors, institutional and/or department affiliations and projects are stored in *.rds* files within the main */project* directory, so that the user only needs to enter these details once (unless, for example, a co-author changes their name or affiliations). These data are also used to assemble title pages of reports, with automatically generated author lists and lists of author affiliations. We provide a complete example of this process below in section **4**.
+Data about authors, institutional and/or department affiliations and projects are stored in *.rds* files within the main */project* directory, so that the user only needs to enter these details once (unless, for example, a co-author changes their name or affiliations). These data are also used to assemble title pages of reports, with automatically generated author lists and lists of author affiliations. We provide a complete example of this process below in the **Demonstration** section below.
 
-The main metadata tables accessible to the user are `projects()`, `authors()` and `affiliations()`, via functions thusly named. Two additional tables are internally created to keep track of associations between authors and projects and between authors and affiliations (see section **3.3.4**).
+The main metadata tables accessible to the user are `projects()`, `authors()` and `affiliations()`, via functions thusly named. Two additional tables are internally created to keep track of associations between authors and projects and between authors and affiliations (see the **Internal Tables** section).
 
 ### Projects Table Columns
 
@@ -86,7 +86,7 @@ The main metadata tables accessible to the user are `projects()`, `authors()` an
 * `id` – an identification number, specifically an integer, unique among the other affiliations. This number can be used whenever needing to identify this affiliation within `projects` package functions.
 * `department_name` – the department name of the affiliation. A nonambiguous substring of `department_name` (i.e., a substring that does not match any other affiliation) can be used whenever needing to identify this affiliation within `projects` package functions. This is included in the affiliations section of the automatically generated title page of projects associated with authors with this affiliation. 
 * `institution_name` – the name of the overall institution of the affiliation. A nonambiguous substring of `institution_name` (i.e., a substring that does not match any other affiliation) can be used whenever needing to identify this affiliation within `projects` package functions. This is included after `department_name` in the affiliations section of the automatically generated title page of projects associated with authors with this affiliation.
-* `address` – the address of the affiliation. This is included after `institution_name` in the affiliations section of the automatically generated title page of projects associated with authors with this affiliation. It is also included in the "Corresponding Author" section of the title page when a project's corresponding author has this affiliation as his or her primary (i.e., first) affiliation (see \@ref(assoc)).
+* `address` – the address of the affiliation. This is included after `institution_name` in the affiliations section of the automatically generated title page of projects associated with authors with this affiliation. It is also included in the "Corresponding Author" section of the title page when a project's corresponding author has this affiliation as his or her primary (i.e., first) affiliation (see the **Internal Tables** section).
 
 ### Internal Tables
 
@@ -106,13 +106,13 @@ Users create individual project folders with the function `new_project()`. The n
         - *02\_datawork.Rmd*
         - *03\_analysis.Rmd*
         - *04\_report.Rmd*
-    + *p*XXXX*.Rproj*
+    + *p*XXXX<i>.Rproj</i>
   
 The included subfolders serve to organize the project, while the *.Rmd* files are templates that facilitate the user's workflow.
 
 ## File Management
 
-The goal of the `projects` package is to provide a comprehensive set of tools managing project files in a way that is self-contained in R and independent of the underlying operating system. On a daily basis, researchers make, move, copy, delete and archive files. Through the `projects` package, researchers can perform all these actions in an organized manner with an automated file structure. In fact, users are advised not to manipulate the */projects* folder and its content with their operating system, so that the package does not lose track of these files. Multiuser application of `projects` requires a server or an otherwise shared directory where multiple users can access the */projects* folder. File-managing function---along with all functions---are demonstrated below in the Demonstration (section **4**).
+The goal of the `projects` package is to provide a comprehensive set of tools managing project files in a way that is self-contained in R and independent of the underlying operating system. On a daily basis, researchers make, move, copy, delete and archive files. Through the `projects` package, researchers can perform all these actions in an organized manner with an automated file structure. In fact, users are advised not to manipulate the */projects* folder and its content with their operating system, so that the package does not lose track of these files. Multiuser application of `projects` requires a server or an otherwise shared directory where multiple users can access the */projects* folder. File-managing function—along with all functions—are demonstrated below in the **Demonstration** section.
 
 ## Other Features
 
