@@ -7,7 +7,13 @@ output:
 bibliography: citations.bib
 ---
 
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(fs)
+library(tidyverse)
+if(fs::dir_exists("C:/projects")) fs::dir_delete("C:/projects")
+```
 
 Nikolas I. Krieger, M.S.^1^ and Jarrod E. Dalton, Ph.D.^1,2^
 
@@ -49,10 +55,9 @@ The middle stage of the assumed study workflow can be performed with near perfec
 
 ## Installation
 
-The `projects` R package is currently available on Github. It can be installed with
+The `projects` R package is currently available on Github. It can be installed with:
 
-
-```r
+```{r install_github, eval=FALSE}
 devtools::install_github("NikKrieger/projects")
 ```
 
@@ -133,48 +138,25 @@ There will be a future vignette on these supplemental topics.
 
 Upon installation, the `projects` package must be set up using `setup_projects()`. The user is to input the file path of the directory wherein the */projects* folder is to be located.
 
-
-```r
+```{r proj_library, message=FALSE, warning=FALSE}
 library(projects)
 ```
 
-
-```r
+```{r setup_projects}
 setup_projects("C:/", TRUE)
-```
-
-```
-## "projects" folder created at
-## C:/projects
-## 
-## Add affiliations with new_affiliation(), then add authors with new_author(),
-## then create projects with new_project()
 ```
 
 As the message suggests, it is in the user's best interest to add affiliations, followed by authors and projects.
 
-
-```r
+```{r affiliation1}
 new_affiliation(department_name  = "Department of Physics",
                 institution_name = "University of North Science",
                 address = "314 Newton Blvd, Springfield CT 06003")
 ```
 
-```
-## New affiliation:
-```
-
-```
-## # A tibble: 1 x 4
-##      id department_name     institution_name       address                
-##   <int> <chr>               <chr>                  <chr>                  
-## 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Sprin~
-```
-
 This affiliation has been successfully added to the "affiliations" table in the `projects` relational database. The next code chunk creates a few more affiliations (output not included).
 
-
-```r
+```{r affiliation2, echo = TRUE, results = 'hide', message=FALSE}
 new_affiliation(department_name  = "Impossibles Investigation Team",
                 institution_name = "Creekshirebrook Academy of Thinks",
                 address = "Let Gade 27182, 1566 Copenhagen, Denmark")
@@ -187,43 +169,17 @@ Note that we chose a specific `id` number (50) for the affiliation called the "I
 
 Now we are ready to add authors to the "authors" table of the `projects` database.
 
-
-```r
+```{r authors1}
 new_author(given_names = "Scott", last_name = "Bug", title = "Professor",
            affiliations = c(2, "Physics"), degree = "PhD",
            email = "scottbug@imPOSSible.net", phone = "965-555-5556")
-```
-
-```
-## New author:
-```
-
-```
-## # A tibble: 1 x 7
-##      id given_names last_name title    degree email              phone    
-##   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>    
-## 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-~
-```
-
-```
-## 
-## New author's affiliations:
-```
-
-```
-## # A tibble: 2 x 4
-##   affiliation_id department_name     institution_name      address        
-##            <int> <chr>               <chr>                 <chr>          
-## 1              2 Impossibles Invest~ Creekshirebrook Acad~ Let Gade 27182~
-## 2              1 Department of Phys~ University of North ~ 314 Newton Blv~
 ```
 
 Notice that in creating associations between Scott Bug and his affiliations, we were able to enter both the `id` number of one of them (2) and a substring of the `department_name` of the other ("Physics"). Also notice that the email address was coerced to be lowercase.
 
 Now we'll add more authors (output not included).
 
-
-```r
+```{r authors2, echo = TRUE, results = 'hide', message=FALSE}
 new_author(given_names = "Marie", last_name = "Curie", title = "Chemist",
            affiliations = "Unit", phone = "553-867-5309", id = 86)
 new_author(given_names = "Neil deGrasse", last_name = "Tyson",
@@ -237,101 +193,19 @@ new_author(last_name = "Wu", given_names = "Chien-Shiung", title = "Physicist",
 
 Now that some authors and affiliations have been created, we can view these tables:
 
-
-```r
+```{r view_aa}
 authors()
-```
-
-```
-## # A tibble: 5 x 7
-##      id given_names  last_name  title     degree    email         phone   
-##   <int> <chr>        <chr>      <chr>     <chr>     <chr>         <chr>   
-## 1     2 <NA>         Archimedes Mathemat~ <NA>      <NA>          <NA>    
-## 2     1 Scott        Bug        Professor PhD       scottbug@imp~ 965-555~
-## 3    86 Marie        Curie      Chemist   <NA>      <NA>          553-867~
-## 4  1337 Neil deGras~ Tyson      Astrophy~ MA, MPhi~ <NA>          <NA>    
-## 5     3 Chien-Shiung Wu         Physicist PhD       wu@wu.wu      <NA>
-```
-
-```r
 affiliations()
-```
-
-```
-## # A tibble: 3 x 4
-##      id department_name       institution_name        address             
-##   <int> <chr>                 <chr>                   <chr>               
-## 1     1 Department of Physics University of North Sc~ 314 Newton Blvd, Sp~
-## 2     2 Impossibles Investig~ Creekshirebrook Academ~ Let Gade 27182, 156~
-## 3    50 Statistical Consulti~ Creekshirebrook Academ~ "196 Normal Ave, Co~
 ```
 
 Now we will showcase project creation:
 
-
-```r
+```{r new_project1}
 new_project(title = "Achieving Cold Fusion", short_title = "ACF",
             authors = c("Bug", "Chien-Shiung", 86, 1337),
             current_owner = "Tyson", corresp_auth = "Bug", stage = "1: design",
             deadline_type = "Pilot study", deadline = "2020-12-31",
             use_bib = TRUE)
-```
-
-```
-## 
-## Project 1 has been created at
-## C:/projects/p0001
-```
-
-```
-## # A tibble: 1 x 8
-##      id title    short_title status  deadline_type deadline   stage path  
-##   <int> <chr>    <chr>       <chr>   <chr>         <date>     <fct> <chr> 
-## 1     1 Achievi~ ACF         just c~ Pilot study   2020-12-31 1: d~ C:/pr~
-```
-
-```
-## 
-## New project's authors:
-```
-
-```
-## # A tibble: 4 x 7
-##   author_id given_names  last_name title     degree    email       phone  
-##       <int> <chr>        <chr>     <chr>     <chr>     <chr>       <chr>  
-## 1         1 Scott        Bug       Professor PhD       scottbug@i~ 965-55~
-## 2         3 Chien-Shiung Wu        Physicist PhD       wu@wu.wu    <NA>   
-## 3        86 Marie        Curie     Chemist   <NA>      <NA>        553-86~
-## 4      1337 Neil deGras~ Tyson     Astrophy~ MA, MPhi~ <NA>        <NA>
-```
-
-```
-## 
-## Current owner:
-```
-
-```
-## # A tibble: 1 x 7
-##      id given_names   last_name title          degree         email phone
-##   <int> <chr>         <chr>     <chr>          <chr>          <chr> <chr>
-## 1  1337 Neil deGrasse Tyson     Astrophysicist MA, MPhil, PhD <NA>  <NA>
-```
-
-```
-## 
-## Corresponding author:
-```
-
-```
-## # A tibble: 1 x 7
-##      id given_names last_name title    degree email              phone    
-##   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>    
-## 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-~
-```
-
-```
-## 
-## Creator: kriegen
 ```
 
 Notice that since a `creator` was not specified, this field was populated with the value of `Sys.info()["user"]`.
@@ -340,39 +214,18 @@ Among other files and folders, this line of code created the files *01\_protocol
 
 Here is what the top of these files look like:
 
-
-```
----
-title: "Achieving Cold Fusion"
-output:
-  word_document: default
-  html_document:
-    css: style.css
-bibliography: p0001.bib
----
-
-**_Scott Bug, PhD;^1,2^\* Chien-Shiung Wu, PhD;^2,3^ Marie Curie;^3^ and Neil deGrasse Tyson, MA, MPhil, PhD^1,2,3^_**
-
-| ^1^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-| ^2^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-| ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
-|
-| \* Corresponding author
-|   Let Gade 27182, 1566 Copenhagen, Denmark
-|   965-555-5556
-|   scottbug@impossible.net
-
-Funding:
-
-\pagebreak
+```{r print_header, echo = FALSE, comment = NA}
+fs::path(projects("Cold Fusion")$path, "progs/01_protocol.Rmd") %>% 
+  readr::read_lines() %>% 
+  `[`(1:grep("\\pagebreak", x = .)[1]) %>% 
+  cat(sep = "\n")
 ```
 
 Notice that the author order given to the `authors` argument in `new_project()` command has been preserved. Also notice that Scott Bug has been marked as the corresponding author, and his contact information has been included. When knitted, this will be a proper title page.
 
 Now a few more projects will be created:
 
-
-```r
+```{r new_project2, echo = TRUE, results = 'hide', message = FALSE}
 new_project(title = "Weighing the Crown", short_title = "Eureka!", 
             authors = "Archimedes", current_owner = "Archimedes", 
             corresp_auth = "Archimedes", stage = 6)
@@ -390,107 +243,23 @@ new_project(title = "Understanding Radon", short_title = "Rn86",
 
 Here is the list of all projects that have been created:
 
-
-```r
+```{r projects_list}
 projects()
-```
-
-```
-## # A tibble: 4 x 11
-##      id title short_title current_owner status deadline_type deadline  
-##   <int> <chr> <chr>               <int> <chr>  <chr>         <date>    
-## 1     3 Unde~ Rn86                   86 Safet~ <NA>          NA        
-## 2  1945 How ~ Dr. Strang~          1337 debat~ 2nd revision  2030-10-08
-## 3     2 Weig~ Eureka!                 2 just ~ <NA>          NA        
-## 4     1 Achi~ ACF                  1337 just ~ Pilot study   2020-12-31
-## # ... with 4 more variables: stage <fct>, path <chr>, corresp_auth <int>,
-## #   creator <chr>
 ```
 
 Projects, authors, and affiliations can all be edited with their respective `edit_*()` functions. For example, we can add to and remove affiliations from an author with:
 
-
-```r
+```{r add_affil}
 edit_author(author = "Bug", affiliations = ~ + 50 - impossibles)
-```
-
-```
-## Edited author:
-```
-
-```
-## # A tibble: 1 x 7
-##      id given_names last_name title    degree email              phone    
-##   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>    
-## 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-~
-```
-
-```
-## 
-## Edited author's affiliations:
-```
-
-```
-## # A tibble: 2 x 4
-##   affiliation_id department_name     institution_name      address        
-##            <int> <chr>               <chr>                 <chr>          
-## 1              1 Department of Phys~ University of North ~ 314 Newton Blv~
-## 2             50 Statistical Consul~ Creekshirebrook Acad~ "196 Normal Av~
 ```
 
 When adding or removing affiliations/authors from an author/project, a one-sided `formula` is used: it must begin with a tilde `~`, and elements are added with `+` and removed with `-`. Elements can be referred to by their `id` numbers or their names, as described above.
 
 A formula is also used in the `authors` argument in `edit_project()`:
 
-
-```r
+```{r edit_project}
 edit_project("Cold", title = "Cold Fusion Is Actually Impossible",
              authors = ~ "archi", stage = "accepted")
-```
-
-```
-## Edited project info:
-```
-
-```
-## # A tibble: 1 x 11
-##      id title short_title current_owner status deadline_type deadline  
-##   <int> <chr> <chr>               <int> <chr>  <chr>         <date>    
-## 1     1 Cold~ ACF                  1337 just ~ Pilot study   2020-12-31
-## # ... with 4 more variables: stage <fct>, path <chr>, corresp_auth <int>,
-## #   creator <chr>
-```
-
-```
-## 
-## Edited project's authors:
-```
-
-```
-## # A tibble: 5 x 7
-##   author_id given_names  last_name  title     degree   email       phone  
-##       <int> <chr>        <chr>      <chr>     <chr>    <chr>       <chr>  
-## 1         1 Scott        Bug        Professor PhD      scottbug@i~ 965-55~
-## 2         3 Chien-Shiung Wu         Physicist PhD      wu@wu.wu    <NA>   
-## 3        86 Marie        Curie      Chemist   <NA>     <NA>        553-86~
-## 4         2 <NA>         Archimedes Mathemat~ <NA>     <NA>        <NA>   
-## 5      1337 Neil deGras~ Tyson      Astrophy~ MA, MPh~ <NA>        <NA>   
-## 
-## title: "Cold Fusion Is Actually Impossible"
-## 
-## 
-## **_Scott Bug, PhD;^1,2^\* Chien-Shiung Wu, PhD;^1,2^ Marie Curie;^2^ Archimedes; and Neil deGrasse Tyson, MA, MPhil, PhD^1,2,3^_**
-## 
-## | ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-## | ^2^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
-## | ^3^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-## |
-## | \* Corresponding author
-## |   314 Newton Blvd, Springfield CT 06003
-## |   965-555-5556
-## |   scottbug@impossible.net
-## 
-## Funding:
 ```
 
 Here, the `title` and `stage` of the project have also been edited. Notice that the default behavior of `edit_project()` is to reprint the project `title` as well as the other elements of the title page. The user can then copy and paste this header into the *01\_protocol.Rmd* and *04\_report.Rmd* files.
@@ -499,245 +268,65 @@ Also notice that the default behavior when adding elements is to place them befo
 
 Another function that affects author order and whose default behavior reprints project title page information is `reorder_authors()`:
 
-
-```r
+```{r reorder_authors}
 reorder_authors(project = "Cold Fusion", "Neil", "Bug", 86)
-```
-
-```
-## project info:
-```
-
-```
-## # A tibble: 1 x 11
-##      id title short_title current_owner status deadline_type deadline  
-##   <int> <chr> <chr>               <int> <chr>  <chr>         <date>    
-## 1     1 Cold~ ACF                  1337 just ~ Pilot study   2020-12-31
-## # ... with 4 more variables: stage <fct>, path <chr>, corresp_auth <int>,
-## #   creator <chr>
-```
-
-```
-## 
-## Reordered project authors:
-```
-
-```
-## # A tibble: 5 x 7
-##   author_id given_names  last_name  title     degree   email       phone  
-##       <int> <chr>        <chr>      <chr>     <chr>    <chr>       <chr>  
-## 1      1337 Neil deGras~ Tyson      Astrophy~ MA, MPh~ <NA>        <NA>   
-## 2         1 Scott        Bug        Professor PhD      scottbug@i~ 965-55~
-## 3        86 Marie        Curie      Chemist   <NA>     <NA>        553-86~
-## 4         3 Chien-Shiung Wu         Physicist PhD      wu@wu.wu    <NA>   
-## 5         2 <NA>         Archimedes Mathemat~ <NA>     <NA>        <NA>   
-## 
-## title: "Cold Fusion Is Actually Impossible"
-## 
-## 
-## **_Neil deGrasse Tyson, MA, MPhil, PhD;^1,2,3^ Scott Bug, PhD;^1,3^\* Marie Curie;^3^ Chien-Shiung Wu, PhD;^1,3^ and Archimedes_**
-## 
-## | ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-## | ^2^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-## | ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
-## |
-## | \* Corresponding author
-## |   314 Newton Blvd, Springfield CT 06003
-## |   965-555-5556
-## |   scottbug@impossible.net
-## 
-## Funding:
 ```
 
 Importantly, `edit_author()`, `edit_affiliation()`, and `reorder_affiliations()` do **not** reprint the title pages of all affected projects. Fortunately, the user can reprint updated title pages with the `header()` function:
 
-
-```r
+```{r edit_affil, echo = TRUE, results = 'hide', message=FALSE}
 edit_affiliation(affiliation = "Impossibles",
                  department_name = "Pseudoscience Debunking Unit")
 ```
 
-
-```r
+```{r reprint_header, comment=NA}
 header(project = "Cold")
-```
-
-```
-
-title: "Cold Fusion Is Actually Impossible"
-
-
-**_Neil deGrasse Tyson, MA, MPhil, PhD;^1,2,3^ Scott Bug, PhD;^1,3^\* Marie Curie;^3^ Chien-Shiung Wu, PhD;^1,3^ and Archimedes_**
-
-| ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-| ^2^ Pseudoscience Debunking Unit, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-| ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
-|
-| \* Corresponding author
-|   314 Newton Blvd, Springfield CT 06003
-|   965-555-5556
-|   scottbug@impossible.net
-
-Funding:
 ```
 
 In order to organize projects, users can create subdirectories within the main */projects* folder where individual project folders can dwell. Among the examples above, this has already occurred with the project with the nickname (i.e., `short_title`) "Dr. Strangelove" because on its creation the arguments `path = top_secret` and `make_directories = TRUE` were included. The latter argument must be `TRUE` if the desired path does not already exist. Observe the `path` column among the existing projects:
 
-
-```r
+```{r projects_path_demo}
 projects() %>% select(id, short_title, path)
-```
-
-```
-## # A tibble: 4 x 3
-##      id short_title     path                        
-##   <int> <chr>           <chr>                       
-## 1     1 ACF             C:/projects/p0001           
-## 2     3 Rn86            C:/projects/p0003           
-## 3  1945 Dr. Strangelove C:/projects/top_secret/p1945
-## 4     2 Eureka!         C:/projects/p0002
 ```
 
 Users can also create subdirectories with the function `new_project_group()`:
 
-
-```r
+```{r new_proj_group}
 new_project_group("Greek_studies/ancient_studies")
-```
-
-```
-## 
-## The following directory was created:
-## C:/projects/Greek_studies/ancient_studies
 ```
 
 If a project has already been created, it can be moved **not** with `edit_project()` but `move_project()`. Users can also copy projects using `copy_project()`; everything in the copy will be the same except its `id`, folder name (which, again, is based on its `id`), `path` (which, again, is based on its folder name), and the name of its *.Rproj* file (which has the same name as the folder name).
 
-
-```r
+```{r move_proj, echo=TRUE, results='hide', message=FALSE}
 move_project("Crown", path = "Greek_studies/ancient_studies")
 copy_project(project_to_copy = "Radon",
              path = "dangerous_studies/radioactive_studies/radon_studies", 
              make_directories = TRUE)
 ```
 
-
-```r
+```{r view_crown_radon}
 projects(c("Crown", "Radon")) %>% select(id, title, path)
-```
-
-```
-## # A tibble: 3 x 3
-##      id title           path                                              
-##   <int> <chr>           <chr>                                             
-## 1     4 Understanding ~ C:/projects/dangerous_studies/radioactive_studies~
-## 2     2 Weighing the C~ C:/projects/Greek_studies/ancient_studies/p0002   
-## 3     3 Understanding ~ C:/projects/p0003
 ```
 
 Projects can also be archived; they are moved into a subdirectory called */archive* that is at the same level as the project folder (*/p*XXXX) before it was run. If this */archive* folder does not exist, it will be created.
 
-
-```r
+```{r archive}
 archive_project("Strangelove")
-```
-
-```
-## # A tibble: 1 x 11
-##      id title short_title current_owner status deadline_type deadline  
-##   <int> <chr> <chr>               <int> <chr>  <chr>         <date>    
-## 1  1945 How ~ Dr. Strang~          1337 debat~ 2nd revision  2030-10-08
-## # ... with 4 more variables: stage <fct>, path <chr>, corresp_auth <int>,
-## #   creator <chr>
-```
-
-```
-## 
-## The above project was archived and has the file path
-## C:/projects/top_secret/archive/p1945
 ```
 
 When a project is archived, it is no longer included in `projects()` output unless the user sets `archived = TRUE`.
 
-
-```r
+```{r show_no_archived_projects}
 projects() %>% select(id, short_title, path)
-```
-
-```
-## # A tibble: 4 x 3
-##      id short_title path                                                  
-##   <int> <chr>       <chr>                                                 
-## 1     4 Rn86        C:/projects/dangerous_studies/radioactive_studies/rad~
-## 2     2 Eureka!     C:/projects/Greek_studies/ancient_studies/p0002       
-## 3     1 ACF         C:/projects/p0001                                     
-## 4     3 Rn86        C:/projects/p0003
-```
-
-```r
 projects(archived = TRUE) %>% select(id, short_title, path)
-```
-
-```
-## # A tibble: 5 x 3
-##      id short_title    path                                               
-##   <int> <chr>          <chr>                                              
-## 1     4 Rn86           C:/projects/dangerous_studies/radioactive_studies/~
-## 2     2 Eureka!        C:/projects/Greek_studies/ancient_studies/p0002    
-## 3     1 ACF            C:/projects/p0001                                  
-## 4     3 Rn86           C:/projects/p0003                                  
-## 5  1945 Dr. Strangelo~ C:/projects/top_secret/archive/p1945
 ```
 
 Lastly, affiliations, authors and projects can be deleted with the `delete_*()` functions. Deleting an author is complete: doing so removes the author from the `creator`, `current_owner` and `corresp_auth` fields of all projects. Furthermore, deleting a project also deletes the entire project folder. Use the `delete_*()` functions with caution.
 
-
-```r
+```{r deleting things}
 delete_affiliation("north science")
-```
-
-```
-## # A tibble: 1 x 4
-##      id department_name     institution_name       address                
-##   <int> <chr>               <chr>                  <chr>                  
-## 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Sprin~
-```
-
-```
-## The above affiliation was deleted.
-```
-
-```r
 delete_author(2)
-```
-
-```
-## # A tibble: 1 x 7
-##      id given_names last_name  title         degree email phone
-##   <int> <chr>       <chr>      <chr>         <chr>  <chr> <chr>
-## 1     2 <NA>        Archimedes Mathematician <NA>   <NA>  <NA>
-```
-
-```
-## The above author was deleted.
-```
-
-```r
 delete_project("Crown")
-```
-
-```
-## # A tibble: 1 x 11
-##      id title short_title current_owner status deadline_type deadline  
-##   <int> <chr> <chr>               <int> <chr>  <chr>         <date>    
-## 1     2 Weig~ Eureka!                NA just ~ <NA>          NA        
-## # ... with 4 more variables: stage <fct>, path <chr>, corresp_auth <int>,
-## #   creator <chr>
-```
-
-```
-## 
-## The above project was deleted.
 ```
 
 
