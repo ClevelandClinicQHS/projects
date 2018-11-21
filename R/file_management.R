@@ -2,12 +2,13 @@
 #'
 #' @title Tools for Organizing and Managing Project Files
 #'
-#' @description Projects can be moved (\code{move_project}), copied
-#'   (\code{copy_project}), deleted (\code{\link{delete_project}}) or archived
-#'   (\code{archive_project}). The difference between \code{delete_project} and
-#'   \code{archive_project} is that the latter will just move the project to a
-#'   directory called 'archive', located in the same parent directory as the
-#'   project. This directory gets created if it doesn't yet exist.
+#' @description Projects can be moved (\code{move_project()}), copied
+#'   (\code{copy_project()}), deleted (\code{\link{delete_project()}}) or
+#'   archived (\code{archive_project}). The difference between
+#'   \code{delete_project()} and \code{archive_project()} is that the latter
+#'   will just move the project to a directory called 'archive', located in the
+#'   same parent directory as the project. This directory gets created if it
+#'   doesn't yet exist.
 #'
 #'   Projects can also be organized into groups. By default, all projects are
 #'   created within the main \code{\link{projects_folder}}. To create a project
@@ -53,6 +54,8 @@
 #'
 #' archive_project(3)
 #' }
+#'
+#' @aliases new_project_group()
 #' @importFrom rlang .data
 #' @export
 new_project_group <- function(path) {
@@ -77,6 +80,7 @@ new_project_group <- function(path) {
 
 
 #' @rdname file_management
+#' @aliases move_project()
 #' @importFrom rlang .data
 #' @export
 move_project <- function(project, path = "", make_directories = FALSE) {
@@ -140,6 +144,7 @@ move_project <- function(project, path = "", make_directories = FALSE) {
 
 
 #' @rdname file_management
+#' @aliases copy_project()
 #' @importFrom rlang .data
 #' @export
 copy_project <- function(project_to_copy, path = "", new_id = NA,
@@ -244,6 +249,7 @@ copy_project <- function(project_to_copy, path = "", new_id = NA,
 
 
 #' @rdname file_management
+#' @aliases archive_project()
 #' @importFrom rlang .data
 #' @export archive_project
 archive_project <- function(project) {

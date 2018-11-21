@@ -2,38 +2,25 @@
 % Please edit documentation in R/edit.R, R/new.R
 \name{edit_project}
 \alias{edit_project}
+\alias{edit_project()}
 \alias{edit_author}
+\alias{edit_author()}
 \alias{edit_affiliation}
+\alias{edit_affiliation()}
 \alias{delete_project}
+\alias{delete_project()}
 \alias{delete_author}
+\alias{delete_author()}
 \alias{delete_affiliation}
+\alias{delete_affiliation()}
 \alias{new_edit_delete}
 \alias{new_project}
+\alias{new_project()}
 \alias{new_author}
+\alias{new_author()}
 \alias{new_affiliation}
-\title{Create or edit projects, authors, and affiliations
-
-  These functions create or edit rows in the \code{\link{projects}},
-  \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
-  stored in the \emph{.metadata} subdirectory of the main
-  \code{\link{projects_folder}}.
-
-  \code{new_project()} creates a new R project folder that is automatically
-  filled with a .Rproj file, helpful subdirectories, and .Rmd files to get
-  your project workflow started. The \code{edit_()} functions and the other
-  \code{new_()} functions only create or edit rows in the \emph{.metadata}
-  tibbles.
-
-  Newly created project folders (and the .Rproj files they contain) both have
-  names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
-  \code{id} number. The folder will be an immediate subdirectory of the main
-  projects folder (see \code{\link{setup_projects()}}) unless the argument
-  \code{path} specifies a deeper subdirectory. The user may enter various
-  metadata about the project that is stored and may be called forth using the
-  \code{\link{projects()}} function. Some of this metadata will automatically
-  be added to the \code{\link{header}} atop the automatically created
-  \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
-  \emph{progs/04_report.Rmd}.}
+\alias{new_affiliation()}
+\title{Create, edit, or delete projects, authors, and affiliations}
 \usage{
 edit_project(project, title = NA, short_title = NA, authors,
   current_owner = NA, status = NA, deadline_type = NA,
@@ -176,27 +163,57 @@ templates to be used to create \emph{progs/02_datawork.Rmd} and/or
 extension exactly.}
 }
 \description{
-Create or edit projects, authors, and affiliations
+These functions create, edit, or delete rows in the \code{\link{projects()}},
+\code{\link{authors()}}, and \code{\link{affiliations()}} tibbles, which are
+stored in the \emph{.metadata} subdirectory of the main
+\code{\link{projects_folder}}.
+}
+\details{
+\code{new_project()} creates a new R project folder that is automatically
+filled with a \emph{.Rproj} file, helpful subdirectories, and \emph{.Rmd}
+files to get your project workflow started; \code{delete_project()} deletes
+them. The \code{edit_\*()} functions and the other \code{new_\*()} and
+\code{delete_\*()} functions only create or edit rows in the \emph{.metadata}
+tibbles.
 
-  These functions create or edit rows in the \code{\link{projects}},
-  \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
-  stored in the \emph{.metadata} subdirectory of the main
-  \code{\link{projects_folder}}.
+Newly created project folders (and the \emph{.Rproj} files they contain) both
+have names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the
+project \code{id} number. The folder will be an immediate subdirectory of the
+main \code{\link{projects_folder}} (see also \code{\link{setup_projects()}})
+unless the argument \code{path} specifies a deeper subdirectory. The user may
+enter various metadata about the project that is stored and may be called
+forth using the \code{\link{projects()}} function. Some of this metadata will
+automatically be added to the \code{\link{header}} atop the automatically
+created \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
+\emph{progs/04_report.Rmd}.
+}
+\examples{
+\dontrun{
+new_affiliation(department_name = "Math Dept.",
+                institution_name = "Springfield College",
+                address = "123 College St, Springfield, AB")
+new_affiliation(department_name = "Art Department",
+                institution_name = "Springfield College",
+                address = "321 University Boulevard, Springfield, AB",
+                id = 42)
+edit_affiliation("Math Dept", department_name = "Mathematics Department")
 
-  \code{new_project()} creates a new R project folder that is automatically
-  filled with a .Rproj file, helpful subdirectories, and .Rmd files to get
-  your project workflow started. The \code{edit_()} functions and the other
-  \code{new_()} functions only create or edit rows in the \emph{.metadata}
-  tibbles.
+new_author(given_names = "Rosetta", last_name = "Stone",
+           affiliations = c(42, "Math"), degree = "PhD",
+           email = "slab@rock.net", phone = "867-555-5309", id = 8888)
+new_author(given_names = "Spiro", last_name = "Agnew", degree = "LLB",
+           affiliations = "Art D", id = 13)
+new_author(given_names = "Plato", id = 303)
 
-  Newly created project folders (and the .Rproj files they contain) both have
-  names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
-  \code{id} number. The folder will be an immediate subdirectory of the main
-  projects folder (see \code{\link{setup_projects()}}) unless the argument
-  \code{path} specifies a deeper subdirectory. The user may enter various
-  metadata about the project that is stored and may be called forth using the
-  \code{\link{projects()}} function. Some of this metadata will automatically
-  be added to the \code{\link{header}} atop the automatically created
-  \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
-  \emph{progs/04_report.Rmd}.
+new_project(title = "Understanding the Construction of the United States",
+            short_title = "USA1", authors = c(13, "Stone", "303"),
+            stage = 4, deadline = "2055-02-28", deadline_type = "submission",
+            path = "famous_studied/philosophers/rocks", protocol = "s",
+            corresp_auth = "Stone", current_owner = "agnew",
+            make_directories = TRUE, use_bib = TRUE,
+            status = "waiting on IRB")
+
+delete_project("usa1")
+}
+
 }

@@ -1,28 +1,27 @@
-#' @name new_edit_delete
+#' Create, edit, or delete projects, authors, and affiliations
 #'
-#' @title Create or edit projects, authors, and affiliations
+#' These functions create, edit, or delete rows in the \code{\link{projects()}},
+#' \code{\link{authors()}}, and \code{\link{affiliations()}} tibbles, which are
+#' stored in the \emph{.metadata} subdirectory of the main
+#' \code{\link{projects_folder}}.
 #'
-#'   These functions create or edit rows in the \code{\link{projects}},
-#'   \code{\link{authors}}, and \code{\link{affiliations}} tibbles, which are
-#'   stored in the \emph{.metadata} subdirectory of the main
-#'   \code{\link{projects_folder}}.
+#' \code{new_project()} creates a new R project folder that is automatically
+#' filled with a \emph{.Rproj} file, helpful subdirectories, and \emph{.Rmd}
+#' files to get your project workflow started; \code{delete_project()} deletes
+#' them. The \code{edit_\*()} functions and the other \code{new_\*()} and
+#' \code{delete_\*()} functions only create or edit rows in the \emph{.metadata}
+#' tibbles.
 #'
-#'   \code{new_project()} creates a new R project folder that is automatically
-#'   filled with a .Rproj file, helpful subdirectories, and .Rmd files to get
-#'   your project workflow started. The \code{edit_()} functions and the other
-#'   \code{new_()} functions only create or edit rows in the \emph{.metadata}
-#'   tibbles.
-#'
-#'   Newly created project folders (and the .Rproj files they contain) both have
-#'   names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project
-#'   \code{id} number. The folder will be an immediate subdirectory of the main
-#'   projects folder (see \code{\link{setup_projects()}}) unless the argument
-#'   \code{path} specifies a deeper subdirectory. The user may enter various
-#'   metadata about the project that is stored and may be called forth using the
-#'   \code{\link{projects()}} function. Some of this metadata will automatically
-#'   be added to the \code{\link{header}} atop the automatically created
-#'   \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
-#'   \emph{progs/04_report.Rmd}.
+#' Newly created project folders (and the \emph{.Rproj} files they contain) both
+#' have names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the
+#' project \code{id} number. The folder will be an immediate subdirectory of the
+#' main \code{\link{projects_folder}} (see also \code{\link{setup_projects()}})
+#' unless the argument \code{path} specifies a deeper subdirectory. The user may
+#' enter various metadata about the project that is stored and may be called
+#' forth using the \code{\link{projects()}} function. Some of this metadata will
+#' automatically be added to the \code{\link{header}} atop the automatically
+#' created \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
+#' \emph{progs/04_report.Rmd}.
 #'
 #' @param id An integer that will become the item's permanent identification
 #'   number. Must be in the range 1-9999 or left blank. If left blank, the
@@ -111,6 +110,37 @@
 #'   \emph{progs/03_analysis.Rmd}. Make sure to match the case and file
 #'   extension exactly.
 #'
+#' @examples
+#' \dontrun{
+#' new_affiliation(department_name = "Math Dept.",
+#'                 institution_name = "Springfield College",
+#'                 address = "123 College St, Springfield, AB")
+#' new_affiliation(department_name = "Art Department",
+#'                 institution_name = "Springfield College",
+#'                 address = "321 University Boulevard, Springfield, AB",
+#'                 id = 42)
+#' edit_affiliation("Math Dept", department_name = "Mathematics Department")
+#'
+#' new_author(given_names = "Rosetta", last_name = "Stone",
+#'            affiliations = c(42, "Math"), degree = "PhD",
+#'            email = "slab@rock.net", phone = "867-555-5309", id = 8888)
+#' new_author(given_names = "Spiro", last_name = "Agnew", degree = "LLB",
+#'            affiliations = "Art D", id = 13)
+#' new_author(given_names = "Plato", id = 303)
+#'
+#' new_project(title = "Understanding the Construction of the United States",
+#'             short_title = "USA1", authors = c(13, "Stone", "303"),
+#'             stage = 4, deadline = "2055-02-28", deadline_type = "submission",
+#'             path = "famous_studied/philosophers/rocks", protocol = "s",
+#'             corresp_auth = "Stone", current_owner = "agnew",
+#'             make_directories = TRUE, use_bib = TRUE,
+#'             status = "waiting on IRB")
+#'
+#' delete_project("usa1")
+#' }
+#'
+#' @name new_edit_delete
+#' @aliases new_project()
 #' @importFrom rlang .data
 #' @importFrom tibble tibble
 #' @export
@@ -332,7 +362,7 @@ new_project <- function(title             = NA,
   }
 
   if(creator == Sys.info()["user"]) {
-    message("\nCreator:", creator)
+    message("\nCreator: ", creator)
   }
   else {
     message("\nCreator:")
@@ -345,6 +375,7 @@ new_project <- function(title             = NA,
 
 ################################################################################
 #' @rdname new_edit_delete
+#' @aliases new_author()
 #' @importFrom rlang .data
 #' @export
 new_author <- function(given_names = NA,    last_name    = NA,
@@ -416,6 +447,7 @@ new_author <- function(given_names = NA,    last_name    = NA,
 
 ################################################################################
 #' @rdname new_edit_delete
+#' @aliases new_affiliation()
 #' @export
 new_affiliation <- function(department_name  = NA, institution_name = NA,
                             address          = NA, id               = NA) {

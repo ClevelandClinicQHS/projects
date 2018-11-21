@@ -2,6 +2,7 @@
 % Please edit documentation in R/getters.R
 \name{projects_folder}
 \alias{projects_folder}
+\alias{projects_folder()}
 \title{Get file path of main projects folder}
 \usage{
 projects_folder()

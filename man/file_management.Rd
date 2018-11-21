@@ -3,9 +3,13 @@
 \name{file_management}
 \alias{file_management}
 \alias{new_project_group}
+\alias{new_project_group()}
 \alias{move_project}
+\alias{move_project()}
 \alias{copy_project}
+\alias{copy_project()}
 \alias{archive_project}
+\alias{archive_project()}
 \title{Tools for Organizing and Managing Project Files}
 \usage{
 new_project_group(path)
@@ -36,12 +40,13 @@ newly-created project ID. Must not already exist in
 be automatically used.}
 }
 \description{
-Projects can be moved (\code{move_project}), copied
-  (\code{copy_project}), deleted (\code{\link{delete_project}}) or archived
-  (\code{archive_project}). The difference between \code{delete_project} and
-  \code{archive_project} is that the latter will just move the project to a
-  directory called 'archive', located in the same parent directory as the
-  project. This directory gets created if it doesn't yet exist.
+Projects can be moved (\code{move_project()}), copied
+  (\code{copy_project()}), deleted (\code{\link{delete_project()}}) or
+  archived (\code{archive_project}). The difference between
+  \code{delete_project()} and \code{archive_project()} is that the latter
+  will just move the project to a directory called 'archive', located in the
+  same parent directory as the project. This directory gets created if it
+  doesn't yet exist.
 
   Projects can also be organized into groups. By default, all projects are
   created within the main \code{\link{projects_folder}}. To create a project
@@ -69,6 +74,7 @@ copy_project(2, "kidney/clinical")
 
 archive_project(3)
 }
+
 }
 \seealso{
 \code{\link{new_project}}, \code{\link{delete_project}}

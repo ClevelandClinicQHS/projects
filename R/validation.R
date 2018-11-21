@@ -150,17 +150,22 @@ validate_directory <- function(path,
 
 validate_stage <- function(stage, choices) {
 
-  if(is.na(stage)) {
+  if(length(stage) == 1 && is.na(stage)) {
 
     return(choices[1])
 
   }
   else {
 
-    stage <- as.character(stage)
+    if(identical(stage, choices)) {
+      stage <- choices[1]
+    }
+    else {
+      stage <- as.character(stage)
 
-    checkmate::assert_character(stage, min.chars = 1, any.missing = FALSE,
-                                len = 1)
+      checkmate::assert_character(stage, min.chars = 1, any.missing = FALSE,
+                                  len = 1)
+    }
 
     stage <- factor(x      = grep(pattern     = stage,
                                   x           = choices,

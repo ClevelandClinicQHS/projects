@@ -2,15 +2,24 @@
 % Please edit documentation in R/header.R
 \name{header}
 \alias{header}
+\alias{header()}
 \title{Print project header to console}
 \usage{
 header(project)
 }
 \arguments{
-\item{project}{Project ID or unambiguous substring of the project name from the projects tibble.}
+\item{project}{Project \code{id} or unambiguous substring of the project name
+from the \code{\link{projects()}} tibble.}
 }
 \description{
-This function displays the report header for a project. The project header consists of: 1) the project title; 2) the author list; 3) the list of author affiliations; and 4) corresponding author information. The function is helpful when, after editing details of the project (e.g., any of the above information), you want to update your markdown documents. The displayed markdown can be pasted directly in place of the header within the markdown documents (specifically 04_report.Rmd).
+This function displays the report header for a project. The
+  project header consists of: 1) the project title; 2) the author list; 3)
+  the list of author affiliations; and 4) corresponding author information.
+  The function is helpful when, after editing details of the project (e.g.,
+  any of the above information), you want to update your markdown documents.
+  The displayed markdown can be pasted directly in place of the header within
+  the markdown documents (specifically \emph{01_protocol.Rmd} and
+  \emph{04_report.Rmd}).
 }
 \examples{
 \dontrun{

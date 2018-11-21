@@ -26,24 +26,25 @@ default.}
 and/or names. Only rows matching one or more entries will be returned.}
 
 \item{archived}{Logical, indicating whether or not to include projects that
-have been archived using \code{\link{archive_project()}} are not displayed
-by default.}
+have been archived using \code{\link{archive_project()}}. They are not
+displayed by default.}
 }
 \description{
 Returns a tibble of the projects/authors/affiliations, filtered and joined
 according to the entirely optional arguments.
 }
 \details{
-If setting one or more of the \code{projects}, \code{authors}, or
-\code{affiliations} arguments to \code{TRUE}, a left join is performed, with
-the "left" table being the one sharing the name of the function being used.
-As such, rows that don't have matches in any other tables will still show up
-in the output, and rows that have multiple matches in other tables will yield
-multiple rows in the output. The "right" table's id column will be renamed.
+If one or more of the \code{projects}, \code{authors}, or \code{affiliations}
+arguments to set to \code{TRUE}, a \code{\link[dplyr]{left_join}} is
+performed, with the "left" table being the one sharing the name of the
+function being used. As such, rows that don't have matches in any other
+tables will still show up in the output, and rows that have multiple matches
+in other tables will yield multiple rows in the output. The "right" table's
+\code{id} column will be renamed.
 
-Since all these functions return \code{link[tibble]{tibble}}s, the user can
-further manipulate them using \code{link[dplyr]{dplyr}} functions like
-\code{link[dplyr]{select}} and \code{link[dplyr]{filter}}. See the last
+Since all these functions return \code{\link[tibble]{tibble}}s, the user can
+further manipulate them using \code{\link[dplyr]{dplyr}} functions like
+\code{\link[dplyr]{select}} and \code{\link[dplyr]{filter}}. See the last
 example.
 }
 \examples{

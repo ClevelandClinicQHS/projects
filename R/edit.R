@@ -1,5 +1,6 @@
 ################################################################################
 #' @rdname new_edit_delete
+#' @aliases edit_project()
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
@@ -193,6 +194,7 @@ edit_project <- function(project,
 
 ################################################################################
 #' @rdname new_edit_delete
+#' @aliases edit_author()
 #' @importFrom rlang .data
 #' @export
 edit_author <- function(author,            given_names   = NA,
@@ -281,6 +283,7 @@ edit_author <- function(author,            given_names   = NA,
 
 ################################################################################
 #' @rdname new_edit_delete
+#' @aliases edit_affiliation()
 #' @export
 edit_affiliation <- function(affiliation,           department_name  = NA,
                              institution_name = NA, address          = NA) {
@@ -309,6 +312,7 @@ edit_affiliation <- function(affiliation,           department_name  = NA,
 
 
 #' @rdname new_edit_delete
+#' @aliases delete_project()
 #' @importFrom rlang .data
 #' @export
 delete_project <- function(project) {
@@ -328,7 +332,7 @@ delete_project <- function(project) {
 
   project_row     <- dplyr::filter(projects_tibble, .data$id == project)
 
-  if(isFALSE(getOption('knitr.in.progress'))) {
+  if(!isTRUE(getOption('knitr.in.progress'))) {
     print(project_row)
   }
 
@@ -363,6 +367,7 @@ delete_project <- function(project) {
 
 
 #' @rdname new_edit_delete
+#' @aliases delete_author()
 #' @importFrom rlang .data
 #' @export
 delete_author <- function(author) {
@@ -422,6 +427,7 @@ delete_author <- function(author) {
 
 
 #' @rdname new_edit_delete
+#' @aliases delete_affiliation()
 #' @importFrom rlang .data
 #' @export
 delete_affiliation <- function(affiliation) {
@@ -637,6 +643,7 @@ recursive_number_namer <- function(formula) {
 #' \dontrun{
 #' reorder_authors(project = 1, "David", 22, "47", after = 1)
 #' }
+#' # Results would be:
 #' tibble::tribble(
 #'   ~id,  ~given_names,  ~last_name,
 #'     5,  "Adam",        "Smith",
@@ -649,6 +656,7 @@ recursive_number_namer <- function(formula) {
 #' \dontrun{
 #' reorder_authors(1, Jones = 99, `47` = 2, "100" = 1)
 #' }
+#' # Results would be:
 #' tibble::tribble(
 #'   ~id,  ~given_names,  ~last_name,
 #'   100,  "David",       "Herman",
@@ -658,6 +666,7 @@ recursive_number_namer <- function(formula) {
 #'    22,  "Britney",     "Jones")
 #'
 #' @name reordering
+#' @aliases reorder_authors()
 #' @export
 reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE) {
 
@@ -670,6 +679,7 @@ reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE) {
 }
 
 #' @rdname reordering
+#' @aliases reorder_affiliations()
 #' @export
 reorder_affiliations <- function(author, ..., after = 0L) {
 
@@ -715,7 +725,7 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc) {
     user_order <- unlist(user_order)
 
     if(!checkmate::test_integerish(user_order, lower = 1L,
-                                   max.len = length(filtered_assoc),
+                                   max.len = nrow(filtered_assoc),
                                    any.missing = FALSE, unique = TRUE,
                                    null.ok = FALSE)) {
       stop("Ranks must be integers 1 or greater, no two ranks may be the same,",

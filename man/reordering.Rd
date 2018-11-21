@@ -3,7 +3,9 @@
 \name{reordering}
 \alias{reordering}
 \alias{reorder_authors}
+\alias{reorder_authors()}
 \alias{reorder_affiliations}
+\alias{reorder_affiliations()}
 \title{Reordering authors and affiliations}
 \usage{
 reorder_authors(project, ..., after = 0L, reprint_header = TRUE)
@@ -63,6 +65,7 @@ tibble::tribble(
 \dontrun{
 reorder_authors(project = 1, "David", 22, "47", after = 1)
 }
+# Results would be:
 tibble::tribble(
   ~id,  ~given_names,  ~last_name,
     5,  "Adam",        "Smith",
@@ -75,6 +78,7 @@ tibble::tribble(
 \dontrun{
 reorder_authors(1, Jones = 99, `47` = 2, "100" = 1)
 }
+# Results would be:
 tibble::tribble(
   ~id,  ~given_names,  ~last_name,
   100,  "David",       "Herman",

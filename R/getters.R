@@ -17,10 +17,12 @@
 #' @examples
 #' projects_folder()
 #'
+#' @aliases projects_folder()
 #' @export
 projects_folder <- function() {
   p_path_internal(error = FALSE)
 }
+
 
 p_path_internal <- function(error = TRUE) {
 
@@ -166,16 +168,17 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' Returns a tibble of the projects/authors/affiliations, filtered and joined
 #' according to the entirely optional arguments.
 #'
-#' If setting one or more of the \code{projects}, \code{authors}, or
-#' \code{affiliations} arguments to \code{TRUE}, a left join is performed, with
-#' the "left" table being the one sharing the name of the function being used.
-#' As such, rows that don't have matches in any other tables will still show up
-#' in the output, and rows that have multiple matches in other tables will yield
-#' multiple rows in the output. The "right" table's id column will be renamed.
+#' If one or more of the \code{projects}, \code{authors}, or \code{affiliations}
+#' arguments to set to \code{TRUE}, a \code{\link[dplyr]{left_join}} is
+#' performed, with the "left" table being the one sharing the name of the
+#' function being used. As such, rows that don't have matches in any other
+#' tables will still show up in the output, and rows that have multiple matches
+#' in other tables will yield multiple rows in the output. The "right" table's
+#' \code{id} column will be renamed.
 #'
-#' Since all these functions return \code{link[tibble]{tibble}}s, the user can
-#' further manipulate them using \code{link[dplyr]{dplyr}} functions like
-#' \code{link[dplyr]{select}} and \code{link[dplyr]{filter}}. See the last
+#' Since all these functions return \code{\link[tibble]{tibble}}s, the user can
+#' further manipulate them using \code{\link[dplyr]{dplyr}} functions like
+#' \code{\link[dplyr]{select}} and \code{\link[dplyr]{filter}}. See the last
 #' example.
 #'
 #' @param project,author,affiliation An optional (unique) vector of \code{id}s
@@ -184,8 +187,8 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #'   to perform a left join with another metadata tibble. All \code{FALSE} by
 #'   default.
 #' @param archived Logical, indicating whether or not to include projects that
-#'   have been archived using \code{\link{archive_project()}} are not displayed
-#'   by default.
+#'   have been archived using \code{\link{archive_project()}}. They are not
+#'   displayed by default.
 #'
 #' @examples
 #' \dontrun{
@@ -198,8 +201,8 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' affiliations()
 #' }
 #'
-#' @aliases projects()
 #' @name display_metadata
+#' @aliases projects()
 #' @importFrom rlang .data
 #' @export
 projects <- function(project, authors = FALSE, archived = FALSE) {
