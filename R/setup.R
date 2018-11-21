@@ -22,6 +22,11 @@
 #'   write any directories specified in the \code{path} argument that don't
 #'   already exist.
 #'
+#' @examples
+#' \dontrun{
+#' setup_projects("C:/Users/Loretta/")
+#' }
+#'
 #' @aliases setup_projects()
 #' @importFrom tibble tibble
 #' @export

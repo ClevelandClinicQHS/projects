@@ -34,3 +34,9 @@ metadata; by changing the "PROJECTS_FOLDER_PATH" line in the .Renviron file),
 the user can "fix" the projects folder by running this command with the
 folder's actual file path.
 }
+\examples{
+\dontrun{
+setup_projects("C:/Users/Loretta/")
+}
+
+}
