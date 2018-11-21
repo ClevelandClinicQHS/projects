@@ -2,7 +2,6 @@
 title: R Package - projects
 output: 
   bookdown::html_document2:
-    keep_md: true
     number_sections: true
 bibliography: citations.bib
 ---
