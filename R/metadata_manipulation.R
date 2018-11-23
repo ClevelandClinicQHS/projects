@@ -35,7 +35,7 @@ change_table <- function(action = c("new", "edit", "delete"),
         .y = as.list(dplyr::filter(rds_tibble, .data$id == changes$id)),
         .f = function(new, old) {
           if(is.null(new)) {
-            return(as(NA, class(old)))
+            return(methods::as(NA, class(old)))
           }
           if(is.na(new)) {
             return(old)
@@ -75,10 +75,10 @@ change_assoc <- function(assoc_path,
     # element in the list--in that case, elements are added to the end of the
     # list.
     assoc_tibble <- dplyr::bind_rows(
-      head(old_assoc, n = 1),
-      head(tail(old_assoc, n = -1), n = -1),
+      utils::head(old_assoc, n = 1),
+      utils::head(utils::tail(old_assoc, n = -1), n = -1),
       assoc_change,
-      tail(tail(old_assoc, n = -1), n =  1),
+      utils::tail(utils::tail(old_assoc, n = -1), n =  1),
       dplyr::anti_join(assoc_tibble, assoc_change, by = "id1"))
   }
   else {

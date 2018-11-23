@@ -506,7 +506,7 @@ parse_formula <- function(formula, what, what2, main_tibble, assoc_tibble) {
   # backticks.
   add <-
     formula %>%
-    terms() %>%
+    stats::terms() %>%
     attr("term.labels") %>%
     sapply(FUN       = function(x) as.character(rlang::parse_expr(x)),
            USE.NAMES = FALSE)
@@ -540,7 +540,7 @@ parse_formula <- function(formula, what, what2, main_tibble, assoc_tibble) {
     # Makes sure the formula in add are not already in the
     # user-specified project's author list
     if(any(add %in% assoc_tibble$id2)) {
-      print(main_tibble %>% dplyr::filter(id %in%
+      print(main_tibble %>% dplyr::filter(.data$id %in%
                                             add[add %in% assoc_tibble$id2]))
       stop("The above ", what, "s are already on the ", what2, "'s ",
            what, " list.")
@@ -555,7 +555,7 @@ parse_formula <- function(formula, what, what2, main_tibble, assoc_tibble) {
 
 process_formula_numbers <- function(formula) {
 
-  as.formula(recursive_number_namer(formula))
+  stats::as.formula(recursive_number_namer(formula))
 
 }
 
@@ -749,8 +749,8 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc) {
       validate_assoc(what  = rds2, rds_tibble  = rds2_tibble,
                      what2 = rds1, rds_tibble2 = filtered_assoc)
 
-    user_order <- setNames(object = seq_along(user_order) + after,
-                           nm     = user_order)
+    user_order <- stats::setNames(object = seq_along(user_order) + after,
+                                  nm     = user_order)
   }
 
   reordered <- setdiff(filtered_assoc$id2, names(user_order))

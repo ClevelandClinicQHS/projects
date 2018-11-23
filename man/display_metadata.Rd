@@ -2,7 +2,7 @@
 % Please edit documentation in R/getters.R
 \name{affiliations}
 \alias{affiliations}
-\alias{affilitions()}
+\alias{affiliations()}
 \alias{authors}
 \alias{authors()}
 \alias{display_metadata}

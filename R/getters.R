@@ -48,7 +48,7 @@ p_path_internal <- function(error = TRUE) {
 
 #' @rdname display_metadata
 #' @importFrom rlang .data
-#' @aliases affilitions()
+#' @aliases affiliations()
 #' @export
 affiliations <- function(affiliation, authors = FALSE) {
 

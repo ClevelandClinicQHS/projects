@@ -109,6 +109,9 @@ stage the project is in.}
 it will be validated against the \code{authors()} tibble and populated with
 the matching author \code{id}.}
 
+\item{reprint_header}{Logical, indicating whether or not to reprint the
+project \code{\link{header}} after editing project information.}
+
 \item{given_names, last_name, department_name, institution_name}{Each a single
 character string. Can be used whenever needing to specify a specific
 author/affiliation.}
@@ -126,10 +129,10 @@ Email will be coerced to lowercase. When a project is given a
 
 \item{path}{A character string that can be read as a file path. It may be a
 relative path to be added to the end of the main
-\code{\link{project_folder}}, or it may contain the
-\code{\link{project_folder}}'s path as its parent path. Either way, the
+\code{\link{projects_folder}}, or it may contain the
+\code{\link{projects_folder}}'s path as its parent path. Either way, the
 result is that the new project folder will be a subdirectory of the main
-\code{\link{project_folder}}. See also \code{\link{setup_projects()}}.}
+\code{\link{projects_folder}}. See also \code{\link{setup_projects()}}.}
 
 \item{id}{An integer that will become the item's permanent identification
   number. Must be in the range 1-9999 or left blank. If left blank, the

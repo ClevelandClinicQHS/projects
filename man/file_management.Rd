@@ -10,7 +10,7 @@
 \alias{copy_project()}
 \alias{archive_project}
 \alias{archive_project()}
-\title{Tools for Organizing and Managing Project Files}
+\title{file management}
 \usage{
 new_project_group(path)
 
@@ -40,22 +40,21 @@ newly-created project ID. Must not already exist in
 be automatically used.}
 }
 \description{
-Projects can be moved (\code{move_project()}), copied
-  (\code{copy_project()}), deleted (\code{\link{delete_project()}}) or
-  archived (\code{archive_project}). The difference between
-  \code{delete_project()} and \code{archive_project()} is that the latter
-  will just move the project to a directory called 'archive', located in the
-  same parent directory as the project. This directory gets created if it
-  doesn't yet exist.
-
-  Projects can also be organized into groups. By default, all projects are
-  created within the main \code{\link{projects_folder}}. To create a project
-  group, which essentially is a subfolder of projects that sits within the
-  main \code{\link{projects_folder}} (or recursively within another project
-  group's folder), use \code{new_project_group()}.
+Tools for Organizing and Managing Project Files
 }
 \details{
+Projects can be moved (\code{move_project()}), copied
+(\code{copy_project()}), deleted (\code{\link{delete_project()}}) or archived
+(\code{archive_project}). The difference between \code{delete_project()} and
+\code{archive_project()} is that the latter will just move the project to a
+directory called 'archive', located in the same parent directory as the
+project. This directory gets created if it doesn't yet exist.
 
+Projects can also be organized into groups. By default, all projects are
+created within the main \code{\link{projects_folder}}. To create a project
+group, which essentially is a subfolder of projects that sits within the main
+\code{\link{projects_folder}} (or recursively within another project group's
+folder), use \code{new_project_group()}.
 }
 \examples{
 \dontrun{

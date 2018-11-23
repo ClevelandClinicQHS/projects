@@ -84,10 +84,10 @@
 #'   \code{Date}.
 #' @param path A character string that can be read as a file path. It may be a
 #'   relative path to be added to the end of the main
-#'   \code{\link{project_folder}}, or it may contain the
-#'   \code{\link{project_folder}}'s path as its parent path. Either way, the
+#'   \code{\link{projects_folder}}, or it may contain the
+#'   \code{\link{projects_folder}}'s path as its parent path. Either way, the
 #'   result is that the new project folder will be a subdirectory of the main
-#'   \code{\link{project_folder}}. See also \code{\link{setup_projects()}}.
+#'   \code{\link{projects_folder}}. See also \code{\link{setup_projects()}}.
 #' @param stage A factor with the levels \code{c("design", "data collection",
 #'   "analysis", "manuscript", "under review", "accepted")}, communicating the
 #'   stage the project is in.
@@ -109,6 +109,8 @@
 #'   templates to be used to create \emph{progs/02_datawork.Rmd} and/or
 #'   \emph{progs/03_analysis.Rmd}. Make sure to match the case and file
 #'   extension exactly.
+#' @param reprint_header Logical, indicating whether or not to reprint the
+#'   project \code{\link{header}} after editing project information.
 #'
 #' @examples
 #' \dontrun{
@@ -342,7 +344,7 @@ new_project <- function(title             = NA,
             dplyr::left_join(authors_tibble,
                              by = c("id2" = "id")) %>%
             dplyr::select(-.data$id1) %>%
-            dplyr::rename(author_id = id2))
+            dplyr::rename(author_id = .data$id2))
   }
 
   message("\nCurrent owner:")
