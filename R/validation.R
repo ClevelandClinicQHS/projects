@@ -43,7 +43,7 @@ validate_entry <- function(x, what, rds_tibble = NULL, max.length = 9999,
     unlist()
 
   if(!allow_dups && anyDuplicated(ids) > 0) {
-    stop("The following ", what, "s are duplicates: ",
+    stop("The following ", what, "s are repeats of other entered", what, "s: ",
          paste(x[duplicated(ids)], collapse = ", "), ". Check all names/",
          "titles and id numbers.")
   }
@@ -130,21 +130,21 @@ validate_directory <- function(path,
 
   if(is.null(p_path)) {
     if(tolower(fs::path_file(path)) == "projects") {
-      path <- fs::path_dir(path)
+      path <- fs::path_dir(path) %>% unclass()
     }
   }
   else {
     if(!fs::path_has_parent(path, p_path)) {
-      path <- fs::path(p_path, path)
+      path <- fs::path(p_path, path) %>% unclass()
     }
   }
 
   if(!make_directories && !fs::dir_exists(path)) {
-    stop("Specified directory does not exist. Create it or set ",
+    stop("The directory\n", path, "\n\ndoes not exist. Create it or set ",
          "make_directories = TRUE.")
   }
 
-  return(unclass(path))
+  return(path)
 }
 
 
@@ -174,7 +174,7 @@ validate_stage <- function(stage, choices) {
                     levels = choices)
 
     if(length(stage) != 1) {
-      stop("User input for the 'stage' argument must match exactly one of ",
+      stop("User input for the 'stage' argument must match one of ",
            "the following:\n", paste(choices, collapse = "\n"))
     }
 

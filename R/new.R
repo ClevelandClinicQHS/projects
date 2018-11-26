@@ -413,12 +413,12 @@ new_author <- function(given_names = NA,    last_name    = NA,
                                  rds_path    = authors_path,
                                  rds_tibble  = authors_tibble,
                                  id          = id,
-                                 given_names = given_names,
-                                 last_name   = last_name,
-                                 title       = title,
-                                 degree      = degree,
-                                 email       = tolower(email),
-                                 phone       = phone)
+                                 given_names = as.character(given_names),
+                                 last_name   = as.character(last_name),
+                                 title       = as.character(title),
+                                 degree      = as.character(degree),
+                                 email       = tolower(as.character(email)),
+                                 phone       = as.character(phone))
 
   message("New author:")
   print(new_author_row)
@@ -466,8 +466,8 @@ new_affiliation <- function(department_name  = NA, institution_name = NA,
                      rds_path         = affiliations_path,
                      rds_tibble       = affiliations_tibble,
                      id               = id,
-                     department_name  = department_name,
-                     institution_name = institution_name,
-                     address          = address))
+                     department_name  = as.character(department_name),
+                     institution_name = as.character(institution_name),
+                     address          = as.character(address)))
 }
 ################################################################################

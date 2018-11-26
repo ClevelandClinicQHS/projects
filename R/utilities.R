@@ -337,7 +337,7 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
     affiliations_lines <- ""
     for(a in 1:nrow(unique_affiliations)) {
 
-      affiliation_line <- paste0("| ^", a, "^ ",
+      affiliation_line <- paste0("| <sup>", a, "</sup> ",
                                  unique_affiliations$department_name[a])
 
       if(!is.na(unique_affiliations$institution_name[a])) {
@@ -448,7 +448,7 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
   ######################################################
   ######################################################
 
-  return(c(author_line, affiliations_lines, corresp_lines, "", "Funding:"))
+  return(c(author_line, affiliations_lines, corresp_lines, "| ", "| Funding:"))
 }
 
 
@@ -508,7 +508,7 @@ delete_all_rds <- function() {
 
   purrr::walk(authors()$id, delete_author)
   purrr::walk(affiliations()$id, delete_affiliation)
-  purrr::walk(projects()$id, delete_project)
+  purrr::walk(projects(archived = TRUE)$id, delete_project)
 }
 
 
@@ -524,52 +524,52 @@ delete_all_rds <- function() {
 #         tibble <- readRDS(file = fs::path(p_path, path, x, ext = "rds"))
 #         if(x == "projects") {
 #           tibble$id <- as.integer(tibble$id)
-# 
+#
 #           tibble$deadline <- as.Date(tibble$deadline)
-# 
+#
 #           tibble$stage <- factor(tibble$stage,
 #                                  levels = c("1: design", "2: data collection",
 #                                             "3: analysis", "4: manuscript",
 #                                             "5: under review", "6: accepted"))
-# 
+#
 #           if(is.null(tibble$creator)) {
 #             tibble$creator <- NA_character_
 #           }
 #           else {
 #             tibble$creator <- as.character(tibble$creator)
 #           }
-# 
+#
 #           if(is.null(tibble$current_owner)) {
 #             tibble$current_owner <- NA_integer_
 #           }
 #           else {
 #             tibble$current_owner <- as.integer(tibble$current_owner)
 #           }
-# 
+#
 #           if(is.null(tibble$corresp_auth)) {
 #             tibble$corresp_auth <- NA_integer_
 #           }
 #           else {
 #             tibble$corresp_auth <- as.integer(tibble$corresp_auth)
 #           }
-# 
+#
 #           if(is.null(tibble$path)) {
 #             tibble <-
 #               dplyr::mutate(
 #                 tibble,
 #                 path = fs::path(p_path, make_project_name(.data$id)))
 #           }
-# 
+#
 #           if(is.null(tibble$short_title)) {
 #             tibble$short_title <- NA_character_
 #           }
-# 
+#
 #           tibble <- dplyr::select(
 #             tibble,
 #             id, title, short_title, current_owner, status, deadline_type,
 #             deadline, stage, path, corresp_auth, creator)
 #         }
-# 
+#
 #         if(x == "authors") {
 #           tibble$id <- as.integer(tibble$id)
 #           if(is.null(tibble$phone)) {
@@ -580,13 +580,13 @@ delete_all_rds <- function() {
 #               tibble,
 #               id, given_names, last_name, title, degree, email, phone)
 #         }
-# 
+#
 #         if(x == "affiliations") {
 #           tibble$id <- as.integer(tibble$id)
 #         }
-# 
+#
 #         if(x == "project_author_assoc") {
-# 
+#
 #           if(fs::file_exists(fs::path(p_path, path, "project_PI_assoc",
 #                                       ext = "rds"))) {
 #             PI <-
@@ -594,21 +594,21 @@ delete_all_rds <- function() {
 #                                       ext = "rds")) %>%
 #               dplyr::mutate(id1 = as.integer(.data$id1),
 #                             id2 = as.integer(.data$id2))
-# 
+#
 #             tibble <- dplyr::mutate(tibble,
 #                                     id1 = as.integer(.data$id1),
 #                                     id2 = as.integer(.data$id2))
 #             tibble <- dplyr::bind_rows(PI, tibble)
 #           }
-# 
+#
 #         }
-# 
+#
 #         if(x == "author_affiliation_assoc") {
 #           tibble <- dplyr::mutate(tibble,
 #                                   id1 = as.integer(.data$id1),
 #                                   id2 = as.integer(.data$id2))
 #         }
-# 
+#
 #         saveRDS(tibble, file = fs::path(p_path, ".metadata", x, ext = "rds"))
 #       })
 # }

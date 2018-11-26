@@ -291,4 +291,3 @@ archive_project <- function(project) {
   print(dplyr::filter(projects_tibble, .data$id == project))
   message("\nThe above project was archived and has the file path\n", new_path)
 }
-

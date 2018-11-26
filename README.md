@@ -36,7 +36,7 @@ When navigating this workflow, researchers strive for reproducibility wherever p
 
 The middle stage of the assumed study workflow can be performed with near perfect reproducibility, but the beginning and ending stages may not. Researchers cannot document every thought process, literature probe and informal conversation that contributes to the development of the initial study protocol, but they should strive to document it as meticulously as possible. Databases tend to be dynamic such that a given analytic data set is merely a snapshot in time. As for the final stages of project development, journals require that manuscripts adhere to specific and unique stylistic guidelines and that they be digitally submitted with file types that are not independently conducive to reproducibility (e.g., *.pdf*). For instance, even as RStudio supports the creation of submission-ready documents directly from frozen datasets, the vast majority of project teams include experts who do not use RStudio; therefore, the collaborative manuscript editing process ultimately takes place in an environment (e.g., Microsoft Word) that only supports total reproducibility with extraordinary effort. In light of these realities, researchers must do their best during manuscript creation, keeping the process in reproducible environments for as long as possible and otherwise documenting significant changes and alterations.
 
-# The `projects` package
+# The projects package
 
 ## Installation
 
@@ -106,17 +106,17 @@ Users create individual project folders with the function `new_project()`. The n
         - *02\_datawork.Rmd*
         - *03\_analysis.Rmd*
         - *04\_report.Rmd*
-    + *p*XXXX<i>.Rproj</i>
+    + *p*XXXX*.Rproj*
   
 The included subfolders serve to organize the project, while the *.Rmd* files are templates that facilitate the user's workflow.
 
 ## File Management
 
-The goal of the `projects` package is to provide a comprehensive set of tools managing project files in a way that is self-contained in R and independent of the underlying operating system. On a daily basis, researchers make, move, copy, delete and archive files. Through the `projects` package, researchers can perform all these actions in an organized manner with an automated file structure. In fact, users are advised not to manipulate the */projects* folder and its content with their operating system, so that the package does not lose track of these files. Multiuser application of `projects` requires a server or an otherwise shared directory where multiple users can access the */projects* folder. File-managing function—along with all functions—are demonstrated below in the **Demonstration** section.
+The goal of the `projects` package is to provide a comprehensive set of tools managing project files in a way that is self-contained in R and independent of the underlying operating system. On a daily basis, researchers make, move, copy, delete and archive files. Through the `projects` package, researchers can perform all these actions in an organized manner with an automated file structure. In fact, users are advised not to manipulate the */projects* folder and its content with their operating system, so that the package does not lose track of these files. Multiuser application of `projects` requires a server or an otherwise shared directory where multiple users can access the */projects* folder. File-managing functions—along with all functions—are demonstrated below in the **Demonstration** section.
 
 ## Other Features
 
-The `projects` package supports style customization of manuscripts through cascading style sheets (CSS). Users can also create their own template files for the datawork, analysis, and manuscript *.Rmd* files that automatically appear when a new project is created. Lastly, the user is given the option to make these *.Rmd* files BibTeX-ready for streamlined bibliography creation. 
+The `projects` package supports style customization of manuscripts through cascading style sheets (CSS). When a project is created, a file called *style.css* is created alongside the *.Rmd* files in the */progs* folder; users can customize their protocol and report by editing this file. Users can also create their own template files for the datawork, analysis, and manuscript *.Rmd* files. Lastly, the user is given the option to make these *.Rmd* files BibTeX-ready for streamlined bibliography creation.
 
 There will be a future vignette on these supplemental topics.
 
@@ -342,18 +342,18 @@ output:
 bibliography: p0001.bib
 ---
 
-**_Scott Bug, PhD;^1,2^\* Chien-Shiung Wu, PhD;^2,3^ Marie Curie;^3^ and Neil deGrasse Tyson, MA, MPhil, PhD^1,2,3^_**
+**_Scott Bug, PhD;<sup>1,2</sup>\* Chien-Shiung Wu, PhD;<sup>2,3</sup> Marie Curie;<sup>3</sup> and Neil deGrasse Tyson, MA, MPhil, PhD<sup>1,2,3</sup>_**
 
-| ^1^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-| ^2^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-| ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+| <sup>1</sup> Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+| <sup>2</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+| <sup>3</sup> Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
 |
 | \* Corresponding author
 |   Let Gade 27182, 1566 Copenhagen, Denmark
 |   965-555-5556
 |   scottbug@impossible.net
-
-Funding:
+| 
+| Funding:
 
 \pagebreak
 ```
@@ -470,18 +470,18 @@ edit_project("Cold", title = "Cold Fusion Is Actually Impossible",
 ## title: "Cold Fusion Is Actually Impossible"
 ## 
 ## 
-## **_Scott Bug, PhD;^1,2^\* Chien-Shiung Wu, PhD;^1,2^ Marie Curie;^2^ Archimedes; and Neil deGrasse Tyson, MA, MPhil, PhD^1,2,3^_**
+## **_Scott Bug, PhD;<sup>1,2</sup>\* Chien-Shiung Wu, PhD;<sup>1,2</sup> Marie Curie;<sup>2</sup> Archimedes; and Neil deGrasse Tyson, MA, MPhil, PhD<sup>1,2,3</sup>_**
 ## 
-## | ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-## | ^2^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
-## | ^3^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+## | <sup>1</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+## | <sup>2</sup> Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+## | <sup>3</sup> Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
 ## |
 ## | \* Corresponding author
 ## |   314 Newton Blvd, Springfield CT 06003
 ## |   965-555-5556
 ## |   scottbug@impossible.net
-## 
-## Funding:
+## | 
+## | Funding:
 ```
 
 Here, the `title` and `stage` of the project have also been edited. Notice that the default behavior of `edit_project()` is to reprint the project `title` as well as the other elements of the title page. The user can then copy and paste this header into the *01\_protocol.Rmd* and *04\_report.Rmd* files.
@@ -526,18 +526,18 @@ reorder_authors(project = "Cold Fusion", "Neil", "Bug", 86)
 ## title: "Cold Fusion Is Actually Impossible"
 ## 
 ## 
-## **_Neil deGrasse Tyson, MA, MPhil, PhD;^1,2,3^ Scott Bug, PhD;^1,3^\* Marie Curie;^3^ Chien-Shiung Wu, PhD;^1,3^ and Archimedes_**
+## **_Neil deGrasse Tyson, MA, MPhil, PhD;<sup>1,2,3</sup> Scott Bug, PhD;<sup>1,3</sup>\* Marie Curie;<sup>3</sup> Chien-Shiung Wu, PhD;<sup>1,3</sup> and Archimedes_**
 ## 
-## | ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-## | ^2^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-## | ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+## | <sup>1</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+## | <sup>2</sup> Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+## | <sup>3</sup> Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
 ## |
 ## | \* Corresponding author
 ## |   314 Newton Blvd, Springfield CT 06003
 ## |   965-555-5556
 ## |   scottbug@impossible.net
-## 
-## Funding:
+## | 
+## | Funding:
 ```
 
 Importantly, `edit_author()`, `edit_affiliation()`, and `reorder_affiliations()` do **not** reprint the title pages of all affected projects. Fortunately, the user can reprint updated title pages with the `header()` function:
@@ -558,18 +558,18 @@ header(project = "Cold")
 title: "Cold Fusion Is Actually Impossible"
 
 
-**_Neil deGrasse Tyson, MA, MPhil, PhD;^1,2,3^ Scott Bug, PhD;^1,3^\* Marie Curie;^3^ Chien-Shiung Wu, PhD;^1,3^ and Archimedes_**
+**_Neil deGrasse Tyson, MA, MPhil, PhD;<sup>1,2,3</sup> Scott Bug, PhD;<sup>1,3</sup>\* Marie Curie;<sup>3</sup> Chien-Shiung Wu, PhD;<sup>1,3</sup> and Archimedes_**
 
-| ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-| ^2^ Pseudoscience Debunking Unit, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-| ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+| <sup>1</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+| <sup>2</sup> Pseudoscience Debunking Unit, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+| <sup>3</sup> Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
 |
 | \* Corresponding author
 |   314 Newton Blvd, Springfield CT 06003
 |   965-555-5556
 |   scottbug@impossible.net
-
-Funding:
+| 
+| Funding:
 ```
 
 In order to organize projects, users can create subdirectories within the main */projects* folder where individual project folders can dwell. Among the examples above, this has already occurred with the project with the nickname (i.e., `short_title`) "Dr. Strangelove" because on its creation the arguments `path = top_secret` and `make_directories = TRUE` were included. The latter argument must be `TRUE` if the desired path does not already exist. Observe the `path` column among the existing projects:
@@ -735,6 +735,7 @@ delete_project("Crown")
 # Conclusions
 
 The `projects` package provides a comprehensive set of tools for reproducible team science workflows. Efficiency in project management, including manuscript development, is facilitated by an internal database that keeps record of project details as well as team members' affiliations and contact information. For manuscripts, title pages are automatically generated from this database, and a selection of manuscript outlines compliant with reporting guidelines are available in R Markdown format. We believe that the `projects` package may be useful for teams that manage multiple collaborative research projects in various stages of development.
+
 
 # References
 
