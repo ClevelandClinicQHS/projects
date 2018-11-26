@@ -302,7 +302,7 @@ archive_project <- function(project) {
   message("\nThe above project was archived and has the file path\n", new_path)
 }
 
-#' @rdname
+#' @rdname file_management
 #' @export
 #' @importFrom rlang .data
 open_project <- function(project) {

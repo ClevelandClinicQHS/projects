@@ -10,6 +10,7 @@
 \alias{copy_project()}
 \alias{archive_project}
 \alias{archive_project()}
+\alias{open_project}
 \title{file management}
 \usage{
 new_project_group(path)
@@ -20,6 +21,8 @@ copy_project(project_to_copy, path, new_id = NA,
   make_directories = FALSE)
 
 archive_project(project)
+
+open_project(project)
 }
 \arguments{
 \item{path}{A valid path string. See the \code{path} argument in
