@@ -1,5 +1,5 @@
 
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage('"projects" folder location: ',
+  packageStartupMessage('projects_folder() location:\n',
                         p_path_internal(error = FALSE))
 }

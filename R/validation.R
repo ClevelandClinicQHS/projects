@@ -128,14 +128,17 @@ validate_directory <- function(path,
 
   path <- fs::path_tidy(path)
 
+  # This only occurs during setup_projects()
   if(is.null(p_path)) {
     if(tolower(fs::path_file(path)) == "projects") {
-      path <- fs::path_dir(path) %>% unclass()
+      path <- fs::path_dir(path)
     }
   }
+
   else {
+    path <- fs::path_abs(path = path, start = p_path)
     if(!fs::path_has_parent(path, p_path)) {
-      path <- fs::path(p_path, path) %>% unclass()
+      path <- fs::path(p_path, path)
     }
   }
 
@@ -144,7 +147,7 @@ validate_directory <- function(path,
          "make_directories = TRUE.")
   }
 
-  return(path)
+  return(unclass(path))
 }
 
 

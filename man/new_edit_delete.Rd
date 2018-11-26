@@ -44,9 +44,9 @@ new_project(title = NA, short_title = NA, authors,
   current_owner = NA, status = "just created", deadline_type = NA,
   deadline = NA, stage = c("1: design", "2: data collection",
   "3: analysis", "4: manuscript", "5: under review", "6: accepted"),
-  path = "", corresp_auth = NA, creator = Sys.info()["user"],
-  id = NA, protocol = c("STROBE", "CONSORT"),
-  make_directories = FALSE, use_bib = FALSE,
+  path = projects_folder(), corresp_auth = NA,
+  creator = Sys.info()["user"], id = NA, protocol = c("STROBE",
+  "CONSORT"), make_directories = FALSE, use_bib = FALSE,
   datawork_template = NULL, analysis_template = NULL)
 
 new_author(given_names = NA, last_name = NA, title = NA,
@@ -127,12 +127,20 @@ Email will be coerced to lowercase. When a project is given a
 
 \item{address}{A character string indicating the address of the affiliation.}
 
-\item{path}{A character string that can be read as a file path. It may be a
-relative path to be added to the end of the main
-\code{\link{projects_folder}}, or it may contain the
-\code{\link{projects_folder}}'s path as its parent path. Either way, the
-result is that the new project folder will be a subdirectory of the main
-\code{\link{projects_folder}}. See also \code{\link{setup_projects()}}.}
+\item{path}{A character string that can be read as a file path. Can be
+  either:
+
+  1) the \emph{absolute} path of the \code{\link{projects_folder}} (default)
+
+  2) an \emph{absolute} path pointing to a subfolder within the
+  \code{\link{projects_folder}}
+
+  3) a \emph{relative} path (leading \code{"."} optional) that will be
+  appended onto the end of the \code{\link{projects_folder}}.
+
+  In any case, the result is that the new project folder will be a
+  subdirectory of the main \code{\link{projects_folder}}. See also
+  \code{\link{setup_projects()}}.}
 
 \item{id}{An integer that will become the item's permanent identification
   number. Must be in the range 1-9999 or left blank. If left blank, the

@@ -14,16 +14,17 @@
 \usage{
 new_project_group(path)
 
-move_project(project, path = "", make_directories = FALSE)
+move_project(project, path, make_directories = FALSE)
 
-copy_project(project_to_copy, path = "", new_id = NA,
+copy_project(project_to_copy, path, new_id = NA,
   make_directories = FALSE)
 
 archive_project(project)
 }
 \arguments{
 \item{path}{A valid path string. See the \code{path} argument in
-\link{new_project} for details.}
+\link{new_project()} for details, the one difference being that there is no
+default (i.e., the user cannot leave \code{path} blank in these functions).}
 
 \item{project}{Project \code{id} or unambiguous substring of the project name
 from the \code{\link{projects()}} tibble.}
@@ -36,8 +37,8 @@ project name corresponding to the project that is to be copied.}
 
 \item{new_id}{Optional integer, ranging from 1 to 9999, used as the
 newly-created project ID. Must not already exist in
-\code{\link{projects()}$id}. If left blank, the lowest available `id` will
-be automatically used.}
+\code{\link{projects()}$id}. If left blank, the lowest available \code{id}
+will be automatically used.}
 }
 \description{
 Tools for Organizing and Managing Project Files

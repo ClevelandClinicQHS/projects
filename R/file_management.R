@@ -16,7 +16,8 @@
 #' folder), use \code{new_project_group()}.
 #'
 #' @param path A valid path string. See the \code{path} argument in
-#'   \link{new_project} for details.
+#'   \link{new_project()} for details, the one difference being that there is no
+#'   default (i.e., the user cannot leave \code{path} blank in these functions).
 #'
 #' @param project Project \code{id} or unambiguous substring of the project name
 #'   from the \code{\link{projects()}} tibble.
@@ -29,8 +30,8 @@
 #'
 #' @param new_id Optional integer, ranging from 1 to 9999, used as the
 #'   newly-created project ID. Must not already exist in
-#'   \code{\link{projects()}$id}. If left blank, the lowest available `id` will
-#'   be automatically used.
+#'   \code{\link{projects()}$id}. If left blank, the lowest available \code{id}
+#'   will be automatically used.
 #'
 #' @name file_management
 #' @seealso \code{\link{new_project}}, \code{\link{delete_project}}
@@ -60,7 +61,7 @@ new_project_group <- function(path) {
 
   p_path <- p_path_internal()
 
-  path   <- validate_directory(path, p_path, make_directories = T)
+  path   <- validate_directory(path, p_path, make_directories = TRUE)
 
   if(fs::path_ext(path) != "") {
     stop("\nMust be a directory and not a file (i.e., must not have a file ",
@@ -81,7 +82,7 @@ new_project_group <- function(path) {
 #' @aliases move_project()
 #' @importFrom rlang .data
 #' @export
-move_project <- function(project, path = "", make_directories = FALSE) {
+move_project <- function(project, path, make_directories = FALSE) {
 
   p_path          <- p_path_internal()
 
@@ -145,7 +146,9 @@ move_project <- function(project, path = "", make_directories = FALSE) {
 #' @aliases copy_project()
 #' @importFrom rlang .data
 #' @export
-copy_project <- function(project_to_copy, path = "", new_id = NA,
+copy_project <- function(project_to_copy,
+                         path,
+                         new_id           = NA,
                          make_directories = FALSE) {
 
   p_path           <- p_path_internal()

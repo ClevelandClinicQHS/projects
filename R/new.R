@@ -82,12 +82,20 @@
 #'   of the next field, \code{deadline}.
 #' @param deadline A \code{Date} or a character string that can be coerced to a
 #'   \code{Date}.
-#' @param path A character string that can be read as a file path. It may be a
-#'   relative path to be added to the end of the main
-#'   \code{\link{projects_folder}}, or it may contain the
-#'   \code{\link{projects_folder}}'s path as its parent path. Either way, the
-#'   result is that the new project folder will be a subdirectory of the main
-#'   \code{\link{projects_folder}}. See also \code{\link{setup_projects()}}.
+#' @param path A character string that can be read as a file path. Can be
+#'   either:
+#'
+#'   1) the \emph{absolute} path of the \code{\link{projects_folder}} (default)
+#'
+#'   2) an \emph{absolute} path pointing to a subfolder within the
+#'   \code{\link{projects_folder}}
+#'
+#'   3) a \emph{relative} path (leading \code{"."} optional) that will be
+#'   appended onto the end of the \code{\link{projects_folder}}.
+#'
+#'   In any case, the result is that the new project folder will be a
+#'   subdirectory of the main \code{\link{projects_folder}}. See also
+#'   \code{\link{setup_projects()}}.
 #' @param stage A factor with the levels \code{c("design", "data collection",
 #'   "analysis", "manuscript", "under review", "accepted")}, communicating the
 #'   stage the project is in.
@@ -156,7 +164,7 @@ new_project <- function(title             = NA,
                         stage             = c("1: design", "2: data collection",
                                               "3: analysis", "4: manuscript",
                                               "5: under review", "6: accepted"),
-                        path              = "",
+                        path              = projects_folder(),
                         corresp_auth      = NA,
                         creator           = Sys.info()["user"],
                         id                = NA,
