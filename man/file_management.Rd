@@ -56,6 +56,11 @@ created within the main \code{\link{projects_folder}}. To create a project
 group, which essentially is a subfolder of projects that sits within the main
 \code{\link{projects_folder}} (or recursively within another project group's
 folder), use \code{new_project_group()}.
+
+\code{open_project()} is a wrapper around
+\code{\link[rstudioapi]{openProject}}, but the user only needs to know the
+project's \code{id}, \code{title}, or \code{short_title} instead of the file
+path of the project's \emph{.Rproj} file.
 }
 \examples{
 \dontrun{
@@ -73,6 +78,8 @@ move_project(2, "prostate/clinical")
 copy_project(2, "kidney/clinical")
 
 archive_project(3)
+
+open_project("kidney study 3")
 }
 
 }

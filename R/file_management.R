@@ -15,6 +15,11 @@
 #' \code{\link{projects_folder}} (or recursively within another project group's
 #' folder), use \code{new_project_group()}.
 #'
+#' \code{open_project()} is a wrapper around
+#' \code{\link[rstudioapi]{openProject}}, but the user only needs to know the
+#' project's \code{id}, \code{title}, or \code{short_title} instead of the file
+#' path of the project's \emph{.Rproj} file.
+#'
 #' @param path A valid path string. See the \code{path} argument in
 #'   \link{new_project()} for details, the one difference being that there is no
 #'   default (i.e., the user cannot leave \code{path} blank in these functions).
@@ -52,6 +57,8 @@
 #' copy_project(2, "kidney/clinical")
 #'
 #' archive_project(3)
+#'
+#' open_project("kidney study 3")
 #' }
 #'
 #' @aliases new_project_group()
@@ -293,4 +300,25 @@ archive_project <- function(project) {
 
   print(dplyr::filter(projects_tibble, .data$id == project))
   message("\nThe above project was archived and has the file path\n", new_path)
+}
+
+#' @rdname
+#' @export
+#' @importFrom rlang .data
+open_project <- function(project) {
+
+  p_path <- p_path_internal()
+
+  projects_tibble <- get_rds(make_rds_path("projects", p_path))
+
+  project <- validate_entry(project,
+                            what = "project",
+                            rds_tibble = projects_tibble,
+                            max.length = 1L)
+
+  path <- dplyr::filter(projects_tibble, .data$id == project)$path
+
+  path <- fs::path(path, make_project_name(project), ext = "Rproj")
+
+  rstudioapi::openProject(path)
 }
