@@ -429,9 +429,10 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
     corresp_lines    <- c(ifelse(length(affiliations_lines) == 0, "", "|"),
                           "| \\* Corresponding author")
 
-    if(nrow(corresp_affils) > 0) {
-      corresp_lines <- append(corresp_lines,
-                              paste0("|   ", corresp_affils$address[1]))
+    if(nrow(corresp_affils) > 0 && length(na.omit(corresp_affils$address)) > 0){
+      corresp_lines <-
+        append(corresp_lines,
+               paste0("|   ", na.omit(corresp_affils$address)[1]))
     }
 
     if(!is.na(corresp_auth_row$phone)) {
