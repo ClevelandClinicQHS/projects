@@ -89,7 +89,7 @@ affiliations <- function(affiliation, authors = FALSE) {
       dplyr::rename("author_id" = "id1")
   }
 
-  return(affiliations_tibble)
+  return(dplyr::arrange(affiliations_tibble, .data$id))
 }
 
 
@@ -156,7 +156,7 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
       dplyr::rename("project_id" = "id1")
   }
 
-  return(authors_tibble)
+  return(dplyr::arrange(authors_tibble, .data$id))
 }
 
 
@@ -251,5 +251,5 @@ projects <- function(project, authors = FALSE, archived = FALSE) {
                     fs::path_file(fs::path_dir(.data$path)) != "archive")
   }
 
-  return(projects_tibble)
+  return(dplyr::arrange(projects_tibble, .data$id))
 }
