@@ -8,7 +8,7 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "README-"
+  fig.path = "man/figures/README-"
 )
 library(fs)
 library(tidyverse)
@@ -55,7 +55,7 @@ Reproducibility in research is the focus of the much debated replication crisis 
 
 There exist today widely available tools that aid with reproducible research, such as R and other statistical programming languages, that allow for precise documentation of some of the most detail-oriented portions of a project workflow. Researchers can distribute their code scripts alongside their results in order to communicate the integrity of their data processing and analysis. Unfortunately, statistical programming languages per se only contribute to research reproducibility insofar as individual statistical programmers are able (1) to use these tools effectively and (2) to integrate their own use of these tools with their collaborators' work—which may not necessarily be oriented towards reproducibility.
 
-![](README-workflow.png)
+![](man/figures/README-workflow.png)
 
 Although researchers of different disciplines may operate in nuanced ways, there are aspects of the project workflow that are common to most investigations. First, studies are conceptualized and designed according to a protocol that details the research questions and planned analyses. Data are collected, manipulated (or "tidied") in order to make data analysis possible. The results of the analyses are compiled into a report, and ultimately an academic manuscript is drafted and submitted for wider distribution.
 
