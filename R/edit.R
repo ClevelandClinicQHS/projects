@@ -1,6 +1,5 @@
 ################################################################################
 #' @rdname new_edit_delete
-#' @aliases edit_project()
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #' @export
@@ -194,7 +193,6 @@ edit_project <- function(project,
 
 ################################################################################
 #' @rdname new_edit_delete
-#' @aliases edit_author()
 #' @importFrom rlang .data
 #' @export
 edit_author <- function(author,            given_names   = NA,
@@ -283,7 +281,6 @@ edit_author <- function(author,            given_names   = NA,
 
 ################################################################################
 #' @rdname new_edit_delete
-#' @aliases edit_affiliation()
 #' @export
 edit_affiliation <- function(affiliation,           department_name  = NA,
                              institution_name = NA, address          = NA) {
@@ -312,7 +309,6 @@ edit_affiliation <- function(affiliation,           department_name  = NA,
 
 
 #' @rdname new_edit_delete
-#' @aliases delete_project()
 #' @importFrom rlang .data
 #' @export
 delete_project <- function(project) {
@@ -367,7 +363,6 @@ delete_project <- function(project) {
 
 
 #' @rdname new_edit_delete
-#' @aliases delete_author()
 #' @importFrom rlang .data
 #' @export
 delete_author <- function(author) {
@@ -427,7 +422,6 @@ delete_author <- function(author) {
 
 
 #' @rdname new_edit_delete
-#' @aliases delete_affiliation()
 #' @importFrom rlang .data
 #' @export
 delete_affiliation <- function(affiliation) {
@@ -666,7 +660,6 @@ recursive_number_namer <- function(formula) {
 #'    22,  "Britney",     "Jones")
 #'
 #' @name reordering
-#' @aliases reorder_authors()
 #' @export
 reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE) {
 
@@ -679,7 +672,6 @@ reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE) {
 }
 
 #' @rdname reordering
-#' @aliases reorder_affiliations()
 #' @export
 reorder_affiliations <- function(author, ..., after = 0L) {
 

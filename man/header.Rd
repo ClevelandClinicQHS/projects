@@ -2,14 +2,13 @@
 % Please edit documentation in R/header.R
 \name{header}
 \alias{header}
-\alias{header()}
 \title{Print project header to console}
 \usage{
 header(project)
 }
 \arguments{
 \item{project}{Project \code{id} or unambiguous substring of the project name
-from the \code{\link{projects()}} tibble.}
+from the \code{\link{projects}()} tibble.}
 }
 \description{
 This function displays the report header for a project. The

@@ -8,16 +8,15 @@
 #' The file path is returned as a simple chracter string. It simply returns the
 #' value of \code{\link[base]{Sys.getenv}("PRJOECTS_FOLDER_PATH")}, provided
 #' that its value is a file path of a directory that actually exists (i.e.,
-#' \code{\link{setup_projects()}} has been successfully run).
+#' \code{\link{setup_projects}()} has been successfully run).
 #'
 #' If it can't find a directory with that path, it returns this string:
 #'
-#' \code{"projects" folder not found. Please run \link{setup_projects()}}
+#' \code{"projects" folder not found. Please run \link{setup_projects}()}
 #'
 #' @examples
 #' projects_folder()
 #'
-#' @aliases projects_folder()
 #' @export
 projects_folder <- function() {
   p_path_internal(error = FALSE)
@@ -48,7 +47,6 @@ p_path_internal <- function(error = TRUE) {
 
 #' @rdname display_metadata
 #' @importFrom rlang .data
-#' @aliases affiliations()
 #' @export
 affiliations <- function(affiliation, authors = FALSE) {
 
@@ -97,7 +95,6 @@ affiliations <- function(affiliation, authors = FALSE) {
 
 #' @rdname display_metadata
 #' @importFrom rlang .data
-#' @aliases authors()
 #' @export
 authors <- function(author, affiliations = FALSE, projects = FALSE) {
 
@@ -187,7 +184,7 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #'   to perform a left join with another metadata tibble. All \code{FALSE} by
 #'   default.
 #' @param archived Logical, indicating whether or not to include projects that
-#'   have been archived using \code{\link{archive_project()}}. They are not
+#'   have been archived using \code{\link{archive_project}()}. They are not
 #'   displayed by default.
 #'
 #' @examples
@@ -202,7 +199,6 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' }
 #'
 #' @name display_metadata
-#' @aliases projects()
 #' @importFrom rlang .data
 #' @export
 projects <- function(project, authors = FALSE, archived = FALSE) {

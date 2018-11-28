@@ -3,7 +3,7 @@
 #' Tools for Organizing and Managing Project Files
 #'
 #' Projects can be moved (\code{move_project()}), copied
-#' (\code{copy_project()}), deleted (\code{\link{delete_project()}}) or archived
+#' (\code{copy_project()}), deleted (\code{\link{delete_project}()}) or archived
 #' (\code{archive_project}). The difference between \code{delete_project()} and
 #' \code{archive_project()} is that the latter will just move the project to a
 #' directory called 'archive', located in the same parent directory as the
@@ -21,11 +21,12 @@
 #' path of the project's \emph{.Rproj} file.
 #'
 #' @param path A valid path string. See the \code{path} argument in
-#'   \link{new_project()} for details, the one difference being that there is no
-#'   default (i.e., the user cannot leave \code{path} blank in these functions).
+#'   \code{\link{new_project}()} for details, the one difference being that
+#'   there is no default (i.e., the user cannot leave \code{path} blank in these
+#'   functions).
 #'
 #' @param project Project \code{id} or unambiguous substring of the project name
-#'   from the \code{\link{projects()}} tibble.
+#'   from the \code{\link{projects}()} tibble.
 #'
 #' @param make_directories Logical. If the path represented by the \code{path}
 #'   parameter does not exist, should the needed directories be created?
@@ -35,11 +36,12 @@
 #'
 #' @param new_id Optional integer, ranging from 1 to 9999, used as the
 #'   newly-created project ID. Must not already exist in
-#'   \code{\link{projects()}$id}. If left blank, the lowest available \code{id}
+#'   \code{\link{projects}()$id}. If left blank, the lowest available \code{id}
 #'   will be automatically used.
 #'
 #' @name file_management
-#' @seealso \code{\link{new_project}}, \code{\link{delete_project}}
+#' @seealso \code{\link{new_project}()} and \code{\link{delete_project}()} for
+#'   other functions that write and delete files
 #'
 #' @examples
 #' \dontrun{
@@ -61,7 +63,6 @@
 #' open_project("kidney study 3")
 #' }
 #'
-#' @aliases new_project_group()
 #' @importFrom rlang .data
 #' @export
 new_project_group <- function(path) {
@@ -86,7 +87,6 @@ new_project_group <- function(path) {
 
 
 #' @rdname file_management
-#' @aliases move_project()
 #' @importFrom rlang .data
 #' @export
 move_project <- function(project, path, make_directories = FALSE) {
@@ -150,7 +150,6 @@ move_project <- function(project, path, make_directories = FALSE) {
 
 
 #' @rdname file_management
-#' @aliases copy_project()
 #' @importFrom rlang .data
 #' @export
 copy_project <- function(project_to_copy,
@@ -257,9 +256,8 @@ copy_project <- function(project_to_copy,
 
 
 #' @rdname file_management
-#' @aliases archive_project()
 #' @importFrom rlang .data
-#' @export archive_project
+#' @export
 archive_project <- function(project) {
 
   p_path          <- p_path_internal()

@@ -3,9 +3,7 @@
 \name{reordering}
 \alias{reordering}
 \alias{reorder_authors}
-\alias{reorder_authors()}
 \alias{reorder_affiliations}
-\alias{reorder_affiliations()}
 \title{Reordering authors and affiliations}
 \usage{
 reorder_authors(project, ..., after = 0L, reprint_header = TRUE)

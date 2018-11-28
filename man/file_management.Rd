@@ -3,13 +3,9 @@
 \name{file_management}
 \alias{file_management}
 \alias{new_project_group}
-\alias{new_project_group()}
 \alias{move_project}
-\alias{move_project()}
 \alias{copy_project}
-\alias{copy_project()}
 \alias{archive_project}
-\alias{archive_project()}
 \alias{open_project}
 \title{file management}
 \usage{
@@ -26,11 +22,12 @@ open_project(project)
 }
 \arguments{
 \item{path}{A valid path string. See the \code{path} argument in
-\link{new_project()} for details, the one difference being that there is no
-default (i.e., the user cannot leave \code{path} blank in these functions).}
+\code{\link{new_project}()} for details, the one difference being that
+there is no default (i.e., the user cannot leave \code{path} blank in these
+functions).}
 
 \item{project}{Project \code{id} or unambiguous substring of the project name
-from the \code{\link{projects()}} tibble.}
+from the \code{\link{projects}()} tibble.}
 
 \item{make_directories}{Logical. If the path represented by the \code{path}
 parameter does not exist, should the needed directories be created?}
@@ -40,7 +37,7 @@ project name corresponding to the project that is to be copied.}
 
 \item{new_id}{Optional integer, ranging from 1 to 9999, used as the
 newly-created project ID. Must not already exist in
-\code{\link{projects()}$id}. If left blank, the lowest available \code{id}
+\code{\link{projects}()$id}. If left blank, the lowest available \code{id}
 will be automatically used.}
 }
 \description{
@@ -48,7 +45,7 @@ Tools for Organizing and Managing Project Files
 }
 \details{
 Projects can be moved (\code{move_project()}), copied
-(\code{copy_project()}), deleted (\code{\link{delete_project()}}) or archived
+(\code{copy_project()}), deleted (\code{\link{delete_project}()}) or archived
 (\code{archive_project}). The difference between \code{delete_project()} and
 \code{archive_project()} is that the latter will just move the project to a
 directory called 'archive', located in the same parent directory as the
@@ -87,5 +84,6 @@ open_project("kidney study 3")
 
 }
 \seealso{
-\code{\link{new_project}}, \code{\link{delete_project}}
+\code{\link{new_project}()} and \code{\link{delete_project}()} for
+  other functions that write and delete files
 }

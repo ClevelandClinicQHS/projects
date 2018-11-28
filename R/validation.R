@@ -184,3 +184,90 @@ validate_stage <- function(stage, choices) {
     return(stage)
   }
 }
+
+validate_protocol <- function(protocol, choices) {
+
+  protocol_match <- try(match.arg(protocol, choices), silent = TRUE)
+
+  if(class(protocol_match) == "try-error") {
+    return(protocol)
+  }
+
+  else {
+    return(protocol_match)
+  }
+}
+
+validate_template <- function(file_name, what, default_name, default_template,
+                              p_path) {
+
+  path <- fs::path(p_path, ".templates", file_name)
+
+  if(fs::file_exists(path)) {
+    return(readr::read_lines(path))
+  }
+
+  else {
+
+    if(file_name %in% default_name) {
+      return(restore_default_template(file_name, what, default_name,
+                                      default_template, p_path))
+    }
+
+    else {
+
+      default_path <- fs::path(p_path, ".templates", default_name[1])
+
+      user_prompt(msg   = paste0("Custom template not found at:\n", path,
+                                 "\n\nUse the default at:\n", default_path,
+                                 "\n\n? (y/n)"),
+                  n_msg = paste0("\nChoose an existing ", what,
+                                 " template in\n",
+                                 fs::path(p_path, ".templates")))
+
+      if(fs::file_exists(default_path)) {
+        message("\n\nUsing default template.")
+        return(readr::read_lines(default_path))
+      }
+
+      else {
+        return(restore_default_template(file_name, what, default_name,
+                                        default_template, p_path))
+      }
+    }
+  }
+}
+
+restore_default_template <- function(file_name, what, default_name,
+                                     default_template, p_path) {
+
+  user_prompt(msg   = paste0("\n\nDefault template was not found at:\n",
+                             fs::path(p_path, ".templates", file_name),
+                             "\n\nRestore it and use for this project? (y/n)"),
+              y_msg = paste0("\nDefault restored at:\n",
+                             fs::path(p_path, ".templates", file_name),
+                             "\n\nUsing it as the ", what,
+                             " template for this project"),
+              n_msg = paste0("Choose an existing ", what, " template in\n",
+                             fs::path(p_path, ".templates"), "\n\nor respond ",
+                             '"y" to restoring the default next time.'))
+
+  return(
+    readr::write_lines(
+      x    = default_template[[which(default_name == file_name)]],
+      path = fs::path(p_path, ".templates", file_name)))
+
+}
+
+yaml_bounds <- function(vector, what) {
+
+  yaml_bounds <- grep("^---$", vector)
+
+  if(length(yaml_bounds) < 2) {
+    stop(what, " template must have a yaml header even if it's empty, as in:",
+         "\n\n---\n---",
+         "\n\nCheck that there are no spaces before or after each ---")
+  }
+
+  return(yaml_bounds)
+}

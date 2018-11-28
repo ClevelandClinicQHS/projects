@@ -9,14 +9,13 @@
 #'   \emph{04_report.Rmd}).
 #'
 #' @param project Project \code{id} or unambiguous substring of the project name
-#'   from the \code{\link{projects()}} tibble.
+#'   from the \code{\link{projects}()} tibble.
 #'
 #' @examples
 #' \dontrun{
 #' header(project = 1)
 #' }
 #' @name header
-#' @aliases header()
 #' @importFrom rlang .data
 #' @export
 header <- function(project) {

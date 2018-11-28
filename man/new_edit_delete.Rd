@@ -2,24 +2,15 @@
 % Please edit documentation in R/edit.R, R/new.R
 \name{edit_project}
 \alias{edit_project}
-\alias{edit_project()}
 \alias{edit_author}
-\alias{edit_author()}
 \alias{edit_affiliation}
-\alias{edit_affiliation()}
 \alias{delete_project}
-\alias{delete_project()}
 \alias{delete_author}
-\alias{delete_author()}
 \alias{delete_affiliation}
-\alias{delete_affiliation()}
 \alias{new_edit_delete}
 \alias{new_project}
-\alias{new_project()}
 \alias{new_author}
-\alias{new_author()}
 \alias{new_affiliation}
-\alias{new_affiliation()}
 \title{Create, edit, or delete projects, authors, and affiliations}
 \usage{
 edit_project(project, title = NA, short_title = NA, authors,
@@ -44,10 +35,12 @@ new_project(title = NA, short_title = NA, authors,
   current_owner = NA, status = "just created", deadline_type = NA,
   deadline = NA, stage = c("1: design", "2: data collection",
   "3: analysis", "4: manuscript", "5: under review", "6: accepted"),
-  path = projects_folder(), corresp_auth = NA,
-  creator = Sys.info()["user"], id = NA, protocol = c("STROBE",
-  "CONSORT"), make_directories = FALSE, use_bib = FALSE,
-  datawork_template = NULL, analysis_template = NULL)
+  path = projects_folder(), make_directories = FALSE,
+  corresp_auth = NA, creator = Sys.info()["user"], id = NA,
+  protocol = c("01_protocol.Rmd", "STROBE_protocol.Rmd",
+  "CONSORT_protocol.Rmd"), datawork = "02_datawork.Rmd",
+  analysis = "03_analysis.Rmd", report = "04_report.Rmd",
+  css = "style.css", Rproj = "pXXXX.Rproj", use_bib = FALSE)
 
 new_author(given_names = NA, last_name = NA, title = NA,
   affiliations, degree = NA, email = NA, phone = NA, id = NA)
@@ -59,11 +52,11 @@ new_affiliation(department_name = NA, institution_name = NA,
 \item{project, author, affiliation}{The \code{id} or unambiguous names of a
 project/author/affiliation to edit or delete.}
 
-\item{title}{For the \code{_project()} functions, the title of the project;
+\item{title}{For the \code{\*_project()} functions, the title of the project;
   for \code{new_project()} only, the user input is coerced to title case
   using \code{tools::toTitleCase()}.
 
-  For the \code{_author()} functions, the job title of the author.}
+  For the \code{\*_author()} functions, the job title of the author.}
 
 \item{short_title}{A nickname for the project. Can be used in other
 \code{projects} package functions whenever needing to specify a project.}
@@ -92,9 +85,9 @@ of the next field, \code{deadline}.}
 \item{deadline}{A \code{Date} or a character string that can be coerced to a
 \code{Date}.}
 
-\item{stage}{A factor with the levels \code{c("design", "data collection",
-"analysis", "manuscript", "under review", "accepted")}, communicating the
-stage the project is in.}
+\item{stage}{A factor with the levels \code{c("1: design", "2: data
+collection", "3: analysis", "4: manuscript", "5: under review", "5:
+accepted")}, communicating the stage the project is in.}
 
 \item{corresp_auth, current_owner}{An \code{id} or unambiguous
   \code{last_name}/\code{given_names} of one of the authors in the
@@ -140,7 +133,12 @@ Email will be coerced to lowercase. When a project is given a
 
   In any case, the result is that the new project folder will be a
   subdirectory of the main \code{\link{projects_folder}}. See also
-  \code{\link{setup_projects()}}.}
+  \code{\link{setup_projects}()}.}
+
+\item{make_directories}{Logical, indicating whether or not
+\code{new_project()} should create subdirectories specified in the
+\code{path} argument that do not already exist. Ignored if \code{path} is
+left as the default or if all directories in \code{path} already exist.}
 
 \item{id}{An integer that will become the item's permanent identification
   number. Must be in the range 1-9999 or left blank. If left blank, the
@@ -151,31 +149,29 @@ Email will be coerced to lowercase. When a project is given a
   "p\emph{XXXX}". If the \code{id} number is not four digits long, it will be
   padded on the left side with 0s.}
 
-\item{protocol}{A character string matching one of the included
-protocol/report templates (viz., one of \code{c("STROBE", "CONSORT")}), or
-the file name of a custom template in the .templates subdirectory within
-the main \code{\link{projects_folder}}. If using a custom template, make
-sure to match the case and file extension exactly.}
+\item{protocol, datawork, analysis, report, css, Rproj}{A character string
+  matching the name of a corresponding template file in the \emph{.templates}
+  subdirectory of the main \code{\link{projects_folder}}. Default templates
+  are placed there when \code{\link{setup_projects}()} is run, and the user
+  can edit these if desired.
 
-\item{make_directories}{Logical, indicating whether or \code{new_project()}
-should create subdirectories specified in the \code{path} argument that do
-not already exist. Ignored if \code{path} is left blank or if all
-directories in \code{path} already exist.}
+  Multiple default \code{protocol} templates are available.
+  \emph{01_protocol.Rmd}, which by default is the same as
+  \emph{STROBE_protocol.Rmd}, will be selected if \code{protocol} is
+  unspecified. Users can edit these default templates.
+
+  If using a custom template, make sure to match the case and file extension
+  exactly.}
 
 \item{use_bib}{Logical. If \code{TRUE}, a blank \emph{.bib} file will be
 written into the \strong{progs} subdirectory of the newly created project
-folder. Its name will be of the form "\emph{pXXXX.bib}", and the YAML
-header of \emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd} will
-include the line "bibliography: pXXXX.bib".}
-
-\item{datawork_template, analysis_template}{Optional file names of custom
-templates to be used to create \emph{progs/02_datawork.Rmd} and/or
-\emph{progs/03_analysis.Rmd}. Make sure to match the case and file
-extension exactly.}
+folder. Its name will be of the form \emph{pXXXX.bib}, and the YAML header
+of \emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd} will include
+the line \code{bibliography: pXXXX.bib}.}
 }
 \description{
-These functions create, edit, or delete rows in the \code{\link{projects()}},
-\code{\link{authors()}}, and \code{\link{affiliations()}} tibbles, which are
+These functions create, edit, or delete rows in the \code{\link{projects}()},
+\code{\link{authors}()}, and \code{\link{affiliations}()} tibbles, which are
 stored in the \emph{.metadata} subdirectory of the main
 \code{\link{projects_folder}}.
 }
@@ -190,10 +186,10 @@ tibbles.
 Newly created project folders (and the \emph{.Rproj} files they contain) both
 have names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the
 project \code{id} number. The folder will be an immediate subdirectory of the
-main \code{\link{projects_folder}} (see also \code{\link{setup_projects()}})
+main \code{\link{projects_folder}} (see also \code{\link{setup_projects}()})
 unless the argument \code{path} specifies a deeper subdirectory. The user may
 enter various metadata about the project that is stored and may be called
-forth using the \code{\link{projects()}} function. Some of this metadata will
+forth using the \code{\link{projects}()} function. Some of this metadata will
 automatically be added to the \code{\link{header}} atop the automatically
 created \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
 \emph{progs/04_report.Rmd}.
@@ -217,12 +213,16 @@ new_author(given_names = "Spiro", last_name = "Agnew", degree = "LLB",
 new_author(given_names = "Plato", id = 303)
 
 new_project(title = "Understanding the Construction of the United States",
-            short_title = "USA1", authors = c(13, "Stone", "303"),
+            short_title = "USA", authors = c(13, "Stone"),
             stage = 4, deadline = "2055-02-28", deadline_type = "submission",
             path = "famous_studied/philosophers/rocks", protocol = "s",
             corresp_auth = "Stone", current_owner = "agnew",
             make_directories = TRUE, use_bib = TRUE,
-            status = "waiting on IRB")
+            status = "waiting on IRB",
+            analysis = "custom_analysis_template.Rmd")
+
+edit_project("Understanding", short_title = "usa1",
+             authors = ~ + "303" - 13 - Stone)
 
 delete_project("usa1")
 }

@@ -1,7 +1,7 @@
 #' Create, edit, or delete projects, authors, and affiliations
 #'
-#' These functions create, edit, or delete rows in the \code{\link{projects()}},
-#' \code{\link{authors()}}, and \code{\link{affiliations()}} tibbles, which are
+#' These functions create, edit, or delete rows in the \code{\link{projects}()},
+#' \code{\link{authors}()}, and \code{\link{affiliations}()} tibbles, which are
 #' stored in the \emph{.metadata} subdirectory of the main
 #' \code{\link{projects_folder}}.
 #'
@@ -15,10 +15,10 @@
 #' Newly created project folders (and the \emph{.Rproj} files they contain) both
 #' have names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the
 #' project \code{id} number. The folder will be an immediate subdirectory of the
-#' main \code{\link{projects_folder}} (see also \code{\link{setup_projects()}})
+#' main \code{\link{projects_folder}} (see also \code{\link{setup_projects}()})
 #' unless the argument \code{path} specifies a deeper subdirectory. The user may
 #' enter various metadata about the project that is stored and may be called
-#' forth using the \code{\link{projects()}} function. Some of this metadata will
+#' forth using the \code{\link{projects}()} function. Some of this metadata will
 #' automatically be added to the \code{\link{header}} atop the automatically
 #' created \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
 #' \emph{progs/04_report.Rmd}.
@@ -31,11 +31,11 @@
 #'   folder's and \emph{.Rproj} file's names, which are of the form
 #'   "p\emph{XXXX}". If the \code{id} number is not four digits long, it will be
 #'   padded on the left side with 0s.
-#' @param title For the \code{_project()} functions, the title of the project;
+#' @param title For the \code{\*_project()} functions, the title of the project;
 #'   for \code{new_project()} only, the user input is coerced to title case
 #'   using \code{tools::toTitleCase()}.
 #'
-#'   For the \code{_author()} functions, the job title of the author.
+#'   For the \code{\*_author()} functions, the job title of the author.
 #' @param short_title A nickname for the project. Can be used in other
 #'   \code{projects} package functions whenever needing to specify a project.
 #' @param given_names,last_name,department_name,institution_name Each a single
@@ -95,28 +95,32 @@
 #'
 #'   In any case, the result is that the new project folder will be a
 #'   subdirectory of the main \code{\link{projects_folder}}. See also
-#'   \code{\link{setup_projects()}}.
-#' @param stage A factor with the levels \code{c("design", "data collection",
-#'   "analysis", "manuscript", "under review", "accepted")}, communicating the
-#'   stage the project is in.
-#' @param protocol A character string matching one of the included
-#'   protocol/report templates (viz., one of \code{c("STROBE", "CONSORT")}), or
-#'   the file name of a custom template in the .templates subdirectory within
-#'   the main \code{\link{projects_folder}}. If using a custom template, make
-#'   sure to match the case and file extension exactly.
-#' @param make_directories Logical, indicating whether or \code{new_project()}
-#'   should create subdirectories specified in the \code{path} argument that do
-#'   not already exist. Ignored if \code{path} is left blank or if all
-#'   directories in \code{path} already exist.
+#'   \code{\link{setup_projects}()}.
+#' @param make_directories Logical, indicating whether or not
+#'   \code{new_project()} should create subdirectories specified in the
+#'   \code{path} argument that do not already exist. Ignored if \code{path} is
+#'   left as the default or if all directories in \code{path} already exist.
+#' @param stage A factor with the levels \code{c("1: design", "2: data
+#'   collection", "3: analysis", "4: manuscript", "5: under review", "5:
+#'   accepted")}, communicating the stage the project is in.
+#' @param protocol,datawork,analysis,report,css,Rproj A character string
+#'   matching the name of a corresponding template file in the \emph{.templates}
+#'   subdirectory of the main \code{\link{projects_folder}}. Default templates
+#'   are placed there when \code{\link{setup_projects}()} is run, and the user
+#'   can edit these if desired.
+#'
+#'   Multiple default \code{protocol} templates are available.
+#'   \emph{01_protocol.Rmd}, which by default is the same as
+#'   \emph{STROBE_protocol.Rmd}, will be selected if \code{protocol} is
+#'   unspecified. Users can edit these default templates.
+#'
+#'   If using a custom template, make sure to match the case and file extension
+#'   exactly.
 #' @param use_bib Logical. If \code{TRUE}, a blank \emph{.bib} file will be
 #'   written into the \strong{progs} subdirectory of the newly created project
-#'   folder. Its name will be of the form "\emph{pXXXX.bib}", and the YAML
-#'   header of \emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd} will
-#'   include the line "bibliography: pXXXX.bib".
-#' @param datawork_template,analysis_template Optional file names of custom
-#'   templates to be used to create \emph{progs/02_datawork.Rmd} and/or
-#'   \emph{progs/03_analysis.Rmd}. Make sure to match the case and file
-#'   extension exactly.
+#'   folder. Its name will be of the form \emph{pXXXX.bib}, and the YAML header
+#'   of \emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd} will include
+#'   the line \code{bibliography: pXXXX.bib}.
 #' @param reprint_header Logical, indicating whether or not to reprint the
 #'   project \code{\link{header}} after editing project information.
 #'
@@ -139,40 +143,48 @@
 #' new_author(given_names = "Plato", id = 303)
 #'
 #' new_project(title = "Understanding the Construction of the United States",
-#'             short_title = "USA1", authors = c(13, "Stone", "303"),
+#'             short_title = "USA", authors = c(13, "Stone"),
 #'             stage = 4, deadline = "2055-02-28", deadline_type = "submission",
 #'             path = "famous_studied/philosophers/rocks", protocol = "s",
 #'             corresp_auth = "Stone", current_owner = "agnew",
 #'             make_directories = TRUE, use_bib = TRUE,
-#'             status = "waiting on IRB")
+#'             status = "waiting on IRB",
+#'             analysis = "custom_analysis_template.Rmd")
+#'
+#' edit_project("Understanding", short_title = "usa1",
+#'              authors = ~ + "303" - 13 - Stone)
 #'
 #' delete_project("usa1")
 #' }
 #'
 #' @name new_edit_delete
-#' @aliases new_project()
 #' @importFrom rlang .data
 #' @importFrom tibble tibble
 #' @export
-new_project <- function(title             = NA,
-                        short_title       = NA,
+new_project <- function(title            = NA,
+                        short_title      = NA,
                         authors,
-                        current_owner     = NA,
-                        status            = "just created",
-                        deadline_type     = NA,
-                        deadline          = NA,
-                        stage             = c("1: design", "2: data collection",
-                                              "3: analysis", "4: manuscript",
-                                              "5: under review", "6: accepted"),
-                        path              = projects_folder(),
-                        corresp_auth      = NA,
-                        creator           = Sys.info()["user"],
-                        id                = NA,
-                        protocol          = c("STROBE", "CONSORT"),
-                        make_directories  = FALSE,
-                        use_bib           = FALSE,
-                        datawork_template = NULL,
-                        analysis_template = NULL) {
+                        current_owner    = NA,
+                        status           = "just created",
+                        deadline_type    = NA,
+                        deadline         = NA,
+                        stage            = c("1: design", "2: data collection",
+                                             "3: analysis", "4: manuscript",
+                                             "5: under review", "6: accepted"),
+                        path             = projects_folder(),
+                        make_directories = FALSE,
+                        corresp_auth     = NA,
+                        creator          = Sys.info()["user"],
+                        id               = NA,
+                        protocol         = c("01_protocol.Rmd",
+                                             "STROBE_protocol.Rmd",
+                                             "CONSORT_protocol.Rmd"),
+                        datawork         = "02_datawork.Rmd",
+                        analysis         = "03_analysis.Rmd",
+                        report           = "04_report.Rmd",
+                        css              = "style.css",
+                        Rproj            = "pXXXX.Rproj",
+                        use_bib          = FALSE) {
 
   p_path                   <- p_path_internal()
 
@@ -280,9 +292,37 @@ new_project <- function(title             = NA,
   ############################
   ############################
 
-  protocol_report <-
-    build_protocol_report(protocol            = protocol,
-                          p_path              = p_path,
+  protocol <- validate_protocol(protocol, choices = eval(formals()$protocol))
+
+  files <-
+    c("protocol", "datawork", "analysis", "report", "css", "Rproj") %>%
+    stats::setNames(
+      object = purrr::pmap(
+        .l     = list(
+          file_name        = list(protocol, datawork, analysis, report, css,
+                                  Rproj),
+          what             = .,
+          default_name     = list(c("01_protocol.Rmd", "STROBE_protocol.Rmd",
+                                    "CONSORT_protocol.Rmd"),
+                                  "02_datawork.Rmd",
+                                  "03_analysis.Rmd",
+                                  "04_report.Rmd",
+                                  "style.css",
+                                  "pXXXX.Rproj"),
+          default_template = list(list(STROBE_template, STROBE_template,
+                                       CONSORT_template),
+                                  list(datawork_template),
+                                  list(analysis_template),
+                                  list(report_template),
+                                  list(css_template),
+                                  list(Rproj_template))),
+        .f     = validate_template,
+        p_path = p_path),
+      nm     = .)
+
+  files$protocol <-
+    build_protocol_report(vector = files$protocol,
+                          what   = "protocol",
                           project_id          = id,
                           title               = title,
                           corresp_auth        = corresp_auth,
@@ -293,15 +333,28 @@ new_project <- function(title             = NA,
                           use_bib             = use_bib,
                           pXXXX_name          = pXXXX_name)
 
-  datawork <- build_datawork_analysis(template   = datawork_template,
-                                      what       = "datawork",
-                                      p_path     = p_path,
-                                      pXXXX_name = pXXXX_name)
+  files$report <-
+    build_protocol_report(vector = files$report,
+                          what   = "report",
+                          project_id          = id,
+                          title               = title,
+                          corresp_auth        = corresp_auth,
+                          authors_tibble      = authors_tibble,
+                          affiliations_tibble = affiliations_tibble,
+                          project_authors     = authors,
+                          aa_assoc_tibble     = aa_assoc_tibble,
+                          use_bib             = use_bib,
+                          pXXXX_name          = pXXXX_name)
 
-  analysis <- build_datawork_analysis(template   = datawork_template,
-                                      what       = "analysis",
-                                      p_path     = p_path,
-                                      pXXXX_name = pXXXX_name)
+  files$datawork <- build_datawork_analysis(vector     = files$datawork,
+                                            what       = "datawork",
+                                            p_path     = p_path,
+                                            pXXXX_name = pXXXX_name)
+
+  files$analysis <- build_datawork_analysis(vector     = files$analysis,
+                                            what       = "analysis",
+                                            p_path     = p_path,
+                                            pXXXX_name = pXXXX_name)
 
   # Add new row to project list
   new_project_row <- change_table(action        = "new",
@@ -331,9 +384,7 @@ new_project <- function(title             = NA,
 
   # Write the files
   write_project_files(pXXXX_path      = pXXXX_path,
-                      protocol_report = protocol_report,
-                      datawork        = datawork,
-                      analysis        = analysis,
+                      files           = files,
                       use_bib         = use_bib,
                       pXXXX_name      = pXXXX_name)
 
@@ -385,7 +436,6 @@ new_project <- function(title             = NA,
 
 ################################################################################
 #' @rdname new_edit_delete
-#' @aliases new_author()
 #' @importFrom rlang .data
 #' @export
 new_author <- function(given_names = NA,    last_name    = NA,
@@ -457,7 +507,6 @@ new_author <- function(given_names = NA,    last_name    = NA,
 
 ################################################################################
 #' @rdname new_edit_delete
-#' @aliases new_affiliation()
 #' @export
 new_affiliation <- function(department_name  = NA, institution_name = NA,
                             address          = NA, id               = NA) {

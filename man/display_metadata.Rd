@@ -2,12 +2,9 @@
 % Please edit documentation in R/getters.R
 \name{affiliations}
 \alias{affiliations}
-\alias{affiliations()}
 \alias{authors}
-\alias{authors()}
 \alias{display_metadata}
 \alias{projects}
-\alias{projects()}
 \title{View the \code{projects()}, \code{authors()}, and \code{affiliations()}
 tables}
 \usage{
@@ -26,7 +23,7 @@ default.}
 and/or names. Only rows matching one or more entries will be returned.}
 
 \item{archived}{Logical, indicating whether or not to include projects that
-have been archived using \code{\link{archive_project()}}. They are not
+have been archived using \code{\link{archive_project}()}. They are not
 displayed by default.}
 }
 \description{

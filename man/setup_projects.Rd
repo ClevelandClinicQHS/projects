@@ -2,15 +2,13 @@
 % Please edit documentation in R/setup.R
 \name{setup_projects}
 \alias{setup_projects}
-\alias{setup_projects()}
 \title{Set up the projects folder}
 \usage{
 setup_projects(path, overwrite = FALSE, make_directories = FALSE)
 }
 \arguments{
 \item{path}{The full file path where the user would like a directory called
-"projects" to be created, wherein all \code{projects} and their data will
-dwell.}
+"projects" to be created, wherein all projects and their data will dwell.}
 
 \item{overwrite}{Logical indicating whether or not to abandon any previously
 stored projects folders stored in the system.}
@@ -23,20 +21,49 @@ already exist.}
 Creates or restores the projects folder at the user-specified path.
 }
 \details{
-If \code{overwrite = TRUE}, the function will run no matter what. Use with
-caution.
-
-If the user has a pre-existing projects folder and runs this command with the
-pre-existing projects folder's path, nothing will be deleted.
-
-Therefore, if the user "broke" the projects folder (e.g., by deleting
-metadata; by changing the "PROJECTS_FOLDER_PATH" line in the .Renviron file),
-the user can "fix" the projects folder by running this command with the
-folder's actual file path.
+The \code{projects} package remembers where the
+\code{\link{projects_folder}()} is located by storing its file path in the
+\strong{home} \link[base]{.Renviron} file. The entry is named
+\code{PROJECTS_FOLDER_PATH}. See \link[base]{Startup} for more details.
 }
+\section{Default contents}{
+ The \code{\link{projects_folder}} automatically
+  contains the subdirectories \emph{.metadata} and \emph{.template}, which
+  are hidden by default on some operating systems.
+
+  The \emph{.metadata} folder and its contents should \strong{never} be
+  manually moved or modified.
+
+  The \emph{.templates} will contain several templates that
+  \code{\link{new_project}()} reads when creating a new project. Advanced
+  users may edit these templates or add their own. See
+  \code{\link{new_project}()} for details.
+}
+
+\section{Behavior when projects folder already exists}{
+ If \code{overwrite =
+  TRUE}, the function will run no matter what. Use with caution.
+
+  If the user has a pre-existing \link{projects_folder} and runs this
+  command with the pre-existing \link{projects_folder}'s path, nothing
+  will be deleted.
+
+  \strong{Therefore}, if the user "broke" the projects folder (e.g., by
+  deleting metadata; by changing the "PROJECTS_FOLDER_PATH" line in the
+  \emph{.Renviron} file), the user can "fix" the projects folder to some
+  degree by running this function with the folder's actual file path (e.g.,
+  restore all default templates; restore missing metadata files).
+}
+
 \examples{
 \dontrun{
 setup_projects("C:/Users/Loretta/")
 }
 
+}
+\seealso{
+\code{\link{new_project}()} for information on templates
+
+  \link[base]{Startup} for more information on how \emph{.Renviron} files
+  work
 }
