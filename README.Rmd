@@ -279,7 +279,7 @@ reorder_authors(project = "Cold Fusion", "Neil", "Bug", 86)
 Importantly, `edit_author()`, `edit_affiliation()`, and `reorder_affiliations()` do **not** reprint the title pages of all affected projects. Fortunately, the user can reprint updated title pages with the `header()` function:
 
 ```{r edit_affil, echo = TRUE, results = 'hide', message=FALSE}
-edit_affiliation(affiliation = "Impossibles",
+edit_affiliation(affiliation     = "Impossibles",
                  department_name = "Pseudoscience Debunking Unit")
 ```
 
