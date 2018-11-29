@@ -15,7 +15,7 @@ Description: Provides a project infrastructure with a focus on
     manuscripts, and so on.
 License: MIT + file LICENSE
 Depends:
-    R (>= 3.4.4)
+    R (>= 3.4.0)
 Imports:
     checkmate (>= 1.8.5),
     dplyr (>= 0.7.5),
