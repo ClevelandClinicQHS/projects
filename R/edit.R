@@ -328,9 +328,7 @@ delete_project <- function(project) {
 
   project_row     <- dplyr::filter(projects_tibble, .data$id == project)
 
-  if(!isTRUE(getOption('knitr.in.progress'))) {
-    print(project_row)
-  }
+  print(project_row)
 
   if(!fs::dir_exists(project_row$path)) {
     user_prompt(
@@ -388,9 +386,7 @@ delete_author <- function(author) {
 
   author_row      <- dplyr::filter(authors_tibble, .data$id == author)
 
-  if(isFALSE(getOption('knitr.in.progress'))) {
-    print(author_row)
-  }
+  print(author_row)
 
   user_prompt(
     msg   = "\nAre you sure you want to delete the above author? (y/n)",
@@ -442,9 +438,7 @@ delete_affiliation <- function(affiliation) {
   affiliation_row     <- dplyr::filter(affiliations_tibble,
                                        .data$id == affiliation)
 
-  if(isFALSE(getOption('knitr.in.progress'))) {
-    print(affiliation_row)
-  }
+  print(affiliation_row)
 
   user_prompt(
     msg   = "\nAre you sure you want to delete the above affiliation? (y/n)",
