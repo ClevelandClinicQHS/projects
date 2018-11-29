@@ -5,7 +5,7 @@
 #'
 #' Returns the file path of the main projects folder if it has been established.
 #'
-#' The file path is returned as a simple chracter string. It simply returns the
+#' The file path is returned as a simple character string. It simply returns the
 #' value of \code{\link[base]{Sys.getenv}("PRJOECTS_FOLDER_PATH")}, provided
 #' that its value is a file path of a directory that actually exists (i.e.,
 #' \code{\link{setup_projects}()} has been successfully run).

@@ -68,7 +68,7 @@ project/author/affiliation to edit or delete.}
 
   For \code{edit_project()}/\code{edit_author()}, a formula specifying
   \code{\link{authors}}/\code{\link{affiliations}} to add or remove from the
-  project/author. Formulas must have no lefthand side (i.e., begin with
+  project/author. Formulas must have no left-hand side (i.e., begin with
   \code{~}) and use \code{+} to add authors and \code{-} to remove authors.
   Authors may be specified by \code{id} or name.
 
@@ -113,7 +113,7 @@ author/affiliation.}
 author's academic degree(s). Will be written next to author names in the
 \code{\link{header}}.}
 
-\item{email, phone}{A charcter string denoting the email/phone of the author.
+\item{email, phone}{A character string denoting the email/phone of the author.
 Email will be coerced to lowercase. When a project is given a
 \code{corresp_auth}, these items will be included in the
 \code{\link{header}}.}
@@ -142,7 +142,7 @@ left as the default or if all directories in \code{path} already exist.}
 
 \item{id}{An integer that will become the item's permanent identification
   number. Must be in the range 1-9999 or left blank. If left blank, the
-  lowest available integer in the aforemntioned range will be selected.
+  lowest available integer in the aforementioned range will be selected.
 
   For \code{new_project}, this number will also determine the project
   folder's and \emph{.Rproj} file's names, which are of the form
