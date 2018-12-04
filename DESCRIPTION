@@ -6,14 +6,23 @@ Authors@R:
              family = "Krieger",
              role = c("aut", "cre"),
              email = "nk@case.edu"),
+      person(given = "Adam",
+             family = "Perzynski",
+             role = "aut"),
       person(given = "Jarrod",
              family = "Dalton",
-             role = "aut"))
+             role = "aut"),
+      person(given = "NEOCARE Team",
+             role = "ctb"),
+      person(given = "National Institute on Aging of the National Institutes of Health",
+             role = "fnd",
+             comment = "award number R01AG055480"))
 Description: Provides a project infrastructure with a focus on
     manuscript creation. Creates a project folder with a single command,
     containing subdirectories for specific components, templates for
     manuscripts, and so on.
 License: MIT + file LICENSE
+URL: https://www.github.com/NikKrieger/projects
 Depends:
     R (>= 3.4.0)
 Imports:

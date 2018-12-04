@@ -41,9 +41,7 @@
 #'   already exist.
 #'
 #' @examples
-#' \dontrun{
-#' setup_projects("C:/Users/Loretta/")
-#' }
+#' setup_projects(tempdir())
 #'
 #' @seealso \code{\link{new_project}()} for information on templates
 #'
@@ -63,10 +61,10 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
   old_path           <- Sys.getenv("PROJECTS_FOLDER_PATH")
   home_Renviron_path <- fs::path(Sys.getenv("HOME"), ".Renviron")
 
-  # If overwite == TRUE, function will run no matter what, overwriting any
+  # If overwite = TRUE, function will run no matter what, overwriting any
   # pre-existing value of PROJECTS_FOLDER_PATH in the home .Renviron file.
   #
-  # If overwrite == FALSE, function will still run UNLESS a
+  # If overwrite = FALSE, function will still run UNLESS a
   # PROJECTS_FOLDER_PATH value already exists and does not match up with the
   # user-specified path.
   if(!overwrite && old_path != "" && old_path != path) {
@@ -75,22 +73,13 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
          old_path, '. Rerun with that path OR set overwrite = TRUE')
   }
 
-  user_prompt(
-    msg =
-      dplyr::case_when(
-        old_path == ""   ~ paste0("\nAre you sure you want the main projects ",
-                                  "folder to have the file path\n", path,
-                                  "\n\n? (y/n)"),
-        old_path == path ~ paste0("\nAre you sure you want to restore the ",
-                                  "main projects folder at the file path\n",
-                                  path, "\n\n? (no projects, authors, ",
-                                  "affiliations, or templates will be deleted)",
-                                  "\n\n(y/n)"),
-        TRUE             ~ paste0("\nAre you sure you want to abandon the old ",
-                                  "projects folder at\n", old_path, "\n\nand ",
-                                  "create a new one at\n", path,
-                                  "\n\n? (y/n)")),
-    n_msg = paste0("Projects folder not created. No changes made."))
+  if(!(old_path %in% c("", path))) {
+    user_prompt(
+      msg   = paste0("\nAre you sure you want to abandon the old projects ",
+                     "folder at\n", old_path, "\n\nand create a new one at\n",
+                     path, "\n\n? (y/n)"),
+      n_msg = paste0("\nProjects folder remains at\n", old_path))
+  }
 
   Sys.setenv(PROJECTS_FOLDER_PATH = path)
 
@@ -152,7 +141,16 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
       }
   )
 
-  message('"projects" folder created at\n', path,
-          '\n\nAdd affiliations with new_affiliation(), then add authors with ',
-          'new_author(),\nthen create projects with new_project()')
+  if(old_path == "") {
+    message('"projects" folder created at\n', path,
+            '\n\nAdd affiliations with new_affiliation(), then add authors ',
+            'with new_author(),\nthen create projects with new_project()')
+  }
+  else if(old_path == path) {
+    message('"projects" folder restored at\n', path)
+  }
+  else {
+    message('"projects" folder is now at\n', path,
+            '\n\nThe "projects" folder at\n', old_path, '\nhas been abandoned.')
+  }
 }

@@ -1,3 +1,24 @@
+## Resubmission
+This is a resubmission. In this version I have:
+
+* Changed the `setup_projects()` example from:
+
+```
+\dontrun{
+setup_projects("C:/Users/Loretta/")
+}
+```
+
+* to:
+
+```
+setup_projects(tempdir())
+```
+* Changed the internal function `setup_projects()` so that it will only require a user prompt if the user is changing the projects folder path (i.e., if `.Renviron` already contains a `PROJECTS_FOLDER_PATH` value)
+* Added more authors in DESCRIPTION
+* Added Github URL in DESCRIPTION
+* Added funding comment to LICENSE
+
 ## Test environments
 * Platform: x86_64-pc-linux-gnu (64-bit)
   Running under: CentOS Linux 7 (Core)

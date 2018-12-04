@@ -56,9 +56,7 @@ The \code{projects} package remembers where the
 }
 
 \examples{
-\dontrun{
-setup_projects("C:/Users/Loretta/")
-}
+setup_projects(tempdir())
 
 }
 \seealso{
