@@ -211,7 +211,7 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
     affiliations_lines <- ""
     for(a in 1:nrow(unique_affiliations)) {
 
-      affiliation_line <- paste0("| <sup>", a, "</sup> ",
+      affiliation_line <- paste0("| ^", a, "^ ",
                                  unique_affiliations$department_name[a])
 
       if(!is.na(unique_affiliations$institution_name[a])) {
@@ -277,9 +277,9 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
       if(nrow(x_affiliations) > 0) {
         author_line <-
           paste0(author_line,
-                 "<sup>",
+                 "^",
                  paste(sort(x_affiliations$superscript), collapse = ","),
-                 "</sup>")
+                 "^")
       }
 
       if(isTRUE(project_authors$id[x] == corresp_auth)) {
