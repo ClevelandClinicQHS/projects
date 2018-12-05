@@ -1,0 +1,18 @@
+#' projects: A project infrastructure for researchers.
+#'
+#' The \code{projects} package provides a project infrastructure with a focus on
+#' manuscript creation. It creates a project folder with a single command,
+#' containing subdirectories for specific components, templates for manuscripts,
+#' and so on.
+#'
+#' @section Funding: The creation of this package was supported by The National
+#'   Institute on Aging of the National Institutes of Health under award number
+#'   R01AG055480. The content is solely the responsibility of the authors and
+#'   does not necessarily represent the official views of the National
+#'   Institutes of Health.
+#'
+#' @seealso \code{\link{setup_projects}()} for getting started.
+#'
+#' @docType package
+#' @name projects-package
+NULL

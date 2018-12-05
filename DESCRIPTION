@@ -1,7 +1,7 @@
 Package: projects
 Title: A Project Infrastructure for Researchers
 Version: 0.1.0
-Authors@R:
+Authors@R: 
     c(person(given = "Nik",
              family = "Krieger",
              role = c("aut", "cre"),
@@ -16,7 +16,7 @@ Authors@R:
              role = "ctb"),
       person(given = "National Institute on Aging of the National Institutes of Health",
              role = "fnd",
-             comment = "award number R01AG055480"))
+             comment = "The creation of this package was supported by the National Institute on Aging of the National Institutes of Health under award number R01AG055480. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health."))
 Description: Provides a project infrastructure with a focus on
     manuscript creation. Creates a project folder with a single command,
     containing subdirectories for specific components, templates for
