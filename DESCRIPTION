@@ -11,12 +11,7 @@ Authors@R:
              role = "aut"),
       person(given = "Jarrod",
              family = "Dalton",
-             role = "aut"),
-      person(given = "NEOCARE Team",
-             role = "ctb"),
-      person(given = "National Institute on Aging of the National Institutes of Health",
-             role = "fnd",
-             comment = "The creation of this package was supported by the National Institute on Aging of the National Institutes of Health under award number R01AG055480. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health."))
+             role = "aut"))
 Description: Provides a project infrastructure with a focus on
     manuscript creation. Creates a project folder with a single command,
     containing subdirectories for specific components, templates for
@@ -31,7 +26,7 @@ Imports:
     fs (>= 1.2.6),
     magrittr (>= 1.5),
     methods,
-    purrr (>= 0.2.5),
+    purrr (>= 0.2.4),
     readr (>= 1.1.1),
     rlang (>= 0.3.0.1),
     rstudioapi (>= 0.7),
