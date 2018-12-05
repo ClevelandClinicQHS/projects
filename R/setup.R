@@ -81,8 +81,27 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
       n_msg = paste0("\nProjects folder remains at\n", old_path))
   }
 
-  Sys.setenv(PROJECTS_FOLDER_PATH = path)
+  home_Renviron_file <- paste0("PROJECTS_FOLDER_PATH='", path, "'")
 
+  # If a home .Renviron file already exists, it is overwritten with its original
+  # contents, minus any old values of PROJECTS_FOLDER_PATH, plus the new value
+  # of PROJECTS_FOLDER_PATH (i.e., the user-specified path, which could
+  # actually be the same as the old value).
+  if(fs::file_exists(home_Renviron_path)) {
+
+    home_Renviron_file <-
+      c(grep(pattern = "^PROJECTS_FOLDER_PATH",
+             x       = readr::read_lines(fs::path(Sys.getenv("HOME"),
+                                                  ".Renviron")),
+             value   = TRUE,
+             invert  = TRUE),
+        # Existing home .Renviron file minus any old entries of
+        # PROJECTS_FOLDER_PATH
+
+        home_Renviron_file)
+  }
+
+  readr::write_lines(home_Renviron_file, path = home_Renviron_path)
   readRenviron(home_Renviron_path)
 
   fs::dir_create(fs::path(path, c(".metadata", ".templates")))
