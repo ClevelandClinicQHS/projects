@@ -4,8 +4,9 @@ This is the second resubmission. In this version I have:
 * Removed the funding comment from the LICENSE file.
 * Changed the comment in the last `person()` entry in the DESCRIPTION file to include the funding comment.
 * Added the file projects.R, which only contains documentation of the package itself (including the funding statement).
-* Changed the internal function `aa_header()` so that it uses carats (^) instead of html (<sup>) to create superscripts when writing .Rmd files or writing to the console.
-* Made setup_projects() to change the user's home .Renviron file rather than simply calling Sys.setenv()
+* Changed the internal function `aa_header()` so that it uses carats (`^`) instead of html (`<sup>` and `</sup>`) to create superscripts when writing .Rmd files or writing to the console.
+* Made `setup_projects()` to not throw an error (i.e., `stop()`) if user tries to change the projects folder path without specifying `overwrite = TRUE`. Now it simply sends a `message()`.
+* Made `setup_projects()` return the path of the projects folder no matter how the function ended.
 
 ## Resubmission 1
 This is a resubmission. In this version I have:

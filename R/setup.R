@@ -22,9 +22,9 @@
 #' @section Behavior when projects folder already exists: If \code{overwrite =
 #'   TRUE}, the function will run no matter what. Use with caution.
 #'
-#'   If the user has a pre-existing \link{projects_folder} and runs this
-#'   command with the pre-existing \link{projects_folder}'s path, nothing
-#'   will be deleted.
+#'   If the user has a pre-existing \link{projects_folder} and runs this command
+#'   with the pre-existing \link{projects_folder}'s path, nothing will be
+#'   deleted.
 #'
 #'   \strong{Therefore}, if the user "broke" the projects folder (e.g., by
 #'   deleting metadata; by changing the "PROJECTS_FOLDER_PATH" line in the
@@ -42,6 +42,9 @@
 #'
 #' @examples
 #' setup_projects(tempdir())
+#'
+#' @return The project folder's path, invisibly. It will be "" if it doesn't
+#'   exist.
 #'
 #' @seealso \code{\link{new_project}()} for information on templates
 #'
@@ -68,9 +71,10 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
   # PROJECTS_FOLDER_PATH value already exists and does not match up with the
   # user-specified path.
   if(!overwrite && old_path != "" && old_path != path) {
-    stop('An .Renviron file (probably at ', home_Renviron_path,
-         ') indicates that a "projects" folder already exists at ',
-         old_path, '. Rerun with that path OR set overwrite = TRUE')
+    message('An .Renviron file (probably at ', home_Renviron_path,
+            ') indicates that a "projects" folder already exists at ',
+            old_path, '. Rerun with that path OR set overwrite = TRUE')
+    return(invisible(old_path))
   }
 
   if(!(old_path %in% c("", path))) {
@@ -172,4 +176,6 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
     message('"projects" folder is now at\n', path,
             '\n\nThe "projects" folder at\n', old_path, '\nhas been abandoned.')
   }
+
+  return(invisible(path))
 }
