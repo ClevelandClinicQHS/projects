@@ -41,8 +41,11 @@
 #'   already exist.
 #'
 #' @examples
-#' setup_projects(tempdir())
-#'
+#' # Not run so that developers' home .Renviron file will be left alone during
+#' # package checking.
+#' \dontrun{
+#' setup_projects(fs::path_home())
+#' }
 #' @return The project folder's path, invisibly. It will be "" if it doesn't
 #'   exist.
 #'

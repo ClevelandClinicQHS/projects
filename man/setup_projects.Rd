@@ -60,8 +60,11 @@ The \code{projects} package remembers where the
 }
 
 \examples{
-setup_projects(tempdir())
-
+# Not run so that developers' home .Renviron file will be left alone during
+# package checking.
+\dontrun{
+setup_projects(fs::path_home())
+}
 }
 \seealso{
 \code{\link{new_project}()} for information on templates

@@ -1,3 +1,22 @@
+## Resubmission 3
+This is the third resubmission. In this version I have:
+
+* Changed the `setup_projects()` example from:
+```
+setup_projects(tempdir())
+```
+* to:
+```
+# Not run so that developers' home .Renviron file will be left alone during
+# package checking.
+\dontrun{
+setup_projects(fs::path_home())
+}
+```
+
+* Added `tidyverse` and `here` to the suggests.
+
+
 ## Resubmission 2
 This is the second resubmission. In this version I have:
 
@@ -7,6 +26,7 @@ This is the second resubmission. In this version I have:
 * Changed the internal function `aa_header()` so that it uses carats (`^`) instead of html (`<sup>` and `</sup>`) to create superscripts when writing .Rmd files or writing to the console.
 * Made `setup_projects()` to not throw an error (i.e., `stop()`) if user tries to change the projects folder path without specifying `overwrite = TRUE`. Now it simply sends a `message()`.
 * Made `setup_projects()` return the path of the projects folder no matter how the function ended.
+
 
 ## Resubmission 1
 This is a resubmission. In this version I have:
