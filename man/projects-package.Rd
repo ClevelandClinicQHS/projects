@@ -16,15 +16,16 @@ and so on.
   Atherosclerotic Risk Estimation (NEOCARE) investigative team: Claudia
   Coulton, Douglas Gunzler, Darcy Freedman, Neal Dawson, Michael Rothberg,
   David Zidar, David Kaelber, Douglas Einstadter, Alex Milinovich, Monica
-  Webb Hooper, Kristen Hassmiller-Lich, Ye Tian (Devin), and Kristen Berg.
+  Webb Hooper, Kristen Hassmiller-Lich, Ye Tian (Devin), Kristen Berg, and
+  Sandy Andrukat.
 }
 
 \section{Funding}{
- This work was supported by The National
-  Institute on Aging of the National Institutes of Health under award number
-  R01AG055480. The content is solely the responsibility of the authors and
-  does not necessarily represent the official views of the National
-  Institutes of Health.
+ This work was supported by The National Institute on Aging
+  of the National Institutes of Health under award number R01AG055480. The
+  content is solely the responsibility of the authors and does not
+  necessarily represent the official views of the National Institutes of
+  Health.
 }
 
 \seealso{
