@@ -46,7 +46,7 @@ Reproducibility in research is the focus of the much debated replication crisis 
 
 There exist today widely available tools that aid with reproducible research, such as R and other statistical programming languages, that allow for precise documentation of some of the most detail-oriented portions of a project workflow. Researchers can distribute their code scripts alongside their results in order to communicate the integrity of their data processing and analysis. Unfortunately, statistical programming languages per se only contribute to research reproducibility insofar as individual statistical programmers are able (1) to use these tools effectively and (2) to integrate their own use of these tools with their collaborators' work—which may not necessarily be oriented towards reproducibility.
 
-![](man/figures/README-workflow.png)
+![](man/README/README-workflow.png)
 
 Although researchers of different disciplines may operate in nuanced ways, there are aspects of the project workflow that are common to most investigations. First, studies are conceptualized and designed according to a protocol that details the research questions and planned analyses. Data are collected, manipulated (or "tidied") in order to make data analysis possible. The results of the analyses are compiled into a report, and ultimately an academic manuscript is drafted and submitted for wider distribution.
 
@@ -141,11 +141,8 @@ library(projects)
 
 ``` r
 setup_projects("C:/")
-#> "projects" folder created at
+#> "projects" folder restored at
 #> C:/projects
-#> 
-#> Add affiliations with new_affiliation(), then add authors with new_author(),
-#> then create projects with new_project()
 ```
 
 As the message suggests, it is in the user's best interest to add affiliations, followed by authors and projects.
@@ -217,11 +214,11 @@ authors()
 #> # A tibble: 5 x 7
 #>      id given_names    last_name  title     degree    email        phone  
 #>   <int> <chr>          <chr>      <chr>     <chr>     <chr>        <chr>  
-#> 1     2 <NA>           Archimedes Mathemat~ <NA>      <NA>         <NA>   
-#> 2     1 Scott          Bug        Professor PhD       scottbug@im~ 965-55~
-#> 3  1337 George Washin~ Carver     Astrophy~ MA, MPhi~ <NA>         <NA>   
+#> 1     1 Scott          Bug        Professor PhD       scottbug@im~ 965-55~
+#> 2     2 <NA>           Archimedes Mathemat~ <NA>      <NA>         <NA>   
+#> 3     3 Chien-Shiung   Wu         Physicist PhD       wu@wu.wu     <NA>   
 #> 4    86 Marie          Curie      Chemist   <NA>      <NA>         553-86~
-#> 5     3 Chien-Shiung   Wu         Physicist PhD       wu@wu.wu     <NA>
+#> 5  1337 George Washin~ Carver     Astrophy~ MA, MPhi~ <NA>         <NA>
 affiliations()
 #> # A tibble: 3 x 4
 #>      id department_name       institution_name        address             
@@ -268,7 +265,7 @@ new_project(title = "Achieving Cold Fusion", short_title = "ACF",
 #>   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>    
 #> 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-~
 #> 
-#> Creator: kriegen
+#> Creator: Krieger
 ```
 
 Notice that since a `creator` was not specified, this field was populated with the value of `Sys.info()["user"]`.
@@ -286,11 +283,11 @@ Here is what the top of these files look like:
     bibliography: p0001.bib
     ---
 
-    **_Scott Bug, PhD;<sup>1,2</sup>\* Chien-Shiung Wu, PhD;<sup>2,3</sup> Marie Curie;<sup>3</sup> and George Washington Carver, MA, MPhil, PhD<sup>1,2,3</sup>_**
+    **_Scott Bug, PhD;^1,2^\* Chien-Shiung Wu, PhD;^2,3^ Marie Curie;^3^ and George Washington Carver, MA, MPhil, PhD^1,2,3^_**
 
-    | <sup>1</sup> Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-    | <sup>2</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-    | <sup>3</sup> Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+    | ^1^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+    | ^2^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+    | ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
     |
     | \* Corresponding author
     |   Let Gade 27182, 1566 Copenhagen, Denmark
@@ -328,10 +325,10 @@ projects()
 #> # A tibble: 4 x 11
 #>      id title short_title current_owner status deadline_type deadline  
 #>   <int> <chr> <chr>               <int> <chr>  <chr>         <date>    
-#> 1     3 Unde~ Rn86                   86 Safet~ <NA>          NA        
-#> 2  1945 How ~ Dr. Strang~          1337 debat~ 2nd revision  2030-10-08
-#> 3     2 Weig~ Eureka!                 2 just ~ <NA>          NA        
-#> 4     1 Achi~ ACF                  1337 just ~ Pilot study   2020-12-31
+#> 1     1 Achi~ ACF                  1337 just ~ Pilot study   2020-12-31
+#> 2     2 Weig~ Eureka!                 2 just ~ <NA>          NA        
+#> 3     3 Unde~ Rn86                   86 Safet~ <NA>          NA        
+#> 4  1945 How ~ Dr. Strang~          1337 debat~ 2nd revision  2030-10-08
 #> # ... with 4 more variables: stage <fct>, path <chr>, corresp_auth <int>,
 #> #   creator <chr>
 ```
@@ -382,11 +379,11 @@ edit_project("Cold", title = "Cold Fusion Is Actually Impossible",
 #> title: "Cold Fusion Is Actually Impossible"
 #> 
 #> 
-#> **_Scott Bug, PhD;<sup>1,2</sup>\* Chien-Shiung Wu, PhD;<sup>1,2</sup> Marie Curie;<sup>2</sup> Archimedes; and George Washington Carver, MA, MPhil, PhD<sup>1,2,3</sup>_**
+#> **_Scott Bug, PhD;^1,2^\* Chien-Shiung Wu, PhD;^1,2^ Marie Curie;^2^ Archimedes; and George Washington Carver, MA, MPhil, PhD^1,2,3^_**
 #> 
-#> | <sup>1</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-#> | <sup>2</sup> Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
-#> | <sup>3</sup> Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+#> | ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+#> | ^2^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+#> | ^3^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
 #> |
 #> | \* Corresponding author
 #> |   314 Newton Blvd, Springfield CT 06003
@@ -425,11 +422,11 @@ reorder_authors(project = "Cold Fusion", "George", "Bug", 86)
 #> title: "Cold Fusion Is Actually Impossible"
 #> 
 #> 
-#> **_George Washington Carver, MA, MPhil, PhD;<sup>1,2,3</sup> Scott Bug, PhD;<sup>1,3</sup>\* Marie Curie;<sup>3</sup> Chien-Shiung Wu, PhD;<sup>1,3</sup> and Archimedes_**
+#> **_George Washington Carver, MA, MPhil, PhD;^1,2,3^ Scott Bug, PhD;^1,3^\* Marie Curie;^3^ Chien-Shiung Wu, PhD;^1,3^ and Archimedes_**
 #> 
-#> | <sup>1</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-#> | <sup>2</sup> Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-#> | <sup>3</sup> Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+#> | ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+#> | ^2^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+#> | ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
 #> |
 #> | \* Corresponding author
 #> |   314 Newton Blvd, Springfield CT 06003
@@ -452,11 +449,11 @@ header(project = "Cold")
 title: "Cold Fusion Is Actually Impossible"
 
 
-**_George Washington Carver, MA, MPhil, PhD;<sup>1,2,3</sup> Scott Bug, PhD;<sup>1,3</sup>\* Marie Curie;<sup>3</sup> Chien-Shiung Wu, PhD;<sup>1,3</sup> and Archimedes_**
+**_George Washington Carver, MA, MPhil, PhD;^1,2,3^ Scott Bug, PhD;^1,3^\* Marie Curie;^3^ Chien-Shiung Wu, PhD;^1,3^ and Archimedes_**
 
-| <sup>1</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
-| <sup>2</sup> Pseudoscience Debunking Unit, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-| <sup>3</sup> Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+| ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+| ^2^ Pseudoscience Debunking Unit, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+| ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
 |
 | \* Corresponding author
 |   314 Newton Blvd, Springfield CT 06003
@@ -474,9 +471,9 @@ projects() %>% select(id, short_title, path)
 #>      id short_title     path                        
 #>   <int> <chr>           <chr>                       
 #> 1     1 ACF             C:/projects/p0001           
-#> 2     3 Rn86            C:/projects/p0003           
-#> 3  1945 Dr. Strangelove C:/projects/top_secret/p1945
-#> 4     2 Eureka!         C:/projects/p0002
+#> 2     2 Eureka!         C:/projects/p0002           
+#> 3     3 Rn86            C:/projects/p0003           
+#> 4  1945 Dr. Strangelove C:/projects/top_secret/p1945
 ```
 
 Users can also create subdirectories with the function `new_project_group()`:
@@ -502,9 +499,9 @@ projects(c("Crown", "Radon")) %>% select(id, title, path)
 #> # A tibble: 3 x 3
 #>      id title           path                                              
 #>   <int> <chr>           <chr>                                             
-#> 1     4 Understanding ~ C:/projects/dangerous_studies/radioactive_studies~
-#> 2     2 Weighing the C~ C:/projects/Greek_studies/ancient_studies/p0002   
-#> 3     3 Understanding ~ C:/projects/p0003
+#> 1     2 Weighing the C~ C:/projects/Greek_studies/ancient_studies/p0002   
+#> 2     3 Understanding ~ C:/projects/p0003                                 
+#> 3     4 Understanding ~ C:/projects/dangerous_studies/radioactive_studies~
 ```
 
 Projects can also be archived; they are moved into a subdirectory called */archive* that is at the same level as the project folder (*/p*XXXX) before it was run. If this */archive* folder does not exist, it will be created.
@@ -529,18 +526,18 @@ projects() %>% select(id, short_title, path)
 #> # A tibble: 4 x 3
 #>      id short_title path                                                  
 #>   <int> <chr>       <chr>                                                 
-#> 1     4 Rn86        C:/projects/dangerous_studies/radioactive_studies/rad~
+#> 1     1 ACF         C:/projects/p0001                                     
 #> 2     2 Eureka!     C:/projects/Greek_studies/ancient_studies/p0002       
-#> 3     1 ACF         C:/projects/p0001                                     
-#> 4     3 Rn86        C:/projects/p0003
+#> 3     3 Rn86        C:/projects/p0003                                     
+#> 4     4 Rn86        C:/projects/dangerous_studies/radioactive_studies/rad~
 projects(archived = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 5 x 3
 #>      id short_title    path                                               
 #>   <int> <chr>          <chr>                                              
-#> 1     4 Rn86           C:/projects/dangerous_studies/radioactive_studies/~
+#> 1     1 ACF            C:/projects/p0001                                  
 #> 2     2 Eureka!        C:/projects/Greek_studies/ancient_studies/p0002    
-#> 3     1 ACF            C:/projects/p0001                                  
-#> 4     3 Rn86           C:/projects/p0003                                  
+#> 3     3 Rn86           C:/projects/p0003                                  
+#> 4     4 Rn86           C:/projects/dangerous_studies/radioactive_studies/~
 #> 5  1945 Dr. Strangelo~ C:/projects/top_secret/archive/p1945
 ```
 
@@ -552,14 +549,28 @@ delete_affiliation("north science")
 #>      id department_name     institution_name       address                
 #>   <int> <chr>               <chr>                  <chr>                  
 #> 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Sprin~
+#> # A tibble: 1 x 4
+#>      id department_name     institution_name       address                
+#>   <int> <chr>               <chr>                  <chr>                  
+#> 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Sprin~
 #> The above affiliation was deleted.
 delete_author(2)
+#> # A tibble: 1 x 7
+#>      id given_names last_name  title         degree email phone
+#>   <int> <chr>       <chr>      <chr>         <chr>  <chr> <chr>
+#> 1     2 <NA>        Archimedes Mathematician <NA>   <NA>  <NA> 
 #> # A tibble: 1 x 7
 #>      id given_names last_name  title         degree email phone
 #>   <int> <chr>       <chr>      <chr>         <chr>  <chr> <chr>
 #> 1     2 <NA>        Archimedes Mathematician <NA>   <NA>  <NA>
 #> The above author was deleted.
 delete_project("Crown")
+#> # A tibble: 1 x 11
+#>      id title short_title current_owner status deadline_type deadline  
+#>   <int> <chr> <chr>               <int> <chr>  <chr>         <date>    
+#> 1     2 Weig~ Eureka!                NA just ~ <NA>          NA        
+#> # ... with 4 more variables: stage <fct>, path <chr>, corresp_auth <int>,
+#> #   creator <chr>
 #> # A tibble: 1 x 11
 #>      id title short_title current_owner status deadline_type deadline  
 #>   <int> <chr> <chr>               <int> <chr>  <chr>         <date>    
@@ -578,4 +589,4 @@ The `projects` package provides a comprehensive set of tools for reproducible te
 References
 ==========
 
-Baker, Monya. 2016. "1,500 Scientists Lift the Lid on Reproducibility." *Nature News* 533 (7604): 452.
+Baker, Monya. 2016. “1,500 Scientists Lift the Lid on Reproducibility.” *Nature News* 533 (7604): 452.
