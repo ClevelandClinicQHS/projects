@@ -18,7 +18,7 @@ copy_project(project_to_copy, path, new_id = NA,
 
 archive_project(project)
 
-open_project(project)
+open_project(project, new_session = FALSE)
 }
 \arguments{
 \item{path}{A valid path string. See the \code{path} argument in
@@ -39,6 +39,9 @@ project name corresponding to the project that is to be copied.}
 newly-created project ID. Must not already exist in
 \code{\link{projects}()$id}. If left blank, the lowest available \code{id}
 will be automatically used.}
+
+\item{new_session}{Same as the \code{newSession} argument in
+\code{rstudio::\link[rstudioapi]{openProject}()}.}
 }
 \description{
 Tools for Organizing and Managing Project Files

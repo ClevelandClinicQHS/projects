@@ -39,6 +39,9 @@
 #'   \code{\link{projects}()$id}. If left blank, the lowest available \code{id}
 #'   will be automatically used.
 #'
+#' @param new_session Same as the \code{newSession} argument in
+#'   \code{rstudio::\link[rstudioapi]{openProject}()}.
+#'
 #' @name file_management
 #' @seealso \code{\link{new_project}()} and \code{\link{delete_project}()} for
 #'   other functions that write and delete files
@@ -303,7 +306,7 @@ archive_project <- function(project) {
 #' @rdname file_management
 #' @export
 #' @importFrom rlang .data
-open_project <- function(project) {
+open_project <- function(project, new_session = FALSE) {
 
   p_path <- p_path_internal()
 
@@ -318,5 +321,5 @@ open_project <- function(project) {
 
   path <- fs::path(path, make_project_name(project), ext = "Rproj")
 
-  rstudioapi::openProject(path)
+  rstudioapi::openProject(path, new_session)
 }
