@@ -17,6 +17,10 @@ stored projects folders stored in the system.}
 write any directories specified in the \code{path} argument that don't
 already exist.}
 }
+\value{
+The project folder's path, invisibly. It will be "" if it doesn't
+  exist.
+}
 \description{
 Creates or restores the projects folder at the user-specified path.
 }
@@ -44,9 +48,9 @@ The \code{projects} package remembers where the
  If \code{overwrite =
   TRUE}, the function will run no matter what. Use with caution.
 
-  If the user has a pre-existing \link{projects_folder} and runs this
-  command with the pre-existing \link{projects_folder}'s path, nothing
-  will be deleted.
+  If the user has a pre-existing \link{projects_folder} and runs this command
+  with the pre-existing \link{projects_folder}'s path, nothing will be
+  deleted.
 
   \strong{Therefore}, if the user "broke" the projects folder (e.g., by
   deleting metadata; by changing the "PROJECTS_FOLDER_PATH" line in the
@@ -56,8 +60,11 @@ The \code{projects} package remembers where the
 }
 
 \examples{
-setup_projects(tempdir())
-
+# Not run so that developers' home .Renviron file will be left alone during
+# package checking.
+\dontrun{
+setup_projects(fs::path_home())
+}
 }
 \seealso{
 \code{\link{new_project}()} for information on templates

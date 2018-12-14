@@ -22,9 +22,9 @@
 #' @section Behavior when projects folder already exists: If \code{overwrite =
 #'   TRUE}, the function will run no matter what. Use with caution.
 #'
-#'   If the user has a pre-existing \link{projects_folder} and runs this
-#'   command with the pre-existing \link{projects_folder}'s path, nothing
-#'   will be deleted.
+#'   If the user has a pre-existing \link{projects_folder} and runs this command
+#'   with the pre-existing \link{projects_folder}'s path, nothing will be
+#'   deleted.
 #'
 #'   \strong{Therefore}, if the user "broke" the projects folder (e.g., by
 #'   deleting metadata; by changing the "PROJECTS_FOLDER_PATH" line in the
@@ -41,7 +41,13 @@
 #'   already exist.
 #'
 #' @examples
-#' setup_projects(tempdir())
+#' # Not run so that developers' home .Renviron file will be left alone during
+#' # package checking.
+#' \dontrun{
+#' setup_projects(fs::path_home())
+#' }
+#' @return The project folder's path, invisibly. It will be "" if it doesn't
+#'   exist.
 #'
 #' @seealso \code{\link{new_project}()} for information on templates
 #'
@@ -68,9 +74,10 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
   # PROJECTS_FOLDER_PATH value already exists and does not match up with the
   # user-specified path.
   if(!overwrite && old_path != "" && old_path != path) {
-    stop('An .Renviron file (probably at ', home_Renviron_path,
-         ') indicates that a "projects" folder already exists at ',
-         old_path, '. Rerun with that path OR set overwrite = TRUE')
+    message('An .Renviron file (probably at ', home_Renviron_path,
+            ') indicates that a "projects" folder already exists at ',
+            old_path, '. Rerun with that path OR set overwrite = TRUE')
+    return(invisible(old_path))
   }
 
   if(!(old_path %in% c("", path))) {
@@ -81,8 +88,27 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
       n_msg = paste0("\nProjects folder remains at\n", old_path))
   }
 
-  Sys.setenv(PROJECTS_FOLDER_PATH = path)
+  home_Renviron_file <- paste0("PROJECTS_FOLDER_PATH='", path, "'")
 
+  # If a home .Renviron file already exists, it is overwritten with its original
+  # contents, minus any old values of PROJECTS_FOLDER_PATH, plus the new value
+  # of PROJECTS_FOLDER_PATH (i.e., the user-specified path, which could
+  # actually be the same as the old value).
+  if(fs::file_exists(home_Renviron_path)) {
+
+    home_Renviron_file <-
+      c(grep(pattern = "^PROJECTS_FOLDER_PATH",
+             x       = readr::read_lines(fs::path(Sys.getenv("HOME"),
+                                                  ".Renviron")),
+             value   = TRUE,
+             invert  = TRUE),
+        # Existing home .Renviron file minus any old entries of
+        # PROJECTS_FOLDER_PATH
+
+        home_Renviron_file)
+  }
+
+  readr::write_lines(home_Renviron_file, path = home_Renviron_path)
   readRenviron(home_Renviron_path)
 
   fs::dir_create(fs::path(path, c(".metadata", ".templates")))
@@ -153,4 +179,6 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
     message('"projects" folder is now at\n', path,
             '\n\nThe "projects" folder at\n', old_path, '\nhas been abandoned.')
   }
+
+  return(invisible(path))
 }
