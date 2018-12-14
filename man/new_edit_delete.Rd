@@ -31,7 +31,7 @@ delete_author(author)
 
 delete_affiliation(affiliation)
 
-new_project(title = NA, short_title = NA, authors,
+new_project(title = NA, short_title = NA, authors = NULL,
   current_owner = NA, status = "just created", deadline_type = NA,
   deadline = NA, stage = c("1: design", "2: data collection",
   "3: analysis", "4: manuscript", "5: under review", "6: accepted"),

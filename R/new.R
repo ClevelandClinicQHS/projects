@@ -163,7 +163,7 @@
 #' @export
 new_project <- function(title            = NA,
                         short_title      = NA,
-                        authors,
+                        authors          = NULL,
                         current_owner    = NA,
                         status           = "just created",
                         deadline_type    = NA,
@@ -228,7 +228,7 @@ new_project <- function(title            = NA,
   # trying to add authors
   if(nrow(authors_tibble) == 0 &&
      !all(creator == Sys.info()["user"], is.na(corresp_auth),
-          is.na(current_owner), missing(authors))) {
+          is.na(current_owner), is.null(authors))) {
     stop("Can't set authors, creator, corresp_auth, or current owner until an",
          " author is created. Run new_author()")
   }
@@ -270,7 +270,7 @@ new_project <- function(title            = NA,
   # added to authors immediately preceding the last author (unless there was
   # only one author in authors; in that case, it's made to be the second one).
   # If both authors and current_owner are blank, they're left blank.
-  if(missing(authors)) {
+  if(is.null(authors)) {
     if(!is.na(current_owner)) {
       authors <- current_owner
     }
@@ -373,7 +373,7 @@ new_project <- function(title            = NA,
                                   creator       = as.character(creator))
 
   # Add row(s) to project-author association table
-  if(!missing(authors)) {
+  if(!is.null(authors)) {
     pa_assoc_tibble <-
       change_assoc(assoc_path   = pa_assoc_path,
                    assoc_tibble = pa_assoc_tibble,
@@ -394,7 +394,7 @@ new_project <- function(title            = NA,
                       -c("current_owner", "creator", "corresp_auth")))
 
   message("\nNew project's authors:")
-  if(missing(authors)) {
+  if(is.null(authors)) {
     print("None.")
   }
   else {

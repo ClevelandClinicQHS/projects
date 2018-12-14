@@ -5,10 +5,13 @@ projects
 
 ### Authors
 
-Nikolas I. Krieger, M.S.<sup>1</sup> and Jarrod E. Dalton, Ph.D.<sup>1,2</sup>
-
-1.  Department of Quantitative Health Sciences, Lerner Research Institute, Cleveland Clinic, 9500 Euclid Avenue (JJN3), Cleveland, OH, 44195
-2.  Cleveland Clinic Lerner College of Medicine, Case Western Reserve University
+Nikolas I. Krieger, M.S.;<sup>1</sup> Adam T. Perzynski, Ph.D.;<sup>2</sup> and Jarrod E. Dalton, Ph.D.<sup>1,3</sup>
+<sup>1</sup> Department of Quantitative Health Sciences, Lerner Research Institute, Cleveland Clinic, 9500 Euclid Avenue (JJN3), Cleveland, OH, 44195
+<sup>2</sup> Center for Healthcare Research and Policy, Case Western Reserve University at MetroHealth, 2500 MetroHealth Drive, Cleveland, OH 44109
+<sup>3</sup> Cleveland Clinic Lerner College of Medicine, Case Western Reserve University
+Acknowledgements: The authors of this package acknowledge the support provided by members of the Northeast Ohio Cohort for Atherosclerotic Risk Estimation (NEOCARE) investigative team: Claudia Coulton, Douglas Gunzler, Darcy Freedman, Neal Dawson, Michael Rothberg, David Zidar, David Kaelber, Douglas Einstadter, Alex Milinovich, Monica Webb Hooper, Kristen Hassmiller-Lich, Ye Tian (Devin), and Kristen Berg.
+Funding:
+This work was supported by The National Institute on Aging of the National Institutes of Health under award number R01AG055480. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
 
 ### Installation
 
@@ -198,7 +201,7 @@ Now we'll add more authors (output not included).
 ``` r
 new_author(given_names = "Marie", last_name = "Curie", title = "Chemist",
            affiliations = "Unit", phone = "553-867-5309", id = 86)
-new_author(given_names = "Neil deGrasse", last_name = "Tyson",
+new_author(given_names = "George Washington", last_name = "Carver",
            title = "Astrophysicist", degree = "MA, MPhil, PhD",
            affiliations = c(1, 2, 50), id = 1337)
 new_author(last_name = "Archimedes", title = "Mathematician")
@@ -212,13 +215,13 @@ Now that some authors and affiliations have been created, we can view these tabl
 ``` r
 authors()
 #> # A tibble: 5 x 7
-#>      id given_names  last_name  title     degree    email         phone   
-#>   <int> <chr>        <chr>      <chr>     <chr>     <chr>         <chr>   
-#> 1     1 Scott        Bug        Professor PhD       scottbug@imp~ 965-555~
-#> 2     2 <NA>         Archimedes Mathemat~ <NA>      <NA>          <NA>    
-#> 3     3 Chien-Shiung Wu         Physicist PhD       wu@wu.wu      <NA>    
-#> 4    86 Marie        Curie      Chemist   <NA>      <NA>          553-867~
-#> 5  1337 Neil deGras~ Tyson      Astrophy~ MA, MPhi~ <NA>          <NA>
+#>      id given_names    last_name  title     degree    email        phone  
+#>   <int> <chr>          <chr>      <chr>     <chr>     <chr>        <chr>  
+#> 1     2 <NA>           Archimedes Mathemat~ <NA>      <NA>         <NA>   
+#> 2     1 Scott          Bug        Professor PhD       scottbug@im~ 965-55~
+#> 3  1337 George Washin~ Carver     Astrophy~ MA, MPhi~ <NA>         <NA>   
+#> 4    86 Marie          Curie      Chemist   <NA>      <NA>         553-86~
+#> 5     3 Chien-Shiung   Wu         Physicist PhD       wu@wu.wu     <NA>
 affiliations()
 #> # A tibble: 3 x 4
 #>      id department_name       institution_name        address             
@@ -233,7 +236,7 @@ Now we will showcase project creation:
 ``` r
 new_project(title = "Achieving Cold Fusion", short_title = "ACF",
             authors = c("Bug", "Chien-Shiung", 86, 1337),
-            current_owner = "Tyson", corresp_auth = "Bug", stage = "1: design",
+            current_owner = "Carver", corresp_auth = "Bug", stage = "1: design",
             deadline_type = "Pilot study", deadline = "2020-12-31",
             use_bib = TRUE)
 #> 
@@ -246,18 +249,18 @@ new_project(title = "Achieving Cold Fusion", short_title = "ACF",
 #> 
 #> New project's authors:
 #> # A tibble: 4 x 7
-#>   author_id given_names  last_name title     degree    email       phone  
-#>       <int> <chr>        <chr>     <chr>     <chr>     <chr>       <chr>  
-#> 1         1 Scott        Bug       Professor PhD       scottbug@i~ 965-55~
-#> 2         3 Chien-Shiung Wu        Physicist PhD       wu@wu.wu    <NA>   
-#> 3        86 Marie        Curie     Chemist   <NA>      <NA>        553-86~
-#> 4      1337 Neil deGras~ Tyson     Astrophy~ MA, MPhi~ <NA>        <NA>
+#>   author_id given_names   last_name title    degree    email       phone  
+#>       <int> <chr>         <chr>     <chr>    <chr>     <chr>       <chr>  
+#> 1         1 Scott         Bug       Profess~ PhD       scottbug@i~ 965-55~
+#> 2         3 Chien-Shiung  Wu        Physici~ PhD       wu@wu.wu    <NA>   
+#> 3        86 Marie         Curie     Chemist  <NA>      <NA>        553-86~
+#> 4      1337 George Washi~ Carver    Astroph~ MA, MPhi~ <NA>        <NA>
 #> 
 #> Current owner:
 #> # A tibble: 1 x 7
-#>      id given_names   last_name title          degree         email phone
-#>   <int> <chr>         <chr>     <chr>          <chr>          <chr> <chr>
-#> 1  1337 Neil deGrasse Tyson     Astrophysicist MA, MPhil, PhD <NA>  <NA>
+#>      id given_names       last_name title         degree       email phone
+#>   <int> <chr>             <chr>     <chr>         <chr>        <chr> <chr>
+#> 1  1337 George Washington Carver    Astrophysici~ MA, MPhil, ~ <NA>  <NA>
 #> 
 #> Corresponding author:
 #> # A tibble: 1 x 7
@@ -265,7 +268,7 @@ new_project(title = "Achieving Cold Fusion", short_title = "ACF",
 #>   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>    
 #> 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-~
 #> 
-#> Creator: Krieger
+#> Creator: kriegen
 ```
 
 Notice that since a `creator` was not specified, this field was populated with the value of `Sys.info()["user"]`.
@@ -283,7 +286,7 @@ Here is what the top of these files look like:
     bibliography: p0001.bib
     ---
 
-    **_Scott Bug, PhD;<sup>1,2</sup>\* Chien-Shiung Wu, PhD;<sup>2,3</sup> Marie Curie;<sup>3</sup> and Neil deGrasse Tyson, MA, MPhil, PhD<sup>1,2,3</sup>_**
+    **_Scott Bug, PhD;<sup>1,2</sup>\* Chien-Shiung Wu, PhD;<sup>2,3</sup> Marie Curie;<sup>3</sup> and George Washington Carver, MA, MPhil, PhD<sup>1,2,3</sup>_**
 
     | <sup>1</sup> Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
     | <sup>2</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
@@ -308,7 +311,7 @@ new_project(title = "Weighing the Crown", short_title = "Eureka!",
             corresp_auth = "Archimedes", stage = 6)
 new_project(title = "How I Learned to Stop Worrying and Love the Bomb",
             short_title = "Dr. Strangelove", authors = c("wu", 1), 
-            creator = "wu", current_owner = "Neil", corresp_auth = "Neil",
+            creator = "wu", current_owner = "George", corresp_auth = "George",
             stage = "under review", deadline_type = "2nd revision",
             deadline = "2030-10-8", id = 1945,
             status = "debating leadership changes", path = "top_secret",
@@ -325,10 +328,10 @@ projects()
 #> # A tibble: 4 x 11
 #>      id title short_title current_owner status deadline_type deadline  
 #>   <int> <chr> <chr>               <int> <chr>  <chr>         <date>    
-#> 1     1 Achi~ ACF                  1337 just ~ Pilot study   2020-12-31
-#> 2     2 Weig~ Eureka!                 2 just ~ <NA>          NA        
-#> 3     3 Unde~ Rn86                   86 Safet~ <NA>          NA        
-#> 4  1945 How ~ Dr. Strang~          1337 debat~ 2nd revision  2030-10-08
+#> 1     3 Unde~ Rn86                   86 Safet~ <NA>          NA        
+#> 2  1945 How ~ Dr. Strang~          1337 debat~ 2nd revision  2030-10-08
+#> 3     2 Weig~ Eureka!                 2 just ~ <NA>          NA        
+#> 4     1 Achi~ ACF                  1337 just ~ Pilot study   2020-12-31
 #> # ... with 4 more variables: stage <fct>, path <chr>, corresp_auth <int>,
 #> #   creator <chr>
 ```
@@ -368,18 +371,18 @@ edit_project("Cold", title = "Cold Fusion Is Actually Impossible",
 #> 
 #> Edited project's authors:
 #> # A tibble: 5 x 7
-#>   author_id given_names  last_name  title     degree   email       phone  
-#>       <int> <chr>        <chr>      <chr>     <chr>    <chr>       <chr>  
-#> 1         1 Scott        Bug        Professor PhD      scottbug@i~ 965-55~
-#> 2         3 Chien-Shiung Wu         Physicist PhD      wu@wu.wu    <NA>   
-#> 3        86 Marie        Curie      Chemist   <NA>     <NA>        553-86~
-#> 4         2 <NA>         Archimedes Mathemat~ <NA>     <NA>        <NA>   
-#> 5      1337 Neil deGras~ Tyson      Astrophy~ MA, MPh~ <NA>        <NA>   
+#>   author_id given_names   last_name  title    degree    email      phone  
+#>       <int> <chr>         <chr>      <chr>    <chr>     <chr>      <chr>  
+#> 1         1 Scott         Bug        Profess~ PhD       scottbug@~ 965-55~
+#> 2         3 Chien-Shiung  Wu         Physici~ PhD       wu@wu.wu   <NA>   
+#> 3        86 Marie         Curie      Chemist  <NA>      <NA>       553-86~
+#> 4         2 <NA>          Archimedes Mathema~ <NA>      <NA>       <NA>   
+#> 5      1337 George Washi~ Carver     Astroph~ MA, MPhi~ <NA>       <NA>   
 #> 
 #> title: "Cold Fusion Is Actually Impossible"
 #> 
 #> 
-#> **_Scott Bug, PhD;<sup>1,2</sup>\* Chien-Shiung Wu, PhD;<sup>1,2</sup> Marie Curie;<sup>2</sup> Archimedes; and Neil deGrasse Tyson, MA, MPhil, PhD<sup>1,2,3</sup>_**
+#> **_Scott Bug, PhD;<sup>1,2</sup>\* Chien-Shiung Wu, PhD;<sup>1,2</sup> Marie Curie;<sup>2</sup> Archimedes; and George Washington Carver, MA, MPhil, PhD<sup>1,2,3</sup>_**
 #> 
 #> | <sup>1</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
 #> | <sup>2</sup> Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
@@ -400,7 +403,7 @@ Also notice that the default behavior when adding elements is to place them befo
 Another function that affects author order and whose default behavior reprints project title page information is `reorder_authors()`:
 
 ``` r
-reorder_authors(project = "Cold Fusion", "Neil", "Bug", 86)
+reorder_authors(project = "Cold Fusion", "George", "Bug", 86)
 #> project info:
 #> # A tibble: 1 x 11
 #>      id title short_title current_owner status deadline_type deadline  
@@ -411,18 +414,18 @@ reorder_authors(project = "Cold Fusion", "Neil", "Bug", 86)
 #> 
 #> Reordered project authors:
 #> # A tibble: 5 x 7
-#>   author_id given_names  last_name  title     degree   email       phone  
-#>       <int> <chr>        <chr>      <chr>     <chr>    <chr>       <chr>  
-#> 1      1337 Neil deGras~ Tyson      Astrophy~ MA, MPh~ <NA>        <NA>   
-#> 2         1 Scott        Bug        Professor PhD      scottbug@i~ 965-55~
-#> 3        86 Marie        Curie      Chemist   <NA>     <NA>        553-86~
-#> 4         3 Chien-Shiung Wu         Physicist PhD      wu@wu.wu    <NA>   
-#> 5         2 <NA>         Archimedes Mathemat~ <NA>     <NA>        <NA>   
+#>   author_id given_names   last_name  title    degree    email      phone  
+#>       <int> <chr>         <chr>      <chr>    <chr>     <chr>      <chr>  
+#> 1      1337 George Washi~ Carver     Astroph~ MA, MPhi~ <NA>       <NA>   
+#> 2         1 Scott         Bug        Profess~ PhD       scottbug@~ 965-55~
+#> 3        86 Marie         Curie      Chemist  <NA>      <NA>       553-86~
+#> 4         3 Chien-Shiung  Wu         Physici~ PhD       wu@wu.wu   <NA>   
+#> 5         2 <NA>          Archimedes Mathema~ <NA>      <NA>       <NA>   
 #> 
 #> title: "Cold Fusion Is Actually Impossible"
 #> 
 #> 
-#> **_Neil deGrasse Tyson, MA, MPhil, PhD;<sup>1,2,3</sup> Scott Bug, PhD;<sup>1,3</sup>\* Marie Curie;<sup>3</sup> Chien-Shiung Wu, PhD;<sup>1,3</sup> and Archimedes_**
+#> **_George Washington Carver, MA, MPhil, PhD;<sup>1,2,3</sup> Scott Bug, PhD;<sup>1,3</sup>\* Marie Curie;<sup>3</sup> Chien-Shiung Wu, PhD;<sup>1,3</sup> and Archimedes_**
 #> 
 #> | <sup>1</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
 #> | <sup>2</sup> Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
@@ -439,7 +442,7 @@ reorder_authors(project = "Cold Fusion", "Neil", "Bug", 86)
 Importantly, `edit_author()`, `edit_affiliation()`, and `reorder_affiliations()` do **not** reprint the title pages of all affected projects. Fortunately, the user can reprint updated title pages with the `header()` function:
 
 ``` r
-edit_affiliation(affiliation = "Impossibles",
+edit_affiliation(affiliation     = "Impossibles",
                  department_name = "Pseudoscience Debunking Unit")
 ```
 
@@ -449,7 +452,7 @@ header(project = "Cold")
 title: "Cold Fusion Is Actually Impossible"
 
 
-**_Neil deGrasse Tyson, MA, MPhil, PhD;<sup>1,2,3</sup> Scott Bug, PhD;<sup>1,3</sup>\* Marie Curie;<sup>3</sup> Chien-Shiung Wu, PhD;<sup>1,3</sup> and Archimedes_**
+**_George Washington Carver, MA, MPhil, PhD;<sup>1,2,3</sup> Scott Bug, PhD;<sup>1,3</sup>\* Marie Curie;<sup>3</sup> Chien-Shiung Wu, PhD;<sup>1,3</sup> and Archimedes_**
 
 | <sup>1</sup> Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
 | <sup>2</sup> Pseudoscience Debunking Unit, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
@@ -471,9 +474,9 @@ projects() %>% select(id, short_title, path)
 #>      id short_title     path                        
 #>   <int> <chr>           <chr>                       
 #> 1     1 ACF             C:/projects/p0001           
-#> 2     2 Eureka!         C:/projects/p0002           
-#> 3     3 Rn86            C:/projects/p0003           
-#> 4  1945 Dr. Strangelove C:/projects/top_secret/p1945
+#> 2     3 Rn86            C:/projects/p0003           
+#> 3  1945 Dr. Strangelove C:/projects/top_secret/p1945
+#> 4     2 Eureka!         C:/projects/p0002
 ```
 
 Users can also create subdirectories with the function `new_project_group()`:
@@ -499,9 +502,9 @@ projects(c("Crown", "Radon")) %>% select(id, title, path)
 #> # A tibble: 3 x 3
 #>      id title           path                                              
 #>   <int> <chr>           <chr>                                             
-#> 1     2 Weighing the C~ C:/projects/Greek_studies/ancient_studies/p0002   
-#> 2     3 Understanding ~ C:/projects/p0003                                 
-#> 3     4 Understanding ~ C:/projects/dangerous_studies/radioactive_studies~
+#> 1     4 Understanding ~ C:/projects/dangerous_studies/radioactive_studies~
+#> 2     2 Weighing the C~ C:/projects/Greek_studies/ancient_studies/p0002   
+#> 3     3 Understanding ~ C:/projects/p0003
 ```
 
 Projects can also be archived; they are moved into a subdirectory called */archive* that is at the same level as the project folder (*/p*XXXX) before it was run. If this */archive* folder does not exist, it will be created.
@@ -526,18 +529,18 @@ projects() %>% select(id, short_title, path)
 #> # A tibble: 4 x 3
 #>      id short_title path                                                  
 #>   <int> <chr>       <chr>                                                 
-#> 1     1 ACF         C:/projects/p0001                                     
+#> 1     4 Rn86        C:/projects/dangerous_studies/radioactive_studies/rad~
 #> 2     2 Eureka!     C:/projects/Greek_studies/ancient_studies/p0002       
-#> 3     3 Rn86        C:/projects/p0003                                     
-#> 4     4 Rn86        C:/projects/dangerous_studies/radioactive_studies/rad~
+#> 3     1 ACF         C:/projects/p0001                                     
+#> 4     3 Rn86        C:/projects/p0003
 projects(archived = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 5 x 3
 #>      id short_title    path                                               
 #>   <int> <chr>          <chr>                                              
-#> 1     1 ACF            C:/projects/p0001                                  
+#> 1     4 Rn86           C:/projects/dangerous_studies/radioactive_studies/~
 #> 2     2 Eureka!        C:/projects/Greek_studies/ancient_studies/p0002    
-#> 3     3 Rn86           C:/projects/p0003                                  
-#> 4     4 Rn86           C:/projects/dangerous_studies/radioactive_studies/~
+#> 3     1 ACF            C:/projects/p0001                                  
+#> 4     3 Rn86           C:/projects/p0003                                  
 #> 5  1945 Dr. Strangelo~ C:/projects/top_secret/archive/p1945
 ```
 

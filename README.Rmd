@@ -1,5 +1,6 @@
 ---
 output: github_document
+bibliography: man/README/citations.bib
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -8,7 +9,7 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "man/figures/README-"
+  fig.path = "man/README/README-"
 )
 library(fs)
 library(tidyverse)
@@ -19,10 +20,16 @@ if(fs::dir_exists("C:/projects")) fs::dir_delete("C:/projects")
 
 ### Authors
 
-Nikolas I. Krieger, M.S.<sup>1</sup> and Jarrod E. Dalton, Ph.D.<sup>1,2</sup>
-
-1. Department of Quantitative Health Sciences, Lerner Research Institute, Cleveland Clinic, 9500 Euclid Avenue (JJN3), Cleveland, OH, 44195
-2. Cleveland Clinic Lerner College of Medicine, Case Western Reserve University
+| Nikolas I. Krieger, M.S.;^1^ Adam T. Perzynski, Ph.D.;^2^ and Jarrod E. Dalton, Ph.D.^1,3^
+| 
+| ^1^ Department of Quantitative Health Sciences, Lerner Research Institute, Cleveland Clinic, 9500 Euclid Avenue (JJN3), Cleveland, OH, 44195
+| ^2^ Center for Healthcare Research and Policy, Case Western Reserve University at MetroHealth, 2500 MetroHealth Drive, Cleveland, OH 44109
+| ^3^ Cleveland Clinic Lerner College of Medicine, Case Western Reserve University
+| 
+| Acknowledgements: The authors of this package acknowledge the support provided by members of the Northeast Ohio Cohort for Atherosclerotic Risk Estimation (NEOCARE) investigative team: Claudia Coulton, Douglas Gunzler, Darcy Freedman, Neal Dawson, Michael Rothberg, David Zidar, David Kaelber, Douglas Einstadter, Alex Milinovich, Monica Webb Hooper, Kristen Hassmiller-Lich, Ye Tian (Devin), and Kristen Berg.
+| 
+| Funding:
+| This work was supported by The National Institute on Aging of the National Institutes of Health under award number R01AG055480. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
 
 ### Installation
 
@@ -55,7 +62,7 @@ Reproducibility in research is the focus of the much debated replication crisis 
 
 There exist today widely available tools that aid with reproducible research, such as R and other statistical programming languages, that allow for precise documentation of some of the most detail-oriented portions of a project workflow. Researchers can distribute their code scripts alongside their results in order to communicate the integrity of their data processing and analysis. Unfortunately, statistical programming languages per se only contribute to research reproducibility insofar as individual statistical programmers are able (1) to use these tools effectively and (2) to integrate their own use of these tools with their collaborators' work—which may not necessarily be oriented towards reproducibility.
 
-![](man/figures/README-workflow.png)
+![](man/README/README-workflow.png)
 
 Although researchers of different disciplines may operate in nuanced ways, there are aspects of the project workflow that are common to most investigations. First, studies are conceptualized and designed according to a protocol that details the research questions and planned analyses. Data are collected, manipulated (or "tidied") in order to make data analysis possible. The results of the analyses are compiled into a report, and ultimately an academic manuscript is drafted and submitted for wider distribution.
 
@@ -186,7 +193,7 @@ Now we'll add more authors (output not included).
 ```{r authors2, echo = TRUE, results = 'hide', message=FALSE}
 new_author(given_names = "Marie", last_name = "Curie", title = "Chemist",
            affiliations = "Unit", phone = "553-867-5309", id = 86)
-new_author(given_names = "Neil deGrasse", last_name = "Tyson",
+new_author(given_names = "George Washington", last_name = "Carver",
            title = "Astrophysicist", degree = "MA, MPhil, PhD",
            affiliations = c(1, 2, 50), id = 1337)
 new_author(last_name = "Archimedes", title = "Mathematician")
@@ -207,7 +214,7 @@ Now we will showcase project creation:
 ```{r new_project1}
 new_project(title = "Achieving Cold Fusion", short_title = "ACF",
             authors = c("Bug", "Chien-Shiung", 86, 1337),
-            current_owner = "Tyson", corresp_auth = "Bug", stage = "1: design",
+            current_owner = "Carver", corresp_auth = "Bug", stage = "1: design",
             deadline_type = "Pilot study", deadline = "2020-12-31",
             use_bib = TRUE)
 ```
@@ -235,7 +242,7 @@ new_project(title = "Weighing the Crown", short_title = "Eureka!",
             corresp_auth = "Archimedes", stage = 6)
 new_project(title = "How I Learned to Stop Worrying and Love the Bomb",
             short_title = "Dr. Strangelove", authors = c("wu", 1), 
-            creator = "wu", current_owner = "Neil", corresp_auth = "Neil",
+            creator = "wu", current_owner = "George", corresp_auth = "George",
             stage = "under review", deadline_type = "2nd revision",
             deadline = "2030-10-8", id = 1945,
             status = "debating leadership changes", path = "top_secret",
@@ -273,7 +280,7 @@ Also notice that the default behavior when adding elements is to place them befo
 Another function that affects author order and whose default behavior reprints project title page information is `reorder_authors()`:
 
 ```{r reorder_authors}
-reorder_authors(project = "Cold Fusion", "Neil", "Bug", 86)
+reorder_authors(project = "Cold Fusion", "George", "Bug", 86)
 ```
 
 Importantly, `edit_author()`, `edit_affiliation()`, and `reorder_affiliations()` do **not** reprint the title pages of all affected projects. Fortunately, the user can reprint updated title pages with the `header()` function:
@@ -340,5 +347,3 @@ The `projects` package provides a comprehensive set of tools for reproducible te
 
 
 # References
-
-Baker, Monya. 2016. "1,500 Scientists Lift the Lid on Reproducibility." *Nature News* 533 (7604): 452.

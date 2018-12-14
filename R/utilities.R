@@ -113,12 +113,17 @@ insert_aa <- function(vector, project_id, yaml_bounds, corresp_auth,
                       authors_tibble, affiliations_tibble,
                       project_authors, author_affiliation_assoc) {
 
-  aa_header   <- aa_header(project_id = project_id,
-                           corresp_auth = corresp_auth,
-                           authors_tibble = authors_tibble,
-                           affiliations_tibble = affiliations_tibble,
+  if(is.null(project_authors)) {
+    aa_header <- character()
+  }
+  else {
+    aa_header <- aa_header(project_id               = project_id,
+                           corresp_auth             = corresp_auth,
+                           authors_tibble           = authors_tibble,
+                           affiliations_tibble      = affiliations_tibble,
                            project_authors          = project_authors,
                            author_affiliation_assoc = author_affiliation_assoc)
+  }
 
   vector <- append(x      = vector,
                    values = c("", aa_header, "", "\\pagebreak", ""),
