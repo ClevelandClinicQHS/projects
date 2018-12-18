@@ -28,7 +28,7 @@ validate_entry <- function(x, what, rds_tibble = NULL, max.length = 9999,
          "length ", max.length, " and no missing values or duplicate values.")
   }
 
-  if(isFALSE(archived)) {
+  if(!archived) {
     rds_tibble <- remove_archived(rds_tibble)
   }
 
@@ -75,7 +75,7 @@ validate_int <- function(x, what, rds_tibble, archived) {
     if(!all(id_checks)) {
       stop("The following ", what, " id(s) not found:",
            paste(x[!id_checks], collapse = ", "),
-           ifelse(isTRUE(archived), "", "\nTry setting archived = TRUE"))
+           ifelse(archived, "", "\nTry setting archived = TRUE"))
     }
   }
 
@@ -108,7 +108,7 @@ validate_char <- function(x, what, rds_tibble, allow_dups, archived) {
            colnames(rds_tibble)[3], " of all of the above ", what,
            "s. Be more specific to differentiate or enter their ", what,
            " id numbers instead.",
-           ifelse(isTRUE(archived), "\nTry setting archived = FALSE", ""))
+           ifelse(archived, "\nTry setting archived = FALSE", ""))
     }
   }
 

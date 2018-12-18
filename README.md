@@ -9,13 +9,16 @@ Nikolas I. Krieger, M.S.;<sup>1</sup> Adam T. Perzynski, Ph.D.;<sup>2</sup> and 
 <sup>1</sup> Department of Quantitative Health Sciences, Lerner Research Institute, Cleveland Clinic, 9500 Euclid Avenue (JJN3), Cleveland, OH, 44195
 <sup>2</sup> Center for Healthcare Research and Policy, Case Western Reserve University at MetroHealth, 2500 MetroHealth Drive, Cleveland, OH 44109
 <sup>3</sup> Cleveland Clinic Lerner College of Medicine, Case Western Reserve University
-Acknowledgements: The authors of this package acknowledge the support provided by members of the Northeast Ohio Cohort for Atherosclerotic Risk Estimation (NEOCARE) investigative team: Claudia Coulton, Douglas Gunzler, Darcy Freedman, Neal Dawson, Michael Rothberg, David Zidar, David Kaelber, Douglas Einstadter, Alex Milinovich, Monica Webb Hooper, Kristen Hassmiller-Lich, Ye Tian (Devin), and Kristen Berg.
+
+Acknowledgements:
+The authors of this package acknowledge the support provided by members of the Northeast Ohio Cohort for Atherosclerotic Risk Estimation (NEOCARE) investigative team: Claudia Coulton, Douglas Gunzler, Darcy Freedman, Neal Dawson, Michael Rothberg, David Zidar, David Kaelber, Douglas Einstadter, Alex Milinovich, Monica Webb Hooper, Kristen Hassmiller-Lich, Ye Tian (Devin), Kristen Berg, and Sandy Andrukat.
+
 Funding:
 This work was supported by The National Institute on Aging of the National Institutes of Health under award number R01AG055480. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
 
 ### Installation
 
-You can install `projects` from github with:
+You can install `projects` from Github with:
 
 ``` r
 # install.packages("devtools")
@@ -153,9 +156,9 @@ new_affiliation(department_name  = "Department of Physics",
                 address = "314 Newton Blvd, Springfield CT 06003")
 #> New affiliation:
 #> # A tibble: 1 x 4
-#>      id department_name     institution_name       address                
-#>   <int> <chr>               <chr>                  <chr>                  
-#> 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Sprin~
+#>      id department_name     institution_name       address                 
+#>   <int> <chr>               <chr>                  <chr>                   
+#> 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Spring~
 ```
 
 This affiliation has been successfully added to the "affiliations" table in the `projects` relational database. The next code chunk creates a few more affiliations (output not included).
@@ -179,16 +182,16 @@ new_author(given_names = "Scott", last_name = "Bug", title = "Professor",
            email = "scottbug@imPOSSible.net", phone = "965-555-5556")
 #> New author:
 #> # A tibble: 1 x 7
-#>      id given_names last_name title    degree email              phone    
-#>   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>    
-#> 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-~
+#>      id given_names last_name title    degree email              phone     
+#>   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>     
+#> 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-5~
 #> 
 #> New author's affiliations:
 #> # A tibble: 2 x 4
-#>   affiliation_id department_name     institution_name      address        
-#>            <int> <chr>               <chr>                 <chr>          
-#> 1              2 Impossibles Invest~ Creekshirebrook Acad~ Let Gade 27182~
-#> 2              1 Department of Phys~ University of North ~ 314 Newton Blv~
+#>   affiliation_id department_name      institution_name     address         
+#>            <int> <chr>                <chr>                <chr>           
+#> 1              2 Impossibles Investi~ Creekshirebrook Aca~ Let Gade 27182,~
+#> 2              1 Department of Physi~ University of North~ 314 Newton Blvd~
 ```
 
 Notice that in creating associations between Scott Bug and his affiliations, we were able to enter both the `id` number of one of them (2) and a substring of the `department_name` of the other ("Physics"). Also notice that the email address was coerced to be lowercase.
@@ -212,20 +215,20 @@ Now that some authors and affiliations have been created, we can view these tabl
 ``` r
 authors()
 #> # A tibble: 5 x 7
-#>      id given_names    last_name  title     degree    email        phone  
-#>   <int> <chr>          <chr>      <chr>     <chr>     <chr>        <chr>  
-#> 1     1 Scott          Bug        Professor PhD       scottbug@im~ 965-55~
-#> 2     2 <NA>           Archimedes Mathemat~ <NA>      <NA>         <NA>   
-#> 3     3 Chien-Shiung   Wu         Physicist PhD       wu@wu.wu     <NA>   
-#> 4    86 Marie          Curie      Chemist   <NA>      <NA>         553-86~
+#>      id given_names    last_name  title     degree    email        phone   
+#>   <int> <chr>          <chr>      <chr>     <chr>     <chr>        <chr>   
+#> 1     1 Scott          Bug        Professor PhD       scottbug@im~ 965-555~
+#> 2     2 <NA>           Archimedes Mathemat~ <NA>      <NA>         <NA>    
+#> 3     3 Chien-Shiung   Wu         Physicist PhD       wu@wu.wu     <NA>    
+#> 4    86 Marie          Curie      Chemist   <NA>      <NA>         553-867~
 #> 5  1337 George Washin~ Carver     Astrophy~ MA, MPhi~ <NA>         <NA>
 affiliations()
 #> # A tibble: 3 x 4
-#>      id department_name       institution_name        address             
-#>   <int> <chr>                 <chr>                   <chr>               
-#> 1     1 Department of Physics University of North Sc~ 314 Newton Blvd, Sp~
-#> 2     2 Impossibles Investig~ Creekshirebrook Academ~ Let Gade 27182, 156~
-#> 3    50 Statistical Consulti~ Creekshirebrook Academ~ "196 Normal Ave, Co~
+#>      id department_name        institution_name        address             
+#>   <int> <chr>                  <chr>                   <chr>               
+#> 1     1 Department of Physics  University of North Sc~ 314 Newton Blvd, Sp~
+#> 2     2 Impossibles Investiga~ Creekshirebrook Academ~ Let Gade 27182, 156~
+#> 3    50 Statistical Consultin~ Creekshirebrook Academ~ "196 Normal Ave, Co~
 ```
 
 Now we will showcase project creation:
@@ -240,32 +243,32 @@ new_project(title = "Achieving Cold Fusion", short_title = "ACF",
 #> Project 1 has been created at
 #> C:/projects/p0001
 #> # A tibble: 1 x 8
-#>      id title    short_title status  deadline_type deadline   stage path  
-#>   <int> <chr>    <chr>       <chr>   <chr>         <date>     <fct> <chr> 
-#> 1     1 Achievi~ ACF         just c~ Pilot study   2020-12-31 1: d~ C:/pr~
+#>      id title    short_title status  deadline_type deadline   stage  path  
+#>   <int> <chr>    <chr>       <chr>   <chr>         <date>     <fct>  <chr> 
+#> 1     1 Achievi~ ACF         just c~ Pilot study   2020-12-31 1: de~ C:/pr~
 #> 
 #> New project's authors:
 #> # A tibble: 4 x 7
-#>   author_id given_names   last_name title    degree    email       phone  
-#>       <int> <chr>         <chr>     <chr>    <chr>     <chr>       <chr>  
-#> 1         1 Scott         Bug       Profess~ PhD       scottbug@i~ 965-55~
-#> 2         3 Chien-Shiung  Wu        Physici~ PhD       wu@wu.wu    <NA>   
-#> 3        86 Marie         Curie     Chemist  <NA>      <NA>        553-86~
-#> 4      1337 George Washi~ Carver    Astroph~ MA, MPhi~ <NA>        <NA>
+#>   author_id given_names    last_name title     degree   email       phone  
+#>       <int> <chr>          <chr>     <chr>     <chr>    <chr>       <chr>  
+#> 1         1 Scott          Bug       Professor PhD      scottbug@i~ 965-55~
+#> 2         3 Chien-Shiung   Wu        Physicist PhD      wu@wu.wu    <NA>   
+#> 3        86 Marie          Curie     Chemist   <NA>     <NA>        553-86~
+#> 4      1337 George Washin~ Carver    Astrophy~ MA, MPh~ <NA>        <NA>
 #> 
 #> Current owner:
 #> # A tibble: 1 x 7
-#>      id given_names       last_name title         degree       email phone
-#>   <int> <chr>             <chr>     <chr>         <chr>        <chr> <chr>
-#> 1  1337 George Washington Carver    Astrophysici~ MA, MPhil, ~ <NA>  <NA>
+#>      id given_names       last_name title         degree        email phone
+#>   <int> <chr>             <chr>     <chr>         <chr>         <chr> <chr>
+#> 1  1337 George Washington Carver    Astrophysici~ MA, MPhil, P~ <NA>  <NA>
 #> 
 #> Corresponding author:
 #> # A tibble: 1 x 7
-#>      id given_names last_name title    degree email              phone    
-#>   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>    
-#> 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-~
+#>      id given_names last_name title    degree email              phone     
+#>   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>     
+#> 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-5~
 #> 
-#> Creator: Krieger
+#> Creator: kriegen
 ```
 
 Notice that since a `creator` was not specified, this field was populated with the value of `Sys.info()["user"]`.
@@ -339,16 +342,16 @@ Projects, authors, and affiliations can all be edited with their respective `edi
 edit_author(author = "Bug", affiliations = ~ + 50 - impossibles)
 #> Edited author:
 #> # A tibble: 1 x 7
-#>      id given_names last_name title    degree email              phone    
-#>   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>    
-#> 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-~
+#>      id given_names last_name title    degree email              phone     
+#>   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>     
+#> 1     1 Scott       Bug       Profess~ PhD    scottbug@impossib~ 965-555-5~
 #> 
 #> Edited author's affiliations:
 #> # A tibble: 2 x 4
-#>   affiliation_id department_name     institution_name      address        
-#>            <int> <chr>               <chr>                 <chr>          
-#> 1              1 Department of Phys~ University of North ~ 314 Newton Blv~
-#> 2             50 Statistical Consul~ Creekshirebrook Acad~ "196 Normal Av~
+#>   affiliation_id department_name     institution_name      address         
+#>            <int> <chr>               <chr>                 <chr>           
+#> 1              1 Department of Phys~ University of North ~ 314 Newton Blvd~
+#> 2             50 Statistical Consul~ Creekshirebrook Acad~ "196 Normal Ave~
 ```
 
 When adding or removing affiliations/authors from an author/project, a one-sided `formula` is used: it must begin with a tilde `~`, and elements are added with `+` and removed with `-`. Elements can be referred to by their `id` numbers or their names, as described above.
@@ -368,13 +371,13 @@ edit_project("Cold", title = "Cold Fusion Is Actually Impossible",
 #> 
 #> Edited project's authors:
 #> # A tibble: 5 x 7
-#>   author_id given_names   last_name  title    degree    email      phone  
-#>       <int> <chr>         <chr>      <chr>    <chr>     <chr>      <chr>  
-#> 1         1 Scott         Bug        Profess~ PhD       scottbug@~ 965-55~
-#> 2         3 Chien-Shiung  Wu         Physici~ PhD       wu@wu.wu   <NA>   
-#> 3        86 Marie         Curie      Chemist  <NA>      <NA>       553-86~
-#> 4         2 <NA>          Archimedes Mathema~ <NA>      <NA>       <NA>   
-#> 5      1337 George Washi~ Carver     Astroph~ MA, MPhi~ <NA>       <NA>   
+#>   author_id given_names    last_name  title    degree   email       phone  
+#>       <int> <chr>          <chr>      <chr>    <chr>    <chr>       <chr>  
+#> 1         1 Scott          Bug        Profess~ PhD      scottbug@i~ 965-55~
+#> 2         3 Chien-Shiung   Wu         Physici~ PhD      wu@wu.wu    <NA>   
+#> 3        86 Marie          Curie      Chemist  <NA>     <NA>        553-86~
+#> 4         2 <NA>           Archimedes Mathema~ <NA>     <NA>        <NA>   
+#> 5      1337 George Washin~ Carver     Astroph~ MA, MPh~ <NA>        <NA>   
 #> 
 #> title: "Cold Fusion Is Actually Impossible"
 #> 
@@ -411,13 +414,13 @@ reorder_authors(project = "Cold Fusion", "George", "Bug", 86)
 #> 
 #> Reordered project authors:
 #> # A tibble: 5 x 7
-#>   author_id given_names   last_name  title    degree    email      phone  
-#>       <int> <chr>         <chr>      <chr>    <chr>     <chr>      <chr>  
-#> 1      1337 George Washi~ Carver     Astroph~ MA, MPhi~ <NA>       <NA>   
-#> 2         1 Scott         Bug        Profess~ PhD       scottbug@~ 965-55~
-#> 3        86 Marie         Curie      Chemist  <NA>      <NA>       553-86~
-#> 4         3 Chien-Shiung  Wu         Physici~ PhD       wu@wu.wu   <NA>   
-#> 5         2 <NA>          Archimedes Mathema~ <NA>      <NA>       <NA>   
+#>   author_id given_names    last_name  title    degree   email       phone  
+#>       <int> <chr>          <chr>      <chr>    <chr>    <chr>       <chr>  
+#> 1      1337 George Washin~ Carver     Astroph~ MA, MPh~ <NA>        <NA>   
+#> 2         1 Scott          Bug        Profess~ PhD      scottbug@i~ 965-55~
+#> 3        86 Marie          Curie      Chemist  <NA>     <NA>        553-86~
+#> 4         3 Chien-Shiung   Wu         Physici~ PhD      wu@wu.wu    <NA>   
+#> 5         2 <NA>           Archimedes Mathema~ <NA>     <NA>        <NA>   
 #> 
 #> title: "Cold Fusion Is Actually Impossible"
 #> 
@@ -497,11 +500,11 @@ copy_project(project_to_copy = "Radon",
 ``` r
 projects(c("Crown", "Radon")) %>% select(id, title, path)
 #> # A tibble: 3 x 3
-#>      id title           path                                              
-#>   <int> <chr>           <chr>                                             
-#> 1     2 Weighing the C~ C:/projects/Greek_studies/ancient_studies/p0002   
-#> 2     3 Understanding ~ C:/projects/p0003                                 
-#> 3     4 Understanding ~ C:/projects/dangerous_studies/radioactive_studies~
+#>      id title            path                                              
+#>   <int> <chr>            <chr>                                             
+#> 1     2 Weighing the Cr~ C:/projects/Greek_studies/ancient_studies/p0002   
+#> 2     3 Understanding R~ C:/projects/p0003                                 
+#> 3     4 Understanding R~ C:/projects/dangerous_studies/radioactive_studies~
 ```
 
 Projects can also be archived; they are moved into a subdirectory called */archive* that is at the same level as the project folder (*/p*XXXX) before it was run. If this */archive* folder does not exist, it will be created.
@@ -524,20 +527,20 @@ When a project is archived, it is no longer included in `projects()` output unle
 ``` r
 projects() %>% select(id, short_title, path)
 #> # A tibble: 4 x 3
-#>      id short_title path                                                  
-#>   <int> <chr>       <chr>                                                 
-#> 1     1 ACF         C:/projects/p0001                                     
-#> 2     2 Eureka!     C:/projects/Greek_studies/ancient_studies/p0002       
-#> 3     3 Rn86        C:/projects/p0003                                     
-#> 4     4 Rn86        C:/projects/dangerous_studies/radioactive_studies/rad~
+#>      id short_title path                                                   
+#>   <int> <chr>       <chr>                                                  
+#> 1     1 ACF         C:/projects/p0001                                      
+#> 2     2 Eureka!     C:/projects/Greek_studies/ancient_studies/p0002        
+#> 3     3 Rn86        C:/projects/p0003                                      
+#> 4     4 Rn86        C:/projects/dangerous_studies/radioactive_studies/rado~
 projects(archived = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 5 x 3
-#>      id short_title    path                                               
-#>   <int> <chr>          <chr>                                              
-#> 1     1 ACF            C:/projects/p0001                                  
-#> 2     2 Eureka!        C:/projects/Greek_studies/ancient_studies/p0002    
-#> 3     3 Rn86           C:/projects/p0003                                  
-#> 4     4 Rn86           C:/projects/dangerous_studies/radioactive_studies/~
+#>      id short_title    path                                                
+#>   <int> <chr>          <chr>                                               
+#> 1     1 ACF            C:/projects/p0001                                   
+#> 2     2 Eureka!        C:/projects/Greek_studies/ancient_studies/p0002     
+#> 3     3 Rn86           C:/projects/p0003                                   
+#> 4     4 Rn86           C:/projects/dangerous_studies/radioactive_studies/r~
 #> 5  1945 Dr. Strangelo~ C:/projects/top_secret/archive/p1945
 ```
 
@@ -546,13 +549,13 @@ Lastly, affiliations, authors and projects can be deleted with the `delete_*()` 
 ``` r
 delete_affiliation("north science")
 #> # A tibble: 1 x 4
-#>      id department_name     institution_name       address                
-#>   <int> <chr>               <chr>                  <chr>                  
-#> 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Sprin~
+#>      id department_name     institution_name       address                 
+#>   <int> <chr>               <chr>                  <chr>                   
+#> 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Spring~
 #> # A tibble: 1 x 4
-#>      id department_name     institution_name       address                
-#>   <int> <chr>               <chr>                  <chr>                  
-#> 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Sprin~
+#>      id department_name     institution_name       address                 
+#>   <int> <chr>               <chr>                  <chr>                   
+#> 1     1 Department of Phys~ University of North S~ 314 Newton Blvd, Spring~
 #> The above affiliation was deleted.
 delete_author(2)
 #> # A tibble: 1 x 7

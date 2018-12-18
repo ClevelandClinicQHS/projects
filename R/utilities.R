@@ -305,7 +305,7 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
     corresp_auth_row <- dplyr::filter(project_authors, .data$id == corresp_auth)
     corresp_affils   <- dplyr::filter(aa_assoc_complete,
                                       .data$id1 == corresp_auth)
-    corresp_lines    <- c(ifelse(length(affiliations_lines) == 0, "", "|"),
+    corresp_lines    <- c("", #ifelse(length(affiliations_lines) == 0, "", "|"),
                           "| \\* Corresponding author")
 
     if(nrow(corresp_affils) > 0 &&
@@ -329,7 +329,7 @@ aa_header <- function(project_id, corresp_auth, authors_tibble,
   ######################################################
   ######################################################
 
-  return(c(author_line, affiliations_lines, corresp_lines, "| ", "| Funding:"))
+  return(c(author_line, affiliations_lines, corresp_lines, "", "| Funding:"))
 }
 
 

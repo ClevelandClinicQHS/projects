@@ -10,6 +10,16 @@ manuscript creation. It creates a project folder with a single command,
 containing subdirectories for specific components, templates for manuscripts,
 and so on.
 }
+\section{Knitting}{
+ There are several functions that require interactive user
+  confirmation via the console. Since interactive console input is
+  incompatible with knitting via R Markdown files, the \code{projects}
+  package was coded such that user confirmation is bypassed when
+  \code{isTRUE(getOption('knitr.in.progress')) == TRUE}. Therefore, all
+  \code{projects} package functions are usable when knitting. \strong{Knit
+  with caution!}
+}
+
 \section{Acknowledgements}{
  The authors of this package acknowledge the
   support provided by members of the Northeast Ohio Cohort for

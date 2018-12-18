@@ -21,19 +21,19 @@ if(fs::dir_exists("C:/projects")) fs::dir_delete("C:/projects")
 ### Authors
 
 | Nikolas I. Krieger, M.S.;^1^ Adam T. Perzynski, Ph.D.;^2^ and Jarrod E. Dalton, Ph.D.^1,3^
-| 
 | ^1^ Department of Quantitative Health Sciences, Lerner Research Institute, Cleveland Clinic, 9500 Euclid Avenue (JJN3), Cleveland, OH, 44195
 | ^2^ Center for Healthcare Research and Policy, Case Western Reserve University at MetroHealth, 2500 MetroHealth Drive, Cleveland, OH 44109
 | ^3^ Cleveland Clinic Lerner College of Medicine, Case Western Reserve University
-| 
-| Acknowledgements: The authors of this package acknowledge the support provided by members of the Northeast Ohio Cohort for Atherosclerotic Risk Estimation (NEOCARE) investigative team: Claudia Coulton, Douglas Gunzler, Darcy Freedman, Neal Dawson, Michael Rothberg, David Zidar, David Kaelber, Douglas Einstadter, Alex Milinovich, Monica Webb Hooper, Kristen Hassmiller-Lich, Ye Tian (Devin), and Kristen Berg.
-| 
+
+| Acknowledgements:
+| The authors of this package acknowledge the support provided by members of the Northeast Ohio Cohort for Atherosclerotic Risk Estimation (NEOCARE) investigative team: Claudia Coulton, Douglas Gunzler, Darcy Freedman, Neal Dawson, Michael Rothberg, David Zidar, David Kaelber, Douglas Einstadter, Alex Milinovich, Monica Webb Hooper, Kristen Hassmiller-Lich, Ye Tian (Devin), Kristen Berg, and Sandy Andrukat.
+
 | Funding:
 | This work was supported by The National Institute on Aging of the National Institutes of Health under award number R01AG055480. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
 
 ### Installation
 
-You can install `projects` from github with:
+You can install `projects` from Github with:
 
 ```{r gh-installation, eval = FALSE}
 # install.packages("devtools")
