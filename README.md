@@ -291,12 +291,12 @@ Here is what the top of these files look like:
     | ^1^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
     | ^2^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
     | ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
-    |
+
     | \* Corresponding author
     |   Let Gade 27182, 1566 Copenhagen, Denmark
     |   965-555-5556
     |   scottbug@impossible.net
-    | 
+
     | Funding:
 
     \pagebreak
@@ -387,12 +387,12 @@ edit_project("Cold", title = "Cold Fusion Is Actually Impossible",
 #> | ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
 #> | ^2^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
 #> | ^3^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
-#> |
+#> 
 #> | \* Corresponding author
 #> |   314 Newton Blvd, Springfield CT 06003
 #> |   965-555-5556
 #> |   scottbug@impossible.net
-#> | 
+#> 
 #> | Funding:
 ```
 
@@ -430,12 +430,12 @@ reorder_authors(project = "Cold Fusion", "George", "Bug", 86)
 #> | ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
 #> | ^2^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
 #> | ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
-#> |
+#> 
 #> | \* Corresponding author
 #> |   314 Newton Blvd, Springfield CT 06003
 #> |   965-555-5556
 #> |   scottbug@impossible.net
-#> | 
+#> 
 #> | Funding:
 ```
 
@@ -457,12 +457,12 @@ title: "Cold Fusion Is Actually Impossible"
 | ^1^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
 | ^2^ Pseudoscience Debunking Unit, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
 | ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
-|
+
 | \* Corresponding author
 |   314 Newton Blvd, Springfield CT 06003
 |   965-555-5556
 |   scottbug@impossible.net
-| 
+
 | Funding:
 ```
 
