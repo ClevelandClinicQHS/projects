@@ -4,10 +4,15 @@
 #'
 #' Projects can be moved (\code{move_project()}), copied
 #' (\code{copy_project()}), deleted (\code{\link{delete_project}()}) or archived
-#' (\code{archive_project}). The difference between \code{delete_project()} and
-#' \code{archive_project()} is that the latter will just move the project to a
-#' directory called 'archive', located in the same parent directory as the
-#' project. This directory gets created if it doesn't yet exist.
+#' (\code{archive_project}).
+#'
+#' The difference between \code{delete_project()} and \code{archive_project()}
+#' is that the latter will just move the project to a directory called
+#' \emph{archive}, located in the same parent directory as the project. This
+#' directory gets created if it doesn't yet exist. Some functions that perform
+#' actions on projects will exclude archived projects by default in order to
+#' make it easier for the user to enter a nonambiguous string that will match an
+#' active (i.e., non-archived) project.
 #'
 #' Projects can also be organized into groups. By default, all projects are
 #' created within the main \code{\link{projects_folder}}. To create a project
@@ -24,23 +29,25 @@
 #'   \code{\link{new_project}()} for details, the one difference being that
 #'   there is no default (i.e., the user cannot leave \code{path} blank in these
 #'   functions).
-#'
 #' @param project Project \code{id} or unambiguous substring of the project name
 #'   from the \code{\link{projects}()} tibble.
-#'
 #' @param make_directories Logical. If the path represented by the \code{path}
 #'   parameter does not exist, should the needed directories be created?
-#'
 #' @param project_to_copy Project \code{id} or unambiguous substring of the
 #'   project name corresponding to the project that is to be copied.
-#'
 #' @param new_id Optional integer, ranging from 1 to 9999, used as the
 #'   newly-created project ID. Must not already exist in
 #'   \code{\link{projects}()$id}. If left blank, the lowest available \code{id}
 #'   will be automatically used.
-#'
 #' @param new_session Same as the \code{newSession} argument in
 #'   \code{rstudio::\link[rstudioapi]{openProject}()}.
+#' @param archived Logical indicating whether or not the function should
+#'   consider archived projects when determining which project the user is
+#'   referring to in the \code{project}/\code{project_to_copy} argument.
+#'   \code{FALSE} by default.
+#'
+#'   See the \strong{Details} section of \code{\link{archive_project}()} for
+#'   more information on the "archived" status of a project.
 #'
 #' @name file_management
 #' @seealso \code{\link{new_project}()} and \code{\link{delete_project}()} for
@@ -109,7 +116,8 @@ new_project_group <- function(path) {
 #' @rdname file_management
 #' @importFrom rlang .data
 #' @export
-move_project <- function(project, path, make_directories = FALSE) {
+move_project <- function(project, path, make_directories = FALSE,
+                         archived = FALSE) {
 
   p_path          <- p_path_internal()
 
@@ -119,7 +127,8 @@ move_project <- function(project, path, make_directories = FALSE) {
   project         <- validate_entry(x          = project,
                                     what       = "project",
                                     rds_tibble = projects_tibble,
-                                    max.length = 1)
+                                    max.length = 1,
+                                    archived   = archived)
 
   path            <- validate_directory(path             = path,
                                         p_path           = p_path,
@@ -175,7 +184,8 @@ move_project <- function(project, path, make_directories = FALSE) {
 copy_project <- function(project_to_copy,
                          path,
                          new_id           = NA,
-                         make_directories = FALSE) {
+                         make_directories = FALSE,
+                         archived         = FALSE) {
 
   p_path           <- p_path_internal()
 
@@ -188,7 +198,8 @@ copy_project <- function(project_to_copy,
   project          <- validate_entry(x          = project_to_copy,
                                      what       = "project",
                                      rds_tibble = projects_tibble,
-                                     max.length = 1)
+                                     max.length = 1,
+                                     archived   = archived)
 
   path             <- validate_directory(path             = path,
                                          p_path           = p_path,
@@ -268,7 +279,7 @@ copy_project <- function(project_to_copy,
   }
 
   message('\nBe sure to change all instances of \"', old_name, '\" to \"',
-          pXXXX_name, '\" as desired (e.g., .bib files and references to ',
+          pXXXX_name, '\" as desired\n(e.g., .bib files and references to ',
           'them in YAML headers).\n')
 }
 
@@ -288,7 +299,8 @@ archive_project <- function(project) {
   project         <- validate_entry(x          = project,
                                     what       = "project",
                                     rds_tibble = projects_tibble,
-                                    max.length = 1)
+                                    max.length = 1,
+                                    archived   = FALSE)
 
   project_row     <- dplyr::filter(projects_tibble, .data$id == project)
 
@@ -320,19 +332,19 @@ archive_project <- function(project) {
   message("\nThe above project was archived and has the file path\n", new_path)
 }
 
+
 #' @rdname file_management
 #' @export
 #' @importFrom rlang .data
-open_project <- function(project, new_session = FALSE) {
+open_project <- function(project, new_session = FALSE, archived = FALSE) {
 
-  p_path <- p_path_internal()
-
-  projects_tibble <- get_rds(make_rds_path("projects", p_path))
+  projects_tibble <- get_rds(make_rds_path("projects"))
 
   project <- validate_entry(project,
                             what = "project",
                             rds_tibble = projects_tibble,
-                            max.length = 1L)
+                            max.length = 1L,
+                            archived   = archived)
 
   path <- dplyr::filter(projects_tibble, .data$id == project)$path
 

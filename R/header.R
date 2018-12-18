@@ -10,10 +10,16 @@
 #'
 #' @param project Project \code{id} or unambiguous substring of the project name
 #'   from the \code{\link{projects}()} tibble.
+#' @param archived Logical indicating whether or not the function should
+#'   consider archived projects when determining which project the user is
+#'   referring to in the \code{project} argument. \code{FALSE} by default.
+#'
+#'   See the \strong{Details} section of \code{\link{archive_project}()} for
+#'   more information on the "archived" status of a project.
 #'
 #' @examples
-#' \dontrun{
-#' # Not run to save time on automated example testing
+#' \donttest{
+#' # Included in \donttest{} to save time on example checking.
 #'
 #' # SETUP
 #' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
@@ -50,7 +56,7 @@
 #' @name header
 #' @importFrom rlang .data
 #' @export
-header <- function(project) {
+header <- function(project, archived = FALSE) {
 
   p_path  <- p_path_internal()
 
@@ -59,7 +65,8 @@ header <- function(project) {
   project <- validate_entry(project,
                             what       = "project",
                             rds_tibble = projects_tibble,
-                            max.length = 1)
+                            max.length = 1,
+                            archived   = archived)
 
   print_header_internal(project_id  = project,
                         p_path      = p_path,

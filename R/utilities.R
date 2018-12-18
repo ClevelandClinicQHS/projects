@@ -343,14 +343,20 @@ write_project_files <- function(pXXXX_path, files, use_bib, pXXXX_name) {
                   "04_report.Rmd", "style.css", paste0(pXXXX_name, ".Rproj"))
 
   if(use_bib) {
-    files      <- append(x = files,      values = "")
-    file_names <- append(x = file_names, values = paste0(pXXXX_name, ".bib"))
+    files      <- append(x      = files,
+                         values = "",
+                         after  = 0)
+    file_names <- append(x      = file_names,
+                         values = paste0(pXXXX_name, ".bib"),
+                         after  = 0)
   }
 
   purrr::walk2(
     .x = files,
-    .y = file_names,
-    .f = ~readr::write_lines(.x, fs::path(pXXXX_path, "progs", .y)))
+    .y = fs::path(pXXXX_path,
+                  c(rep("progs", length(files) - 1), ""),
+                  file_names),
+    .f = readr::write_lines)
 }
 
 
@@ -368,4 +374,10 @@ clear_special_author <- function(author, projects_path, projects_tibble) {
   saveRDS(object = projects_tibble, file = projects_path)
 
   return(projects_tibble)
+}
+
+#' @importFrom rlang .data
+remove_archived <- function(projects_tibble) {
+  dplyr::filter(projects_tibble,
+                fs::path_file(fs::path_dir(.data$path)) != "archive")
 }

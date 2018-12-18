@@ -20,7 +20,7 @@ validate_new <- function(id, what, rds_tibble) {
 
 
 validate_entry <- function(x, what, rds_tibble = NULL, max.length = 9999,
-                           allow_dups = FALSE) {
+                           allow_dups = FALSE, archived = TRUE) {
 
   if(!checkmate::test_vector(x = x, any.missing = FALSE, min.len = 1,
                              max.len = max.length, unique = TRUE)) {
@@ -28,18 +28,24 @@ validate_entry <- function(x, what, rds_tibble = NULL, max.length = 9999,
          "length ", max.length, " and no missing values or duplicate values.")
   }
 
+  if(isFALSE(archived)) {
+    rds_tibble <- remove_archived(rds_tibble)
+  }
+
   ids <-
-    lapply(X   = x,
-           FUN = function(char) {
-             num <- suppressWarnings(as.numeric(char))
-             if(is.na(num)) {
-               validate_char(x = char, what = what, rds_tibble = rds_tibble,
-                             allow_dups = allow_dups)
-             }
-             else {
-               validate_int(x = num, what = what, rds_tibble = rds_tibble)
-             }
-           }) %>%
+    lapply(
+      x,
+      function(char) {
+        num <- suppressWarnings(as.numeric(char))
+        if(is.na(num)) {
+          validate_char(x = char, what = what, rds_tibble = rds_tibble,
+                        allow_dups = allow_dups, archived = archived)
+        }
+        else {
+          validate_int(x = num, what = what, rds_tibble = rds_tibble,
+                       archived = archived)
+        }
+      }) %>%
     unlist()
 
   if(!allow_dups && anyDuplicated(ids) > 0) {
@@ -53,7 +59,7 @@ validate_entry <- function(x, what, rds_tibble = NULL, max.length = 9999,
 
 
 
-validate_int <- function(x, what, rds_tibble) {
+validate_int <- function(x, what, rds_tibble, archived) {
 
   if(!checkmate::test_integerish(x, lower = 1, upper = 9999)) {
     stop(what, " id number must be a single integer between 1 and 9999.")
@@ -68,7 +74,8 @@ validate_int <- function(x, what, rds_tibble) {
 
     if(!all(id_checks)) {
       stop("The following ", what, " id(s) not found:",
-           paste(x[!id_checks], collapse = ", "))
+           paste(x[!id_checks], collapse = ", "),
+           ifelse(isTRUE(archived), "", "\nTry setting archived = TRUE"))
     }
   }
 
@@ -77,7 +84,7 @@ validate_int <- function(x, what, rds_tibble) {
 
 
 
-validate_char <- function(x, what, rds_tibble, allow_dups) {
+validate_char <- function(x, what, rds_tibble, allow_dups, archived) {
 
   if(!checkmate::test_character(x, min.chars = 1)) {
     stop("Each ", what, " entered as a character strings must contain at ",
@@ -91,15 +98,17 @@ validate_char <- function(x, what, rds_tibble, allow_dups) {
   if(length(matches) != 1) {
 
     if(length(matches) == 0) {
-      stop("No ", what, " found containing \'", x, "\' in the ",
-           colnames(rds_tibble)[2], "+", colnames(rds_tibble)[3])
+      stop("No ", what, " found containing '", x, "' in the ",
+           colnames(rds_tibble)[2], "+", colnames(rds_tibble)[3],
+           ifelse(archived, "", "\nTry setting archived = TRUE"))
     }
     else if(length(matches) > 1 && !allow_dups) {
       print(rds_tibble[matches, ])
       stop(x, " matches the ", colnames(rds_tibble)[2], "+",
            colnames(rds_tibble)[3], " of all of the above ", what,
            "s. Be more specific to differentiate or enter their ", what,
-           " id numbers instead.")
+           " id numbers instead.",
+           ifelse(isTRUE(archived), "\nTry setting archived = FALSE", ""))
     }
   }
 

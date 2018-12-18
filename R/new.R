@@ -123,10 +123,15 @@
 #'   the line \code{bibliography: pXXXX.bib}.
 #' @param reprint_header Logical, indicating whether or not to reprint the
 #'   project \code{\link{header}} after editing project information.
+#' @param archived Logical indicating whether or not the function should
+#'   consider archived projects when determining which project the user is
+#'   referring to in the \code{project} argument. \code{FALSE} by default.
+#'
+#'   See the \strong{Details} section of \code{\link{archive_project}()} for
+#'   more information on the "archived" status of a project.
 #'
 #' @examples
 #' # SETUP
-#' # - Back up old projects_folder() and create temporary projects folder
 #' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
 #' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
 #' ############################################################################

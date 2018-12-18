@@ -11,14 +11,14 @@
 \usage{
 new_project_group(path)
 
-move_project(project, path, make_directories = FALSE)
+move_project(project, path, make_directories = FALSE, archived = FALSE)
 
 copy_project(project_to_copy, path, new_id = NA,
-  make_directories = FALSE)
+  make_directories = FALSE, archived = FALSE)
 
 archive_project(project)
 
-open_project(project, new_session = FALSE)
+open_project(project, new_session = FALSE, archived = FALSE)
 }
 \arguments{
 \item{path}{A valid path string. See the \code{path} argument in
@@ -31,6 +31,14 @@ from the \code{\link{projects}()} tibble.}
 
 \item{make_directories}{Logical. If the path represented by the \code{path}
 parameter does not exist, should the needed directories be created?}
+
+\item{archived}{Logical indicating whether or not the function should
+  consider archived projects when determining which project the user is
+  referring to in the \code{project}/\code{project_to_copy} argument.
+  \code{FALSE} by default.
+
+  See the \strong{Details} section of \code{\link{archive_project}()} for
+  more information on the "archived" status of a project.}
 
 \item{project_to_copy}{Project \code{id} or unambiguous substring of the
 project name corresponding to the project that is to be copied.}
@@ -49,10 +57,15 @@ Tools for Organizing and Managing Project Files
 \details{
 Projects can be moved (\code{move_project()}), copied
 (\code{copy_project()}), deleted (\code{\link{delete_project}()}) or archived
-(\code{archive_project}). The difference between \code{delete_project()} and
-\code{archive_project()} is that the latter will just move the project to a
-directory called 'archive', located in the same parent directory as the
-project. This directory gets created if it doesn't yet exist.
+(\code{archive_project}).
+
+The difference between \code{delete_project()} and \code{archive_project()}
+is that the latter will just move the project to a directory called
+\emph{archive}, located in the same parent directory as the project. This
+directory gets created if it doesn't yet exist. Some functions that perform
+actions on projects will exclude archived projects by default in order to
+make it easier for the user to enter a nonambiguous string that will match an
+active (i.e., non-archived) project.
 
 Projects can also be organized into groups. By default, all projects are
 created within the main \code{\link{projects_folder}}. To create a project

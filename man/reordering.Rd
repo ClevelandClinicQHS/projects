@@ -6,7 +6,8 @@
 \alias{reorder_affiliations}
 \title{Reordering authors and affiliations}
 \usage{
-reorder_authors(project, ..., after = 0L, reprint_header = TRUE)
+reorder_authors(project, ..., after = 0L, reprint_header = TRUE,
+  archived = FALSE)
 
 reorder_affiliations(author, ..., after = 0L)
 }
@@ -25,6 +26,13 @@ reorder, optionally with their new ranks explicitly stated. See details.}
 
 \item{reprint_header}{Should the \code{project}'s header be printed to the
 console?}
+
+\item{archived}{Logical indicating whether or not the function should
+  consider archived projects when determining which project the user is
+  referring to in the \code{project} argument. \code{FALSE} by default.
+
+  See the \strong{Details} section of \code{\link{archive_project}()} for
+  more information on the "archived" status of a project.}
 }
 \description{
 These functions allow the user to reorder authors on a project or to reorder

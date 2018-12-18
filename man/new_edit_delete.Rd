@@ -17,7 +17,8 @@ edit_project(project, title = NA, short_title = NA, authors,
   current_owner = NA, status = NA, deadline_type = NA,
   deadline = NA, stage = c("1: design", "2: data collection",
   "3: analysis", "4: manuscript", "5: under review", "6: accepted"),
-  corresp_auth = NA, creator = NA, reprint_header = TRUE)
+  corresp_auth = NA, creator = NA, reprint_header = TRUE,
+  archived = FALSE)
 
 edit_author(author, given_names = NA, last_name = NA, affiliations,
   title = NA, degree = NA, email = NA, phone = NA)
@@ -25,7 +26,7 @@ edit_author(author, given_names = NA, last_name = NA, affiliations,
 edit_affiliation(affiliation, department_name = NA,
   institution_name = NA, address = NA)
 
-delete_project(project)
+delete_project(project, archived = FALSE)
 
 delete_author(author)
 
@@ -104,6 +105,13 @@ the matching author \code{id}.}
 
 \item{reprint_header}{Logical, indicating whether or not to reprint the
 project \code{\link{header}} after editing project information.}
+
+\item{archived}{Logical indicating whether or not the function should
+  consider archived projects when determining which project the user is
+  referring to in the \code{project} argument. \code{FALSE} by default.
+
+  See the \strong{Details} section of \code{\link{archive_project}()} for
+  more information on the "archived" status of a project.}
 
 \item{given_names, last_name, department_name, institution_name}{Each a single
 character string. Can be used whenever needing to specify a specific
@@ -196,7 +204,6 @@ created \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
 }
 \examples{
 # SETUP
-# - Back up old projects_folder() and create temporary projects folder
 old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
 setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
 ############################################################################

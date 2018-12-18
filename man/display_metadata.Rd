@@ -23,8 +23,7 @@ default.}
 and/or names. Only rows matching one or more entries will be returned.}
 
 \item{archived}{Logical, indicating whether or not to include projects that
-have been archived using \code{\link{archive_project}()}. They are not
-displayed by default.}
+have been archived using \code{\link{archive_project}()}. False by default.}
 }
 \description{
 Returns a tibble of the projects/authors/affiliations, filtered and joined
@@ -45,8 +44,8 @@ further manipulate them using \code{\link[dplyr]{dplyr}} functions like
 example.
 }
 \examples{
-\dontrun{
-# Not run to save time on automated example checking
+\donttest{
+# Included in \donttest{} to save time on example checking.
 
 # SETUP
 old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
@@ -97,12 +96,16 @@ projects(project = "Test")
 # View projects table, including only projects with Plato as current owner
 projects() \%>\% dplyr::filter(current_owner == 303)
 
-# Archive Fun project 5
-archive_project("Fun project 5")
+# Wrapped in if(interactive()) because it requires interactive console input
+# and fails automated testing.
+if(interactive()) {
+  # Archive Fun project 5
+  archive_project("Fun project 5")
 
-# Default behavior is to not include archived projects in projects() table
-projects("Fun")
-projects("Fun", archived = TRUE)
+  # Default behavior is to not include archived projects in projects() table
+  projects("Fun")
+  projects("Fun", archived = TRUE)
+}
 
 #############################################################################
 # CLEANUP

@@ -16,7 +16,8 @@ edit_project <- function(project,
                                             "5: under review", "6: accepted"),
                          corresp_auth   = NA,
                          creator        = NA,
-                         reprint_header = TRUE) {
+                         reprint_header = TRUE,
+                         archived       = FALSE) {
 
   p_path          <- p_path_internal()
 
@@ -27,7 +28,8 @@ edit_project <- function(project,
   project         <- validate_entry(project,
                                     what       = "project",
                                     rds_tibble = projects_tibble,
-                                    max.length = 1)
+                                    max.length = 1,
+                                    archived   = archived)
   old_project_row <- dplyr::filter(projects_tibble, .data$id == project)
 
   authors_tibble  <- "authors" %>% make_rds_path(p_path) %>% get_rds
@@ -311,7 +313,7 @@ edit_affiliation <- function(affiliation,           department_name  = NA,
 #' @rdname new_edit_delete
 #' @importFrom rlang .data
 #' @export
-delete_project <- function(project) {
+delete_project <- function(project, archived = FALSE) {
 
   p_path          <- p_path_internal()
 
@@ -321,7 +323,8 @@ delete_project <- function(project) {
   project         <- validate_entry(project,
                                     what       = "project",
                                     rds_tibble = projects_tibble,
-                                    max.length = 1)
+                                    max.length = 1,
+                                    archived   = archived)
 
   pa_assoc_path   <- make_rds_path("project_author_assoc", p_path)
   pa_assoc_tibble <- get_rds(pa_assoc_path)
@@ -614,6 +617,12 @@ recursive_number_namer <- function(formula) {
 #'   Ignored if ranks are explicitly provided in \code{...}.
 #' @param reprint_header Should the \code{project}'s header be printed to the
 #'   console?
+#' @param archived Logical indicating whether or not the function should
+#'   consider archived projects when determining which project the user is
+#'   referring to in the \code{project} argument. \code{FALSE} by default.
+#'
+#'   See the \strong{Details} section of \code{\link{archive_project}()} for
+#'   more information on the "archived" status of a project.
 #'
 #' @examples
 #' # SETUP
@@ -664,14 +673,16 @@ recursive_number_namer <- function(formula) {
 #' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
 #' @name reordering
 #' @export
-reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE) {
+reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE,
+                            archived = FALSE) {
 
   reorder_assoc(id             = project, ...,
                 after          = after,
                 reprint_header = reprint_header,
                 rds1           = "project",
                 rds2           = "author",
-                assoc          = "project_author_assoc")
+                assoc          = "project_author_assoc",
+                archived       = archived)
 }
 
 #' @rdname reordering
@@ -691,7 +702,8 @@ reorder_affiliations <- function(author, ..., after = 0L) {
 #########################################
 #########################################
 #' @importFrom rlang .data
-reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc) {
+reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
+                          archived = TRUE) {
 
   p_path         <- p_path_internal()
 
@@ -701,7 +713,8 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc) {
   id             <- validate_entry(x          = id,
                                    what       = rds1,
                                    rds_tibble = rds1_tibble,
-                                   max.length = 1)
+                                   max.length = 1,
+                                   archived   = archived)
 
   rds1_row       <- dplyr::filter(rds1_tibble, .data$id == !!id)
 

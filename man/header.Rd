@@ -4,11 +4,18 @@
 \alias{header}
 \title{Print project header to console}
 \usage{
-header(project)
+header(project, archived = FALSE)
 }
 \arguments{
 \item{project}{Project \code{id} or unambiguous substring of the project name
 from the \code{\link{projects}()} tibble.}
+
+\item{archived}{Logical indicating whether or not the function should
+  consider archived projects when determining which project the user is
+  referring to in the \code{project} argument. \code{FALSE} by default.
+
+  See the \strong{Details} section of \code{\link{archive_project}()} for
+  more information on the "archived" status of a project.}
 }
 \description{
 This function displays the report header for a project. The
@@ -21,8 +28,8 @@ This function displays the report header for a project. The
   \emph{04_report.Rmd}).
 }
 \examples{
-\dontrun{
-# Not run to save time on automated example testing
+\donttest{
+# Included in \donttest{} to save time on example checking.
 
 # SETUP
 old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")

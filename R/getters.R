@@ -183,12 +183,11 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #'   to perform a left join with another metadata tibble. All \code{FALSE} by
 #'   default.
 #' @param archived Logical, indicating whether or not to include projects that
-#'   have been archived using \code{\link{archive_project}()}. They are not
-#'   displayed by default.
+#'   have been archived using \code{\link{archive_project}()}. False by default.
 #'
 #' @examples
-#' \dontrun{
-#' # Not run to save time on automated example checking
+#' \donttest{
+#' # Included in \donttest{} to save time on example checking.
 #'
 #' # SETUP
 #' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
@@ -239,12 +238,16 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' # View projects table, including only projects with Plato as current owner
 #' projects() %>% dplyr::filter(current_owner == 303)
 #'
-#' # Archive Fun project 5
-#' archive_project("Fun project 5")
+#' # Wrapped in if(interactive()) because it requires interactive console input
+#' # and fails automated testing.
+#' if(interactive()) {
+#'   # Archive Fun project 5
+#'   archive_project("Fun project 5")
 #'
-#' # Default behavior is to not include archived projects in projects() table
-#' projects("Fun")
-#' projects("Fun", archived = TRUE)
+#'   # Default behavior is to not include archived projects in projects() table
+#'   projects("Fun")
+#'   projects("Fun", archived = TRUE)
+#' }
 #'
 #' #############################################################################
 #' # CLEANUP
@@ -257,10 +260,7 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 projects <- function(project, authors = FALSE, archived = FALSE) {
 
   p_path          <- p_path_internal()
-  projects_tibble <-
-    "projects" %>%
-    make_rds_path(p_path) %>%
-    get_rds()
+  projects_tibble <- get_rds(make_rds_path("projects", p_path))
 
   if(!missing(project)) {
 
@@ -268,10 +268,14 @@ projects <- function(project, authors = FALSE, archived = FALSE) {
       validate_entry(project,
                      what       = "project",
                      rds_tibble = projects_tibble,
-                     allow_dups = TRUE) %>%
+                     allow_dups = TRUE,
+                     archived   = archived) %>%
       unique()
 
     projects_tibble <- dplyr::filter(projects_tibble, .data$id %in% project)
+  }
+  else if(!archived) {
+    projects_tibble <- remove_archived(projects_tibble)
   }
 
   if(authors) {
@@ -292,12 +296,6 @@ projects <- function(project, authors = FALSE, archived = FALSE) {
       dplyr::left_join(authors_tibble, by = c("id2" = "id"),
                        suffix = c("_of_project", "_of_author")) %>%
       dplyr::rename("author_id" = "id2")
-  }
-
-  if(!archived) {
-    projects_tibble <-
-      dplyr::filter(projects_tibble,
-                    fs::path_file(fs::path_dir(.data$path)) != "archive")
   }
 
   return(dplyr::arrange(projects_tibble, .data$id))
