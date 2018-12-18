@@ -21,5 +21,4 @@ If it can't find a directory with that path, it returns this string:
 }
 \examples{
 projects_folder()
-
 }

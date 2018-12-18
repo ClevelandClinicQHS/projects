@@ -616,43 +616,52 @@ recursive_number_namer <- function(formula) {
 #'   console?
 #'
 #' @examples
+#' # SETUP
+#' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
+#' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+#' new_affiliation(department_name = "Math Dept.",
+#'                 institution_name = "Springfield College",
+#'                 address = "123 College St, Springfield, AB")
+#' new_affiliation(department_name = "Art Department",
+#'                 institution_name = "Springfield College",
+#'                 address = "321 University Boulevard, Springfield, AB",
+#'                 id = 42)
+#' new_affiliation(department_name = "Central Intelligence Agency",
+#'                 institution_name = "United States Government",
+#'                 address = "888 Classified Dr, Washington DC")
+#' new_affiliation(department_name = "Pyrotechnics",
+#'                 institution_name = "ACME")
+#' new_author(given_names = "Rosetta", last_name = "Stone",
+#'            affiliations = c(42, "Math"), degree = "PhD",
+#'            email = "slab@rock.net", phone = "867-555-5309", id = 8888)
+#' new_author(given_names = "Spiro", last_name = "Agnew", degree = "LLB",
+#'            affiliations = "Art D", id = 13)
+#' new_author(given_names = "Plato", id = 303)
+#' new_author(given_names = "Condoleezza", last_name = "Rice", degree = "PhD",
+#'            affiliations = c(1, 42, "Agency", "ACME"), phone = "555-555-5555",
+#'            email = "condoleeza@ri.ce")
+#' new_author(given_names = "Jane", last_name = "Goodall", degree = "PhD",
+#'            affiliations = 3, id = 5)
+#' new_project(title = "Understanding the Construction of the United States",
+#'             short_title = "USA",
+#'             authors = c(13, "Stone", "zz", "303", "Jane Goodall"),
+#'             stage = 4, deadline = "2055-02-28", deadline_type = "submission",
+#'             path = "famous_studied/philosophers/rocks",
+#'             corresp_auth = "Stone", current_owner = "agnew",
+#'             make_directories = TRUE, use_bib = TRUE,
+#'             status = "waiting on IRB")
+#' #############################################################################
 #'
-#' # Imagine the author order on project 1 was originally:
-#' tibble::tribble(
-#'   ~id,  ~given_names,  ~last_name,
-#'     5,  "Adam",        "Smith",
-#'    22,  "Britney",     "Jones",
-#'     9,  "Caroline",    "Perry",
-#'   100,  "David",       "Herman",
-#'    47,  "Esther",      "Ireland")
+#' # Reordering with unnamed arguments
+#' reorder_affiliations(author = "RICE", "ACME", 42, after = 1)
 #'
-#' # The following examples are sequential to improve readability.
+#' # Reordering with named arguments
+#' reorder_authors(project = 1, "Rosetta" = 99, `303` = 2, "5" = 1)
 #'
-#' \dontrun{
-#' reorder_authors(project = 1, "David", 22, "47", after = 1)
-#' }
-#' # Results would be:
-#' tibble::tribble(
-#'   ~id,  ~given_names,  ~last_name,
-#'     5,  "Adam",        "Smith",
-#'   100,  "David",       "Herman",
-#'    22,  "Britney",     "Jones",
-#'    47,  "Esther",      "Ireland",
-#'     9,  "Caroline",    "Perry")
-#'
-#' # rearranging the rearrangement:
-#' \dontrun{
-#' reorder_authors(1, Jones = 99, `47` = 2, "100" = 1)
-#' }
-#' # Results would be:
-#' tibble::tribble(
-#'   ~id,  ~given_names,  ~last_name,
-#'   100,  "David",       "Herman",
-#'    47,  "Esther",      "Ireland",
-#'     5,  "Adam",        "Smith",
-#'     9,  "Caroline",    "Perry",
-#'    22,  "Britney",     "Jones")
-#'
+#' #############################################################################
+#' # CLEANUP
+#' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
+#' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
 #' @name reordering
 #' @export
 reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE) {

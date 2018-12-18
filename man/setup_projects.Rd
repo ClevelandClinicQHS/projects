@@ -4,7 +4,8 @@
 \alias{setup_projects}
 \title{Set up the projects folder}
 \usage{
-setup_projects(path, overwrite = FALSE, make_directories = FALSE)
+setup_projects(path, overwrite = FALSE, make_directories = FALSE,
+  .Renviron_path = fs::path_home(".Renviron"))
 }
 \arguments{
 \item{path}{The full file path where the user would like a directory called
@@ -15,7 +16,11 @@ stored projects folders stored in the system.}
 
 \item{make_directories}{Logical indicating whether or not the function should
 write any directories specified in the \code{path} argument that don't
-already exist.}
+already exist.'}
+
+\item{.Renviron_path}{The full file path of the .Renviron file where the user
+would like to store the \code{\link{projects_folder}()} path. Default is
+the home .Renviron file. If the file doesn't exist it will be created.}
 }
 \value{
 The project folder's path, invisibly. It will be "" if it doesn't
@@ -26,9 +31,12 @@ Creates or restores the projects folder at the user-specified path.
 }
 \details{
 The \code{projects} package remembers where the
-\code{\link{projects_folder}()} is located by storing its file path in the
-\strong{home} \link[base]{.Renviron} file. The entry is named
-\code{PROJECTS_FOLDER_PATH}. See \link[base]{Startup} for more details.
+\code{\link{projects_folder}()} is located by storing its file path in an
+\link[base]{.Renviron} file (the home .Renviron file by default). The entry
+is named \code{PROJECTS_FOLDER_PATH}.
+
+Note that changing the .Renviron_path argument may create an .Renviron file
+that R will not notice or use. See \link[base]{Startup} for more details.
 }
 \section{Default contents}{
  The \code{\link{projects_folder}} automatically
@@ -60,11 +68,18 @@ The \code{projects} package remembers where the
 }
 
 \examples{
-# Not run so that developers' home .Renviron file will be left alone during
-# package checking.
-\dontrun{
-setup_projects(fs::path_home())
-}
+# This sequence is used in all other examples in this package.
+
+# Back up old projects_folder()
+old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
+
+# This sets up an example projects_folder() in a temporary directory.
+# It will not edit any of the user's .Renviron files.
+setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+
+# Cleanup
+Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
+fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
 }
 \seealso{
 \code{\link{new_project}()} for information on templates

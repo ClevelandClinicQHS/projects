@@ -1,3 +1,10 @@
+## Resubmission 4
+This is the fourth resubmission. In this version I have:
+
+* Overhauled examples so that they all take place entirely in tempdir() and no longer touch files in the home directory.
+* Added a name to "Acknowledgements" section of the package Rd file.
+* Minor changes to README.md as well as the location of files used in its creation: some are now in man/README
+
 ## Resubmission 3
 This is the third resubmission. In this version I have:
 

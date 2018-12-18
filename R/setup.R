@@ -3,9 +3,12 @@
 #' Creates or restores the projects folder at the user-specified path.
 #'
 #' The \code{projects} package remembers where the
-#' \code{\link{projects_folder}()} is located by storing its file path in the
-#' \strong{home} \link[base]{.Renviron} file. The entry is named
-#' \code{PROJECTS_FOLDER_PATH}. See \link[base]{Startup} for more details.
+#' \code{\link{projects_folder}()} is located by storing its file path in an
+#' \link[base]{.Renviron} file (the home .Renviron file by default). The entry
+#' is named \code{PROJECTS_FOLDER_PATH}.
+#'
+#' Note that changing the .Renviron_path argument may create an .Renviron file
+#' that R will not notice or use. See \link[base]{Startup} for more details.
 #'
 #' @section Default contents: The \code{\link{projects_folder}} automatically
 #'   contains the subdirectories \emph{.metadata} and \emph{.template}, which
@@ -38,14 +41,24 @@
 #'   stored projects folders stored in the system.
 #' @param make_directories Logical indicating whether or not the function should
 #'   write any directories specified in the \code{path} argument that don't
-#'   already exist.
+#'   already exist.'
+#' @param .Renviron_path The full file path of the .Renviron file where the user
+#'   would like to store the \code{\link{projects_folder}()} path. Default is
+#'   the home .Renviron file. If the file doesn't exist it will be created.
 #'
 #' @examples
-#' # Not run so that developers' home .Renviron file will be left alone during
-#' # package checking.
-#' \dontrun{
-#' setup_projects(fs::path_home())
-#' }
+#' # This sequence is used in all other examples in this package.
+#'
+#' # Back up old projects_folder()
+#' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
+#'
+#' # This sets up an example projects_folder() in a temporary directory.
+#' # It will not edit any of the user's .Renviron files.
+#' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+#'
+#' # Cleanup
+#' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
+#' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
 #' @return The project folder's path, invisibly. It will be "" if it doesn't
 #'   exist.
 #'
@@ -56,16 +69,17 @@
 #'
 #' @importFrom tibble tibble
 #' @export
-setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
+setup_projects <- function(path,
+                           overwrite        = FALSE,
+                           make_directories = FALSE,
+                           .Renviron_path   = fs::path_home(".Renviron")) {
 
-  path <- validate_directory(path             = path,
-                             p_path           = NULL,
-                             make_directories = make_directories)
+  path     <- path %>%
+    validate_directory(p_path           = NULL,
+                       make_directories = make_directories) %>%
+    fs::path("projects")
 
-  path <- fs::path(path, "projects")
-
-  old_path           <- Sys.getenv("PROJECTS_FOLDER_PATH")
-  home_Renviron_path <- fs::path(Sys.getenv("HOME"), ".Renviron")
+  old_path <- p_path_from_explicit_renviron(.Renviron_path)
 
   # If overwite = TRUE, function will run no matter what, overwriting any
   # pre-existing value of PROJECTS_FOLDER_PATH in the home .Renviron file.
@@ -74,45 +88,78 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
   # PROJECTS_FOLDER_PATH value already exists and does not match up with the
   # user-specified path.
   if(!overwrite && old_path != "" && old_path != path) {
-    message('An .Renviron file (probably at ', home_Renviron_path,
-            ') indicates that a "projects" folder already exists at ',
-            old_path, '. Rerun with that path OR set overwrite = TRUE')
+    message('\nThe .Renviron file at\n', .Renviron_path,
+            '\nindicates that a "projects" folder already exists at\n',
+            old_path, '\n\nRerun with that path OR set overwrite = TRUE')
     return(invisible(old_path))
   }
+
+  set_Renviron(path, old_path, .Renviron_path)
+
+  create_projects_folder(path)
+
+  setup_messages(path, old_path)
+
+  return(invisible(path))
+}
+
+
+
+p_path_from_explicit_renviron <- function(path) {
+  if(fs::file_exists(path)) {
+    readRenviron(path)
+    return(Sys.getenv("PROJECTS_FOLDER_PATH"))
+  }
+  return("")
+}
+
+
+
+set_Renviron <- function(path, old_path, .Renviron_path) {
 
   if(!(old_path %in% c("", path))) {
     user_prompt(
       msg   = paste0("\nAre you sure you want to abandon the old projects ",
                      "folder at\n", old_path, "\n\nand create a new one at\n",
-                     path, "\n\n? (y/n)"),
+                     path, "\n\n? This will change the .Renviron file at\n",
+                     .Renviron_path, "\nso that its PROJECTS_FOLDER_PATH ",
+                     " line will be:\nPROJECTS_FOLDER_PATH='", path, "'",
+                     "\n\nContinue? (y/n)"),
       n_msg = paste0("\nProjects folder remains at\n", old_path))
   }
 
-  home_Renviron_file <- paste0("PROJECTS_FOLDER_PATH='", path, "'")
+  Renviron_entries <- paste0("PROJECTS_FOLDER_PATH='", path, "'")
 
   # If a home .Renviron file already exists, it is overwritten with its original
   # contents, minus any old values of PROJECTS_FOLDER_PATH, plus the new value
   # of PROJECTS_FOLDER_PATH (i.e., the user-specified path, which could
   # actually be the same as the old value).
-  if(fs::file_exists(home_Renviron_path)) {
+  if(fs::file_exists(.Renviron_path)) {
 
-    home_Renviron_file <-
+    Renviron_entries <-
       c(grep(pattern = "^PROJECTS_FOLDER_PATH",
-             x       = readr::read_lines(fs::path(Sys.getenv("HOME"),
-                                                  ".Renviron")),
+             x       = readr::read_lines(.Renviron_path),
              value   = TRUE,
              invert  = TRUE),
         # Existing home .Renviron file minus any old entries of
         # PROJECTS_FOLDER_PATH
 
-        home_Renviron_file)
+        Renviron_entries)
   }
 
-  readr::write_lines(home_Renviron_file, path = home_Renviron_path)
-  readRenviron(home_Renviron_path)
+  readr::write_lines(Renviron_entries, path = .Renviron_path)
+  readRenviron(.Renviron_path)
+}
 
+
+create_projects_folder <- function(path) {
   fs::dir_create(fs::path(path, c(".metadata", ".templates")))
+  restore_templates(path)
+  restore_metadata(path)
+}
 
+
+restore_templates <- function(path) {
   purrr::walk2(
     .x = c("01_protocol.Rmd", "STROBE_protocol.Rmd", "CONSORT_protocol.Rmd",
            "02_datawork.Rmd", "03_analysis.Rmd", "04_report.Rmd",
@@ -126,37 +173,40 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
                            fs::path(path, ".templates", template_name))
       }
     })
+}
 
+#' @importFrom tibble tibble
+restore_metadata <- function(path) {
   purrr::walk2(
     .x = c("projects", "authors", "affiliations",
            "project_author_assoc", "author_affiliation_assoc"),
     .y = list(
-           # projects
-           tibble(
-             id            = integer(),            title         = character(),
-             short_title   = character(),          current_owner = integer(),
-             status        = character(),          deadline_type = character(),
-             deadline      = as.Date(character()),
+      # projects
+      tibble(
+        id            = integer(),            title         = character(),
+        short_title   = character(),          current_owner = integer(),
+        status        = character(),          deadline_type = character(),
+        deadline      = as.Date(character()),
 
-             stage =
-               factor(
-                 levels = c("1: design", "2: data collection", "3: analysis",
-                            "4: manuscript", "5: under review", "6: accepted")),
+        stage =
+          factor(
+            levels = c("1: design", "2: data collection", "3: analysis",
+                       "4: manuscript", "5: under review", "6: accepted")),
 
-             path          = character(),          corresp_auth  = integer(),
-             creator       = character()),
-           # authors
-           tibble(id          = integer(),   last_name = character(),
-                  given_names = character(), title     = character(),
-                  degree      = character(), email     = character(),
-                  phone       = character()),
-           # affiliations
-           tibble(id               = integer(),   department_name= character(),
-                  institution_name = character(), address        = character()),
-           # project_author_assoc
-           tibble(id1 = integer(), id2 = integer()),
-           # author_affiliation_assoc
-           tibble(id1 = integer(), id2 = integer())),
+        path          = character(),          corresp_auth  = integer(),
+        creator       = character()),
+      # authors
+      tibble(id          = integer(),   last_name = character(),
+             given_names = character(), title     = character(),
+             degree      = character(), email     = character(),
+             phone       = character()),
+      # affiliations
+      tibble(id               = integer(),   department_name= character(),
+             institution_name = character(), address        = character()),
+      # project_author_assoc
+      tibble(id1 = integer(), id2 = integer()),
+      # author_affiliation_assoc
+      tibble(id1 = integer(), id2 = integer())),
     .f =
       function(rds_name, tibble) {
         rds_path <- make_rds_path(rds_name, path)
@@ -166,7 +216,10 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
         saveRDS(object = tibble, file = rds_path)
       }
   )
+}
 
+
+setup_messages <- function(path, old_path) {
   if(old_path == "") {
     message('"projects" folder created at\n', path,
             '\n\nAdd affiliations with new_affiliation(), then add authors ',
@@ -179,6 +232,4 @@ setup_projects <- function(path, overwrite = FALSE, make_directories = FALSE) {
     message('"projects" folder is now at\n', path,
             '\n\nThe "projects" folder at\n', old_path, '\nhas been abandoned.')
   }
-
-  return(invisible(path))
 }

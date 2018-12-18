@@ -1,4 +1,4 @@
-#' Create, edit, or delete projects, authors, and affiliations
+#' Create, edit or delete projects, authors and affiliations
 #'
 #' These functions create, edit, or delete rows in the \code{\link{projects}()},
 #' \code{\link{authors}()}, and \code{\link{affiliations}()} tibbles, which are
@@ -125,7 +125,13 @@
 #'   project \code{\link{header}} after editing project information.
 #'
 #' @examples
-#' \dontrun{
+#' # SETUP
+#' # - Back up old projects_folder() and create temporary projects folder
+#' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
+#' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+#' ############################################################################
+#'
+#' # Creating affiliations
 #' new_affiliation(department_name = "Math Dept.",
 #'                 institution_name = "Springfield College",
 #'                 address = "123 College St, Springfield, AB")
@@ -133,30 +139,49 @@
 #'                 institution_name = "Springfield College",
 #'                 address = "321 University Boulevard, Springfield, AB",
 #'                 id = 42)
+#'
+#' # Editing an affiliation
 #' edit_affiliation("Math Dept", department_name = "Mathematics Department")
 #'
+#' # Creating authors
 #' new_author(given_names = "Rosetta", last_name = "Stone",
 #'            affiliations = c(42, "Math"), degree = "PhD",
 #'            email = "slab@rock.net", phone = "867-555-5309", id = 8888)
 #' new_author(given_names = "Spiro", last_name = "Agnew", degree = "LLB",
 #'            affiliations = "Art D", id = 13)
-#' new_author(given_names = "Plato", id = 303)
+#' new_author(last_name = "Plato", id = 303)
 #'
+#' # Editing an author, showcasing the removal of a text element (last_name)
+#' edit_author(author = 303, given_names = "Plato", last_name = NULL)
+#'
+#' # Editing an author, showcasing the addition and removal of affiliations
+#' edit_author("Spiro", affiliations = ~ -"Art D" + Math)
+#'
+#' # Creating a project
 #' new_project(title = "Understanding the Construction of the United States",
 #'             short_title = "USA", authors = c(13, "Stone"),
 #'             stage = 4, deadline = "2055-02-28", deadline_type = "submission",
-#'             path = "famous_studied/philosophers/rocks", protocol = "s",
+#'             path = "famous_studied/philosophers/rocks",
 #'             corresp_auth = "Stone", current_owner = "agnew",
 #'             make_directories = TRUE, use_bib = TRUE,
-#'             status = "waiting on IRB",
-#'             analysis = "custom_analysis_template.Rmd")
+#'             status = "waiting on IRB")
 #'
+#' # Editing a project, showcasing the addition and removal of authors
 #' edit_project("Understanding", short_title = "usa1",
 #'              authors = ~ + "303" - 13 - Stone)
 #'
-#' delete_project("usa1")
+#' # Wrapped in if(interactive()) because it requires interactive console input
+#' # and fails automated package checking and testing.
+#' if(interactive()) {
+#'   delete_project("usa1")
+#'   delete_author(303)
+#'   delete_affiliation("Math")
 #' }
 #'
+#' #############################################################################
+#' # CLEANUP
+#' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
+#' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
 #' @name new_edit_delete
 #' @importFrom rlang .data
 #' @importFrom tibble tibble
