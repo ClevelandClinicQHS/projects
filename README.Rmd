@@ -18,9 +18,13 @@ if(fs::dir_exists("C:/projects")) fs::dir_delete("C:/projects")
 
 # projects
 
+[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/projects)](https://cran.r-project.org/package=projects)
+![CRAN\_Download\_Counter](http://cranlogs.r-pkg.org/badges/grand-total/projects)
+
 ### Authors
 
 | Nikolas I. Krieger, M.S.;^1^ Adam T. Perzynski, Ph.D.;^2^ and Jarrod E. Dalton, Ph.D.^1,3^
+
 | ^1^ Department of Quantitative Health Sciences, Lerner Research Institute, Cleveland Clinic, 9500 Euclid Avenue (JJN3), Cleveland, OH, 44195
 | ^2^ Center for Healthcare Research and Policy, Case Western Reserve University at MetroHealth, 2500 MetroHealth Drive, Cleveland, OH 44109
 | ^3^ Cleveland Clinic Lerner College of Medicine, Case Western Reserve University
@@ -33,11 +37,10 @@ if(fs::dir_exists("C:/projects")) fs::dir_delete("C:/projects")
 
 ### Installation
 
-You can install `projects` from Github with:
+You can install `projects` with:
 
-```{r gh-installation, eval = FALSE}
-# install.packages("devtools")
-devtools::install_github("NikKrieger/projects")
+```{r installation, eval = FALSE}
+install.packages("projects")
 ```
 
 ## Introduction
