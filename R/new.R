@@ -121,6 +121,9 @@
 #'   folder. Its name will be of the form \emph{pXXXX.bib}, and the YAML header
 #'   of \emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd} will include
 #'   the line \code{bibliography: pXXXX.bib}.
+#' @param stitle_as_folder Logical, indicating whether or not to use the
+#'   \code{short_title} as the name of the new project's folder. Defaults to
+#'   \code{FALSE}.
 #' @param reprint_header Logical, indicating whether or not to reprint the
 #'   project \code{\link{header}} after editing project information.
 #' @param archived Logical indicating whether or not the function should
