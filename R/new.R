@@ -214,7 +214,8 @@ new_project <- function(title            = NA,
                         report           = "04_report.Rmd",
                         css              = "style.css",
                         Rproj            = "pXXXX.Rproj",
-                        use_bib          = FALSE) {
+                        use_bib          = FALSE,
+                        stitle_as_folder = FALSE) {
 
   p_path                   <- p_path_internal()
 
@@ -230,24 +231,31 @@ new_project <- function(title            = NA,
 
   aa_assoc_tibble <- get_rds(make_rds_path("author_affiliation_assoc", p_path))
 
-  #######################
-  # Validation of id, path
-  id              <- validate_new(id         = id,
-                                  what       = "project",
-                                  rds_tibble = projects_tibble)
-
-  path            <- validate_directory(path             = path,
-                                        p_path           = p_path,
-                                        make_directories = make_directories)
-
-  pXXXX_name      <- make_project_name(id)
-  pXXXX_path      <- make_project_path(pXXXX_name, path)
-  ########################
-  ########################
-
   if(!is.na(title)) {
     title <- tools::toTitleCase(title)
   }
+
+  #######################
+  # Validation of id, path
+  id         <- validate_new(id         = id,
+                             what       = "project",
+                             rds_tibble = projects_tibble)
+
+  path       <- validate_directory(path             = path,
+                                   p_path           = p_path,
+                                   make_directories = make_directories)
+
+  pXXXX_name <- make_project_name(ifelse(stitle_as_folder, short_title, id),
+                                  stitle_as_folder)
+  pXXXX_path <- make_project_path(pXXXX_name, path)
+
+  if(fs::dir_exists(pXXXX_path)) {
+    stop("The directory\n", pXXXX_path, "\nalready exists.",
+         "\nMove or delete it, or pick a different project id/short_title.")
+  }
+
+  ########################
+  ########################
 
   stage <- validate_stage(stage, choices = eval(formals()$stage))
 
@@ -459,6 +467,7 @@ new_project <- function(title            = NA,
     message("\nCreator:")
     print(dplyr::filter(authors_tibble, .data$id == creator))
   }
+  return(invisible(new_project_row))
 }
 ################################################################################
 

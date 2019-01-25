@@ -1,7 +1,11 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c(".", ":="))
 
-make_project_name <- function(project_id) {
-  paste0("p", stringr::str_pad(project_id, width = 4, side = "left", pad = "0"))
+make_project_name <- function(x, short_title = FALSE) {
+
+  if(short_title) {
+    return(fs::path_sanitize(x))
+  }
+  paste0("p", stringr::str_pad(x, width = 4, side = "left", pad = "0"))
 }
 
 make_project_path <- function(project_name, path = p_path_internal()) {

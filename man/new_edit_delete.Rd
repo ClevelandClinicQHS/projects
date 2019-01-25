@@ -41,7 +41,8 @@ new_project(title = NA, short_title = NA, authors = NULL,
   protocol = c("01_protocol.Rmd", "STROBE_protocol.Rmd",
   "CONSORT_protocol.Rmd"), datawork = "02_datawork.Rmd",
   analysis = "03_analysis.Rmd", report = "04_report.Rmd",
-  css = "style.css", Rproj = "pXXXX.Rproj", use_bib = FALSE)
+  css = "style.css", Rproj = "pXXXX.Rproj", use_bib = FALSE,
+  stitle_as_folder = FALSE)
 
 new_author(given_names = NA, last_name = NA, title = NA,
   affiliations, degree = NA, email = NA, phone = NA, id = NA)

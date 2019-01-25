@@ -20,15 +20,25 @@
 #' \code{\link{projects_folder}} (or recursively within another project group's
 #' folder), use \code{new_project_group()}.
 #'
+#' The folder name of the project copy created by \code{copy_project()} will be
+#' \code{new_short_title} if the user supplies a value that is different from
+#' the names of any existing directories at \code{path}. Otherwise, its folder
+#' name will be taken from its \code{id} (i.e., "pXXXX").
+#'
 #' \code{open_project()} is a wrapper around
 #' \code{\link[rstudioapi]{openProject}}, but the user only needs to know the
 #' project's \code{id}, \code{title}, or \code{short_title} instead of the file
-#' path of the project's \emph{.Rproj} file.
+#' path of the project's \emph{.Rproj} file. If there is no .Rproj file in the
+#' project's folder, the user has the option to restore a default .Rproj folder.
+#' If there are multiple .Rproj files, an error is thrown.
 #'
-#' @param path A valid path string. See the \code{path} argument in
-#'   \code{\link{new_project}()} for details, the one difference being that
-#'   there is no default (i.e., the user cannot leave \code{path} blank in these
-#'   functions).
+#' @param path A valid path string.
+#'
+#'   For \code{copy_project()} only, if left blank, the preexisting project's
+#'   directory is used. All other functions here require a valid path.
+#'
+#'   See the \code{path} argument in \code{\link{new_project}()} for details on
+#'   valid paths.
 #' @param project Project \code{id} or unambiguous substring of the project name
 #'   from the \code{\link{projects}()} tibble.
 #' @param make_directories Logical. If the path represented by the \code{path}
@@ -39,8 +49,16 @@
 #'   newly-created project ID. Must not already exist in
 #'   \code{\link{projects}()$id}. If left blank, the lowest available \code{id}
 #'   will be automatically used.
+#' @param new_short_title Optional character string that becomes the
+#'   \code{short_title} of the project copy. It also becomes the project copy's
+#'   folder name under normal circumstances (see \strong{Details}).
+#' @param new_folder_name Character string of new name for project folder.
+#'   Always processed with \code{fs::\link[fs]{path_sanitize}()}.
+#' @param change_short_title Logical indicating whether or not the project's
+#'   \code{short_title} should be changed to the value of
+#'   \code{new_folder_name}. Defaults to \code{TRUE}.
 #' @param new_session Same as the \code{newSession} argument in
-#'   \code{rstudio::\link[rstudioapi]{openProject}()}.
+#'   \code{rstudioapi::\link[rstudioapi]{openProject}()}.
 #' @param archived Logical indicating whether or not the function should
 #'   consider archived projects when determining which project the user is
 #'   referring to in the \code{project}/\code{project_to_copy} argument.
@@ -51,7 +69,7 @@
 #'
 #' @name file_management
 #' @seealso \code{\link{new_project}()} and \code{\link{delete_project}()} for
-#'   other functions that write and delete files
+#'   other functions that write and delete files.
 #'
 #' @examples
 #' # SETUP
@@ -76,6 +94,9 @@
 #'
 #'   # Copying the project
 #'   copy_project(project_to_copy = 1, "kidney/clinical")
+#'
+#'   # Renaming the folder of the copy of the project
+#'   rename_folder(project = 2, "copy")
 #'
 #'   # Archiving the copy of the project
 #'   archive_project(2)
@@ -116,8 +137,72 @@ new_project_group <- function(path) {
 #' @rdname file_management
 #' @importFrom rlang .data
 #' @export
-move_project <- function(project, path, make_directories = FALSE,
-                         archived = FALSE) {
+rename_folder <- function(project,
+                          new_folder_name,
+                          change_short_title = TRUE,
+                          archived           = FALSE) {
+
+  p_path          <- p_path_internal()
+
+  projects_path   <- make_rds_path("projects", p_path)
+  projects_tibble <- get_rds(projects_path)
+
+  project         <- validate_entry(x = project,
+                                    what = "project",
+                                    rds_tibble = projects_tibble,
+                                    max.length = 1,
+                                    archived = archived)
+
+  project_row     <- dplyr::filter(projects_tibble, .data$id == project)
+
+  new_folder_name <- fs::path_sanitize(new_folder_name)
+
+  new_path        <- fs::path(fs::path_dir(project_row$path), new_folder_name)
+
+  print(project_row)
+
+  if(fs::dir_exists(new_path)) {
+    stop("The directory\n", new_path, "\nalready exists.",
+         "\nMove or delete it, or pick a different name.")
+  }
+  else {
+    user_prompt(
+      msg   = paste0("Are you sure you want to rename this project folder so ",
+                     "that its new file path is\n", new_path, "\n? (y/n)"),
+      n_msg = paste0('Renaming not completed. To rename this project, ',
+                     'try again and enter "y".')
+    )
+  }
+
+  fs::file_move(path = project_row$path, new_path = new_path)
+
+  project_row$path <- unclass(new_path)
+
+  if(change_short_title) {
+    project_row$short_title <- new_folder_name
+  }
+
+  do.call(what = change_table,
+          args = c(list(action        = "edit",
+                        rds_path      = projects_path,
+                        rds_tibble    = projects_tibble),
+                   as.list(project_row)))
+
+  message("\nProject ", project, " renamed so that its new path is\n",
+          project_row$path)
+
+  return(invisible(project_row))
+}
+
+
+
+#' @rdname file_management
+#' @importFrom rlang .data
+#' @export
+move_project <- function(project,
+                         path,
+                         make_directories = FALSE,
+                         archived         = FALSE) {
 
   p_path          <- p_path_internal()
 
@@ -182,8 +267,9 @@ move_project <- function(project, path, make_directories = FALSE,
 #' @importFrom rlang .data
 #' @export
 copy_project <- function(project_to_copy,
-                         path,
                          new_id           = NA,
+                         new_short_title  = NA,
+                         path,
                          make_directories = FALSE,
                          archived         = FALSE) {
 
@@ -201,25 +287,41 @@ copy_project <- function(project_to_copy,
                                      max.length = 1,
                                      archived   = archived)
 
-  path             <- validate_directory(path             = path,
-                                         p_path           = p_path,
-                                         make_directories = make_directories)
-
   project_row      <- dplyr::filter(projects_tibble, .data$id == project)
-
-  old_name         <- make_project_name(project)
 
   old_path         <- project_row$path
 
-  print(project_row)
+  old_folder       <- fs::path_file(old_path)
+
+  if(missing(path)) {
+    path           <- fs::path_dir(old_path)
+  }
+  else {
+    path           <- validate_directory(path             = path,
+                                         p_path           = p_path,
+                                         make_directories = make_directories)
+  }
+
+  old_project      <- project_row
 
   project_row$id   <- validate_new(id         = new_id,
                                    what       = "project",
                                    rds_tibble = projects_tibble)
 
-  pXXXX_name       <- make_project_name(project_row$id)
+  if(!is.na(new_short_title)) {
+    project_row$short_title <- new_short_title
+  }
 
-  project_row$path <- fs::path(path, pXXXX_name) %>% unclass()
+  if(is.na(new_short_title) || new_short_title %in% fs::dir_ls(path)) {
+    folder_name    <- make_project_name(project_row$id)
+  }
+  else {
+    folder_name    <- make_project_name(new_short_title, short_title = TRUE)
+  }
+
+  project_row$path <- fs::path(path, folder_name) %>% unclass()
+
+  print(old_project)
 
   if(fs::dir_exists(path)) {
     user_prompt(
@@ -266,7 +368,7 @@ copy_project <- function(project_to_copy,
   new_proj_ls <- fs::dir_ls(project_row$path)
   Rproj_path  <- new_proj_ls[fs::path_ext(new_proj_ls) == "Rproj"]
   if(length(Rproj_path) == 1) {
-    new_path <- fs::path(fs::path_dir(Rproj_path), pXXXX_name, ext = "Rproj")
+    new_path  <- fs::path(fs::path_dir(Rproj_path), folder_name, ext = "Rproj")
     fs::file_move(path = Rproj_path, new_path = new_path)
     message("\nThe .Rproj file\n", Rproj_path, "\nwas renamed to\n", new_path)
   }
@@ -278,8 +380,8 @@ copy_project <- function(project_to_copy,
             " None have been renamed.")
   }
 
-  message('\nBe sure to change all instances of \"', old_name, '\" to \"',
-          pXXXX_name, '\" as desired\n(e.g., .bib files and references to ',
+  message('\nBe sure to change all instances of \"', old_folder, '\" to \"',
+          folder_name, '\" as desired\n(e.g., .bib files and references to ',
           'them in YAML headers).\n')
 }
 
@@ -341,14 +443,41 @@ open_project <- function(project, new_session = FALSE, archived = FALSE) {
   projects_tibble <- get_rds(make_rds_path("projects"))
 
   project <- validate_entry(project,
-                            what = "project",
+                            what       = "project",
                             rds_tibble = projects_tibble,
                             max.length = 1L,
                             archived   = archived)
 
   path <- dplyr::filter(projects_tibble, .data$id == project)$path
 
-  path <- fs::path(path, make_project_name(project), ext = "Rproj")
+  Rproj_path <-
+    path %>%
+    fs::dir_ls() %>%
+    `[`(fs::path_ext(.) == "Rproj")
 
-  rstudioapi::openProject(path, new_session)
+  if(length(Rproj_path) != 1) {
+    if(length(Rproj_path) == 0) {
+      user_prompt(
+        msg   = paste0("\nCannot open project ", project, " because there\n",
+                       "is no .Rproj file in\n", path,
+                       "\n\nRestore it with a default .Rproj file? (y/n)"),
+        n_msg = paste0('\nRestore a .Rproj file to the folder\n', path))
+
+      Rproj_path <- fs::path(path, make_project_name(project), ext = "Rproj")
+      readr::write_lines(Rproj_template, Rproj_path)
+
+      user_prompt(
+        msg   = paste0(".Rproj file restored at\n", Rproj_path,
+                       "\n\nOpen this project? (y/n)"),
+        n_msg = paste0("\nProject not opened."))
+    }
+    else {
+      stop("\nCannot open project ", project, " because there\n",
+           "are multiple .Rproj files in\n", path, "\nNamely: ",
+           paste(fs::path_file(Rproj_path), collapse = ", "),
+           "\nMove or delete the extraneous ones.")
+    }
+  }
+
+  rstudioapi::openProject(Rproj_path, new_session)
 }

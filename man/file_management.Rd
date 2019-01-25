@@ -3,6 +3,7 @@
 \name{file_management}
 \alias{file_management}
 \alias{new_project_group}
+\alias{rename_folder}
 \alias{move_project}
 \alias{copy_project}
 \alias{archive_project}
@@ -11,9 +12,12 @@
 \usage{
 new_project_group(path)
 
+rename_folder(project, new_folder_name, change_short_title = TRUE,
+  archived = FALSE)
+
 move_project(project, path, make_directories = FALSE, archived = FALSE)
 
-copy_project(project_to_copy, path, new_id = NA,
+copy_project(project_to_copy, new_id = NA, new_short_title = NA, path,
   make_directories = FALSE, archived = FALSE)
 
 archive_project(project)
@@ -21,16 +25,23 @@ archive_project(project)
 open_project(project, new_session = FALSE, archived = FALSE)
 }
 \arguments{
-\item{path}{A valid path string. See the \code{path} argument in
-\code{\link{new_project}()} for details, the one difference being that
-there is no default (i.e., the user cannot leave \code{path} blank in these
-functions).}
+\item{path}{A valid path string.
+
+  For \code{copy_project()} only, if left blank, the preexisting project's
+  directory is used. All other functions here require a valid path.
+
+  See the \code{path} argument in \code{\link{new_project}()} for details on
+  valid paths.}
 
 \item{project}{Project \code{id} or unambiguous substring of the project name
 from the \code{\link{projects}()} tibble.}
 
-\item{make_directories}{Logical. If the path represented by the \code{path}
-parameter does not exist, should the needed directories be created?}
+\item{new_folder_name}{Character string of new name for project folder.
+Always processed with \code{fs::\link[fs]{path_sanitize}()}.}
+
+\item{change_short_title}{Logical indicating whether or not the project's
+\code{short_title} should be changed to the value of
+\code{new_folder_name}. Defaults to \code{TRUE}.}
 
 \item{archived}{Logical indicating whether or not the function should
   consider archived projects when determining which project the user is
@@ -40,6 +51,9 @@ parameter does not exist, should the needed directories be created?}
   See the \strong{Details} section of \code{\link{archive_project}()} for
   more information on the "archived" status of a project.}
 
+\item{make_directories}{Logical. If the path represented by the \code{path}
+parameter does not exist, should the needed directories be created?}
+
 \item{project_to_copy}{Project \code{id} or unambiguous substring of the
 project name corresponding to the project that is to be copied.}
 
@@ -48,8 +62,12 @@ newly-created project ID. Must not already exist in
 \code{\link{projects}()$id}. If left blank, the lowest available \code{id}
 will be automatically used.}
 
+\item{new_short_title}{Optional character string that becomes the
+\code{short_title} of the project copy. It also becomes the project copy's
+folder name under normal circumstances (see \strong{Details}).}
+
 \item{new_session}{Same as the \code{newSession} argument in
-\code{rstudio::\link[rstudioapi]{openProject}()}.}
+\code{rstudioapi::\link[rstudioapi]{openProject}()}.}
 }
 \description{
 Tools for Organizing and Managing Project Files
@@ -73,10 +91,17 @@ group, which essentially is a subfolder of projects that sits within the main
 \code{\link{projects_folder}} (or recursively within another project group's
 folder), use \code{new_project_group()}.
 
+The folder name of the project copy created by \code{copy_project()} will be
+\code{new_short_title} if the user supplies a value that is different from
+the names of any existing directories at \code{path}. Otherwise, its folder
+name will be taken from its \code{id} (i.e., "pXXXX").
+
 \code{open_project()} is a wrapper around
 \code{\link[rstudioapi]{openProject}}, but the user only needs to know the
 project's \code{id}, \code{title}, or \code{short_title} instead of the file
-path of the project's \emph{.Rproj} file.
+path of the project's \emph{.Rproj} file. If there is no .Rproj file in the
+project's folder, the user has the option to restore a default .Rproj folder.
+If there are multiple .Rproj files, an error is thrown.
 }
 \examples{
 # SETUP
@@ -102,6 +127,9 @@ if(interactive()){
   # Copying the project
   copy_project(project_to_copy = 1, "kidney/clinical")
 
+  # Renaming the folder of the copy of the project
+  rename_folder(project = 2, "copy")
+
   # Archiving the copy of the project
   archive_project(2)
 
@@ -118,5 +146,5 @@ fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
 }
 \seealso{
 \code{\link{new_project}()} and \code{\link{delete_project}()} for
-  other functions that write and delete files
+  other functions that write and delete files.
 }
