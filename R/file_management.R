@@ -267,9 +267,9 @@ move_project <- function(project,
 #' @importFrom rlang .data
 #' @export
 copy_project <- function(project_to_copy,
+                         path,
                          new_id           = NA,
                          new_short_title  = NA,
-                         path,
                          make_directories = FALSE,
                          archived         = FALSE) {
 
