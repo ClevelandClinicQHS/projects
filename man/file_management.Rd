@@ -17,7 +17,7 @@ rename_folder(project, new_folder_name, change_short_title = TRUE,
 
 move_project(project, path, make_directories = FALSE, archived = FALSE)
 
-copy_project(project_to_copy, new_id = NA, new_short_title = NA, path,
+copy_project(project_to_copy, path, new_id = NA, new_short_title = NA,
   make_directories = FALSE, archived = FALSE)
 
 archive_project(project)

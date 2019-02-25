@@ -72,7 +72,7 @@
 setup_projects <- function(path,
                            overwrite        = FALSE,
                            make_directories = FALSE,
-                           .Renviron_path   = fs::path_home(".Renviron")) {
+                           .Renviron_path   = fs::path_home_r(".Renviron")) {
 
   path     <- path %>%
     validate_directory(p_path           = NULL,

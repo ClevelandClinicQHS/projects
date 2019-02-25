@@ -5,7 +5,7 @@
 \title{Set up the projects folder}
 \usage{
 setup_projects(path, overwrite = FALSE, make_directories = FALSE,
-  .Renviron_path = fs::path_home(".Renviron"))
+  .Renviron_path = fs::path_home_r(".Renviron"))
 }
 \arguments{
 \item{path}{The full file path where the user would like a directory called

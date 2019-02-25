@@ -1,3 +1,8 @@
+# projects 0.2.1.9000
+
+## Major update:
+- Instances of fs::path_home() were changed to fs::path_home_r() so that .Renviron files would be put in the correct place (i.e., the directory that R considers to be the home directory, which is where R actually looks for .Renviron files).
+
 # projects 0.2.0.9000
 
 ## Major updates
