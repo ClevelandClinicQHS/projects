@@ -382,14 +382,18 @@ new_project <- function(title            = NA,
   } else {
     print(
       pa_assoc_table %>%
-        dplyr::filter(.data$id1 == id) %>%
+        dplyr::filter(.data$id1 == !!id) %>%
         dplyr::left_join(authors_table, by = c("id2" = "id")) %>%
         dplyr::select(-"id1") %>%
         dplyr::rename("author_id" = "id2")
     )
   }
 
-  print(dplyr::select(new_project_row, current_owner, corresp_auth, creator))
+  print(
+    dplyr::select(
+      new_project_row, "current_owner", "corresp_auth", "creator"
+    )
+  )
 
   invisible(new_project_row)
 }

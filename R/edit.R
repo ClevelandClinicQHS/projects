@@ -75,7 +75,7 @@ edit_project <- function(project,
     current_owner <-
       validate_projects_author(
         x     = current_owner,
-        authors_table = authors_table,
+        authors_table = authors_table
       )
 
     if (any(authors$remove == current_owner)) {
@@ -188,11 +188,21 @@ edit_project <- function(project,
   filtered_assoc <- assoc_table[which(assoc_table$id1 == project$id), ]
 
   message("Edited project info:")
-  print(new_project_row)
+  print(
+    dplyr::select(
+      new_project_row,
+      "id",
+      "title",
+      "stage",
+      "status",
+      "deadline_type",
+      "deadline"
+    )
+  )
 
   message("\nEdited project's authors:")
   if (nrow(filtered_assoc) == 0) {
-    cat("None")
+    cat("None.")
   } else {
     print(
       filtered_assoc %>%
@@ -202,9 +212,17 @@ edit_project <- function(project,
     )
   }
 
-  if (!is.na(title) ||
-      !is.na(corresp_auth) ||
-      !identical(authors, list(add = list(), remove = list()))) {
+  print(
+    dplyr::select(
+      new_project_row, "current_owner", "corresp_auth", "creator"
+    )
+  )
+
+  if (
+    !is.na(title) ||
+    !is.na(corresp_auth) ||
+    !identical(authors, list(add = list(), remove = list()))
+  ) {
     message("\nHeader has changed. Reprint it with:\nheader(", project$id, ")")
   }
 
@@ -864,9 +882,12 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
   purrr::iwalk(
     user_order,
     function(new_rank, rds2_id) {
-      reordered <<- append(x      = reordered,
-                           values = as.integer(rds2_id),
-                           after  = new_rank - 1)
+      reordered <<-
+        append(
+          x      = reordered,
+          values = as.integer(rds2_id),
+          after  = new_rank - 1L
+        )
     }
   )
 
