@@ -115,7 +115,7 @@
 #' @export
 new_project_group <- function(path) {
 
-  p_path <- p_path_internal()
+  p_path <- p_path()
 
   path   <- validate_directory(path, p_path, make_directories = TRUE)
 
@@ -142,18 +142,21 @@ rename_folder <- function(project,
                           change_short_title = TRUE,
                           archived           = FALSE) {
 
-  p_path          <- p_path_internal()
+  p_path         <- p_path()
 
-  projects_path   <- make_rds_path("projects", p_path)
-  projects_tibble <- get_rds(projects_path)
+  projects_path  <- make_rds_path("projects", p_path)
+  projects_table <- get_rds(projects_path)
 
-  project         <- validate_entry(x = project,
-                                    what = "project",
-                                    rds_tibble = projects_tibble,
-                                    max.length = 1,
-                                    archived = archived)
+  if (!archived) {
+    projects_table <- remove_archived(projects_table)
+  }
 
-  project_row     <- dplyr::filter(projects_tibble, .data$id == project)
+  project_row    <-
+    validate_unique_entry(
+      x     = project,
+      table = projects_table,
+      what  = "project"
+    )
 
   new_folder_name <- fs::path_sanitize(new_folder_name)
 
@@ -185,13 +188,15 @@ rename_folder <- function(project,
   do.call(what = change_table,
           args = c(list(action        = "edit",
                         rds_path      = projects_path,
-                        rds_tibble    = projects_tibble),
+                        rds_table    = projects_table),
                    as.list(project_row)))
 
-  message("\nProject ", project, " renamed so that its new path is\n",
-          project_row$path)
+  message(
+    "\nProject ", project_row$id,
+    " renamed so that its new path is\n", project_row$path
+  )
 
-  return(invisible(project_row))
+  invisible(project_row)
 }
 
 
@@ -204,26 +209,32 @@ move_project <- function(project,
                          make_directories = FALSE,
                          archived         = FALSE) {
 
-  p_path          <- p_path_internal()
+  p_path          <- p_path()
 
   projects_path   <- make_rds_path("projects", p_path)
-  projects_tibble <- get_rds(projects_path)
+  projects_table  <- get_rds(projects_path)
 
-  project         <- validate_entry(x          = project,
-                                    what       = "project",
-                                    rds_tibble = projects_tibble,
-                                    max.length = 1,
-                                    archived   = archived)
+  if (!archived) {
+    projects_table <- remove_archived(projects_table)
+  }
 
-  path            <- validate_directory(path             = path,
-                                        p_path           = p_path,
-                                        make_directories = make_directories)
+  project_row      <-
+    validate_unique_entry(
+      x     = project,
+      table = projects_table,
+      what  = "project"
+    )
 
-  project_row     <- dplyr::filter(projects_tibble, .data$id == project)
+  path            <-
+    validate_directory(
+      path             = path,
+      p_path           = p_path,
+      make_directories = make_directories
+    )
 
   print(project_row)
 
-  if(fs::dir_exists(path)) {
+  if (fs::dir_exists(path)) {
     user_prompt(
       msg   = paste0("Are you sure you want to move this project folder so ",
                      "that its new file path is\n",
@@ -232,8 +243,7 @@ move_project <- function(project,
       n_msg = paste0('Move not completed. To move this project, try again ',
                      'and enter "y".')
     )
-  }
-  else {
+  } else {
     user_prompt(
       msg   = paste0("\nDirectory not found:\n", path,
                      "\n\nWould you like to create it and move the project ",
@@ -252,14 +262,23 @@ move_project <- function(project,
     fs::path(path, fs::path_file(project_row$path)) %>%
     unclass()
 
-  do.call(what = change_table,
-          args = c(list(action        = "edit",
-                        rds_path      = projects_path,
-                        rds_tibble    = projects_tibble),
-                   as.list(project_row)))
+  do.call(
+    what = change_table,
+    args =
+      c(
+        list(
+          action    = "edit",
+          rds_path  = projects_path,
+          rds_table = projects_table
+        ),
+        as.list(project_row)
+      )
+  )
 
-  message("\nProject ", project, " moved so that its new path is\n",
-          project_row$path)
+  message(
+    "\nProject ", project_row$id,
+    " moved so that its new path is\n", project_row$path
+  )
 }
 
 
@@ -273,49 +292,51 @@ copy_project <- function(project_to_copy,
                          make_directories = FALSE,
                          archived         = FALSE) {
 
-  p_path           <- p_path_internal()
+  p_path         <- p_path()
 
-  pa_assoc_path    <- make_rds_path("project_author_assoc", p_path)
-  pa_assoc_tibble  <- get_rds(pa_assoc_path)
+  pa_assoc_path  <- make_rds_path("project_author_assoc", p_path)
+  pa_assoc_table <- get_rds(pa_assoc_path)
 
-  projects_path    <- make_rds_path("projects", p_path)
-  projects_tibble  <- get_rds(projects_path)
+  projects_path  <- make_rds_path("projects", p_path)
+  projects_table <- get_rds(projects_path)
 
-  project          <- validate_entry(x          = project_to_copy,
-                                     what       = "project",
-                                     rds_tibble = projects_tibble,
-                                     max.length = 1,
-                                     archived   = archived)
+  project_row    <-
+    validate_unique_entry(
+      x     = project_to_copy,
+      table = projects_table,
+      what  = "project"
+    )
 
-  project_row      <- dplyr::filter(projects_tibble, .data$id == project)
+  original_project_id <- project_row$id
 
-  old_path         <- project_row$path
+  old_path            <- project_row$path
 
-  old_folder       <- fs::path_file(old_path)
+  old_folder          <- fs::path_file(old_path)
 
-  if(missing(path)) {
-    path           <- fs::path_dir(old_path)
-  }
-  else {
-    path           <- validate_directory(path             = path,
-                                         p_path           = p_path,
-                                         make_directories = make_directories)
+  if (missing(path)) {
+    path         <- fs::path_dir(old_path)
+  } else {
+    path         <-
+      validate_directory(
+        path             = path,
+        p_path           = p_path,
+        make_directories = make_directories
+      )
   }
 
   old_project      <- project_row
 
   project_row$id   <- validate_new(id         = new_id,
                                    what       = "project",
-                                   rds_tibble = projects_tibble)
+                                   rds_table = projects_table)
 
-  if(!is.na(new_short_title)) {
+  if (!is.na(new_short_title)) {
     project_row$short_title <- new_short_title
   }
 
-  if(is.na(new_short_title) || new_short_title %in% fs::dir_ls(path)) {
+  if (is.na(new_short_title) || any(fs::dir_ls(path) == new_short_title)) {
     folder_name    <- make_project_name(project_row$id)
-  }
-  else {
+  } else {
     folder_name    <- make_project_name(new_short_title, short_title = TRUE)
   }
 
@@ -323,15 +344,14 @@ copy_project <- function(project_to_copy,
 
   print(old_project)
 
-  if(fs::dir_exists(path)) {
+  if (fs::dir_exists(path)) {
     user_prompt(
       msg   = paste0("\nAre you sure you want to copy this project into the ",
                      "new directory\n", project_row$path, "\n\n? (y/n)"),
       n_msg = paste0('Copy not completed. To copy this project, try again ',
                      'and enter "y".')
     )
-  }
-  else {
+  } else {
     user_prompt(
       msg   = paste0("\nDirectory not found:\n", path,
                      "\n\nWould you like to create it and copy the above ",
@@ -348,41 +368,43 @@ copy_project <- function(project_to_copy,
   do.call(what = change_table,
           args = c(list(action     = "new",
                         rds_path   = projects_path,
-                        rds_tibble = projects_tibble),
+                        rds_table = projects_table),
                    as.list(project_row)))
 
-  old_assoc <- dplyr::filter(pa_assoc_tibble, .data$id1 == project)
+  old_assoc <- dplyr::filter(pa_assoc_table, .data$id1 == original_project_id)
 
-  if(nrow(old_assoc) > 0) {
+  if (nrow(old_assoc) > 0) {
     change_assoc(assoc_path = pa_assoc_path,
-                 assoc_tibble = pa_assoc_tibble,
+                 assoc_table = pa_assoc_table,
                  new = TRUE,
                  id1 = project_row$id,
                  id2 = old_assoc$id2)
   }
 
-  message("\nProject ", project_row$id, " below is a copy of project ", project,
-          " and is located at\n", project_row$path)
+  message(
+    "\nProject ", project_row$id, " below is a copy of project ",
+    original_project_id, " and is located at\n", project_row$path
+  )
   print(project_row)
 
   new_proj_ls <- fs::dir_ls(project_row$path)
   Rproj_path  <- new_proj_ls[fs::path_ext(new_proj_ls) == "Rproj"]
-  if(length(Rproj_path) == 1) {
+  if (length(Rproj_path) == 1) {
     new_path  <- fs::path(fs::path_dir(Rproj_path), folder_name, ext = "Rproj")
     fs::file_move(path = Rproj_path, new_path = new_path)
     message("\nThe .Rproj file\n", Rproj_path, "\nwas renamed to\n", new_path)
-  }
-  else if(length(Rproj_path) == 0) {
+  } else if (length(Rproj_path) == 0) {
     message("\nNo .Rproj file found in the new project folder.")
-  }
-  else {
+  } else {
     message("\nMultiple .Rproj files found in newly created directory.",
             " None have been renamed.")
   }
 
-  message('\nBe sure to change all instances of \"', old_folder, '\" to \"',
-          folder_name, '\" as desired\n(e.g., .bib files and references to ',
-          'them in YAML headers).\n')
+  message(
+    '\nBe sure to change all instances of \"', old_folder,
+    '\" to \"', folder_name,
+    '\" as desired\n(e.g., .bib files and references to them in YAML headers).'
+  )
 }
 
 
@@ -393,18 +415,17 @@ copy_project <- function(project_to_copy,
 #' @export
 archive_project <- function(project) {
 
-  p_path          <- p_path_internal()
+  p_path          <- p_path()
 
   projects_path   <- make_rds_path("projects", p_path)
-  projects_tibble <- get_rds(projects_path)
+  projects_table  <- get_rds(projects_path) %>% remove_archived()
 
-  project         <- validate_entry(x          = project,
-                                    what       = "project",
-                                    rds_tibble = projects_tibble,
-                                    max.length = 1,
-                                    archived   = FALSE)
-
-  project_row     <- dplyr::filter(projects_tibble, .data$id == project)
+  project_row     <-
+    validate_unique_entry(
+      x     = project,
+      table = projects_table,
+      what  = "project"
+    )
 
   if(!fs::dir_exists(project_row$path)) {
     print(project_row)
@@ -426,11 +447,11 @@ archive_project <- function(project) {
   }
   fs::file_move(path = project_row$path, new_path = archive_folder)
 
-  projects_tibble$path[projects_tibble$id == project]   <- new_path
+  projects_table$path[projects_table$id == project_row$id]   <- new_path
 
-  saveRDS(object = projects_tibble, file = projects_path)
+  write_metadata(table = projects_table, table_path = projects_path)
 
-  print(dplyr::filter(projects_tibble, .data$id == project))
+  print(dplyr::filter(projects_table, .data$id == project_row$id))
   message("\nThe above project was archived and has the file path\n", new_path)
 }
 
@@ -440,42 +461,58 @@ archive_project <- function(project) {
 #' @importFrom rlang .data
 open_project <- function(project, new_session = FALSE, archived = FALSE) {
 
-  projects_tibble <- get_rds(make_rds_path("projects"))
+  projects_table <- projects_internal(archived = archived)
 
-  project <- validate_entry(project,
-                            what       = "project",
-                            rds_tibble = projects_tibble,
-                            max.length = 1L,
-                            archived   = archived)
+  project <-
+    validate_unique_entry(x = project, table = projects_table, what = "project")
 
-  path <- dplyr::filter(projects_tibble, .data$id == project)$path
+  path <- dplyr::filter(projects_table, .data$id == project)$path
 
   Rproj_path <-
-    path %>%
+    project$path %>%
     fs::dir_ls() %>%
     `[`(fs::path_ext(.) == "Rproj")
 
   if(length(Rproj_path) != 1) {
-    if(length(Rproj_path) == 0) {
-      user_prompt(
-        msg   = paste0("\nCannot open project ", project, " because there\n",
-                       "is no .Rproj file in\n", path,
-                       "\n\nRestore it with a default .Rproj file? (y/n)"),
-        n_msg = paste0('\nRestore a .Rproj file to the folder\n', path))
 
-      Rproj_path <- fs::path(path, make_project_name(project), ext = "Rproj")
+    if(length(Rproj_path) == 0) {
+
+      user_prompt(
+        msg   =
+          paste0(
+            "\nCannot open project ",
+            project$id,
+            " because there\n",
+            "is no .Rproj file in\n",
+            project$path,
+            "\n\nRestore it with a default .Rproj file? (y/n)"
+          ),
+        n_msg =
+          paste0('\nRestore a .Rproj file to the folder\n', project$path)
+      )
+
+      Rproj_path <-
+        fs::path(project$path, make_project_name(project$id), ext = "Rproj")
       readr::write_lines(Rproj_template, Rproj_path)
 
       user_prompt(
-        msg   = paste0(".Rproj file restored at\n", Rproj_path,
-                       "\n\nOpen this project? (y/n)"),
-        n_msg = paste0("\nProject not opened."))
+        msg   =
+          paste0(
+            ".Rproj file restored at\n",
+            Rproj_path,
+            "\n\nOpen this project? (y/n)"
+          ),
+        n_msg =
+          paste0("\nProject not opened.")
+      )
     }
     else {
-      stop("\nCannot open project ", project, " because there\n",
-           "are multiple .Rproj files in\n", path, "\nNamely: ",
-           paste(fs::path_file(Rproj_path), collapse = ", "),
-           "\nMove or delete the extraneous ones.")
+      stop(
+        "\nCannot open project ", project$id, " because there\n",
+        "are multiple .Rproj files in\n", project$path,
+        "\nNamely: ", paste(fs::path_file(Rproj_path), collapse = ", "),
+        "\nMove or delete the extraneous ones."
+      )
     }
   }
 

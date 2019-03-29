@@ -15,9 +15,7 @@
 \usage{
 edit_project(project, title = NA, short_title = NA, authors,
   current_owner = NA, status = NA, deadline_type = NA,
-  deadline = NA, stage = c("1: design", "2: data collection",
-  "3: analysis", "4: manuscript", "5: under review", "6: accepted"),
-  corresp_auth = NA, creator = NA, reprint_header = TRUE,
+  deadline = NA, stage = NA, corresp_auth = NA, creator = NA,
   archived = FALSE)
 
 edit_author(author, given_names = NA, last_name = NA, affiliations,
@@ -32,12 +30,12 @@ delete_author(author)
 
 delete_affiliation(affiliation)
 
-new_project(title = NA, short_title = NA, authors = NULL,
-  current_owner = NA, status = "just created", deadline_type = NA,
-  deadline = NA, stage = c("1: design", "2: data collection",
-  "3: analysis", "4: manuscript", "5: under review", "6: accepted"),
+new_project(title = NA, current_owner = NA, stage = c("1: design",
+  "2: data collection", "3: analysis", "4: manuscript", "5: under review",
+  "6: accepted", "0: idea"), status = "just created", short_title = NA,
+  authors = NULL, deadline_type = NA, deadline = NA,
   path = projects_folder(), make_directories = FALSE,
-  corresp_auth = NA, creator = Sys.info()["user"], id = NA,
+  corresp_auth = NA, creator = NA, id = NA,
   protocol = c("01_protocol.Rmd", "STROBE_protocol.Rmd",
   "CONSORT_protocol.Rmd"), datawork = "02_datawork.Rmd",
   analysis = "03_analysis.Rmd", report = "04_report.Rmd",
@@ -45,7 +43,8 @@ new_project(title = NA, short_title = NA, authors = NULL,
   stitle_as_folder = FALSE)
 
 new_author(given_names = NA, last_name = NA, title = NA,
-  affiliations, degree = NA, email = NA, phone = NA, id = NA)
+  affiliations = NULL, degree = NA, email = NA, phone = NA,
+  id = NA)
 
 new_affiliation(department_name = NA, institution_name = NA,
   address = NA, id = NA)
@@ -87,9 +86,16 @@ of the next field, \code{deadline}.}
 \item{deadline}{A \code{Date} or a character string that can be coerced to a
 \code{Date}.}
 
-\item{stage}{A factor with the levels \code{c("1: design", "2: data
-collection", "3: analysis", "4: manuscript", "5: under review", "5:
-accepted")}, communicating the stage the project is in.}
+\item{stage}{A number or string that will partially match exactly one of
+  \code{c("1: design", "2: data collection", "3: analysis", "4: manuscript",
+  "5: under review", "6: accepted", "0: ideas")}, communicating the stage the
+  project is in. This will be coerced to be a character vector of class
+  \code{projects_stage}. Defaults to \code{"1: design"}.
+
+  If set to one of \code{c("3: analysis", "4: manuscript", "5: under review",
+  "6: accepted")}, \code{protocol} and \code{datawork} are ignored and the
+  \emph{01_protocol.Rmd} and \emph{02_datawork.Rmd} files will not be
+  written.}
 
 \item{corresp_auth, current_owner}{An \code{id} or unambiguous
   \code{last_name}/\code{given_names} of one of the authors in the
@@ -103,9 +109,6 @@ accepted")}, communicating the stage the project is in.}
 \code{Sys.info()["user"]} (the default value), it is kept as is. Otherwise
 it will be validated against the \code{authors()} tibble and populated with
 the matching author \code{id}.}
-
-\item{reprint_header}{Logical, indicating whether or not to reprint the
-project \code{\link{header}} after editing project information.}
 
 \item{archived}{Logical indicating whether or not the function should
   consider archived projects when determining which project the user is
@@ -165,12 +168,18 @@ left as the default or if all directories in \code{path} already exist.}
   can edit these if desired.
 
   Multiple default \code{protocol} templates are available.
+
   \emph{01_protocol.Rmd}, which by default is the same as
   \emph{STROBE_protocol.Rmd}, will be selected if \code{protocol} is
   unspecified. Users can edit these default templates.
 
-  If using a custom template, make sure to match the case and file extension
-  exactly.}
+  If using an edited or custom template, make sure to match the case and file
+  extension exactly.
+
+  If the \code{stage} argument is set to one of \code{c("3: analysis", "4:
+  manuscript", "5: under review", "6: accepted")}, \code{protocol} and
+  \code{datawork} are ignored and the \emph{01_protocol.Rmd} and
+  \emph{02_datawork.Rmd} files will not be written.}
 
 \item{use_bib}{Logical. If \code{TRUE}, a blank \emph{.bib} file will be
 written into the \strong{progs} subdirectory of the newly created project
@@ -181,6 +190,9 @@ the line \code{bibliography: pXXXX.bib}.}
 \item{stitle_as_folder}{Logical, indicating whether or not to use the
 \code{short_title} as the name of the new project's folder. Defaults to
 \code{FALSE}.}
+
+\item{reprint_header}{Logical, indicating whether or not to reprint the
+project \code{\link{header}} after editing project information.}
 }
 \description{
 These functions create, edit, or delete rows in the \code{\link{projects}()},

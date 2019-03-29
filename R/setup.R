@@ -73,10 +73,11 @@ setup_projects <- function(path,
                            overwrite        = FALSE,
                            make_directories = FALSE,
                            .Renviron_path   = fs::path_home_r(".Renviron")) {
-
   path     <- path %>%
-    validate_directory(p_path           = NULL,
-                       make_directories = make_directories) %>%
+    validate_directory(
+      p_path           = NULL,
+      make_directories = make_directories
+    ) %>%
     fs::path("projects")
 
   old_path <- p_path_from_explicit_renviron(.Renviron_path)
@@ -87,11 +88,24 @@ setup_projects <- function(path,
   # If overwrite = FALSE, function will still run UNLESS a
   # PROJECTS_FOLDER_PATH value already exists and does not match up with the
   # user-specified path.
-  if(!overwrite && old_path != "" && old_path != path) {
-    message('\nThe .Renviron file at\n', .Renviron_path,
-            '\nindicates that a "projects" folder already exists at\n',
-            old_path, '\n\nRerun with that path OR set overwrite = TRUE')
-    return(invisible(old_path))
+
+  if (old_path != "") {
+
+    if (old_path == path) {
+      # Acts as a check to see if the projects metadata needs updating
+      projects_path <- make_rds_path("projects", old_path)
+      if (fs::file_exists(projects_path)) {
+        get_rds(projects_path)
+      }
+    } else if(!overwrite) {
+      message(
+        "\nThe .Renviron file at\n",
+        .Renviron_path,
+        "\nindicates that a 'projects' folder already exists at\n",
+        old_path,
+        '\n\nRerun with that path OR set overwrite = TRUE'
+      )
+    }
   }
 
   set_Renviron(path, old_path, .Renviron_path)
@@ -100,7 +114,7 @@ setup_projects <- function(path,
 
   setup_messages(path, old_path)
 
-  return(invisible(path))
+  invisible(path)
 }
 
 
@@ -108,16 +122,17 @@ setup_projects <- function(path,
 p_path_from_explicit_renviron <- function(path) {
   if(fs::file_exists(path)) {
     readRenviron(path)
-    return(Sys.getenv("PROJECTS_FOLDER_PATH"))
+    Sys.getenv("PROJECTS_FOLDER_PATH")
+  } else {
+    ""
   }
-  return("")
 }
 
 
 
 set_Renviron <- function(path, old_path, .Renviron_path) {
 
-  if(!(old_path %in% c("", path))) {
+  if(!any(c("", path) == old_path)) {
     user_prompt(
       msg   = paste0("\nAre you sure you want to abandon the old projects ",
                      "folder at\n", old_path, "\n\nand create a new one at\n",
@@ -183,26 +198,34 @@ restore_metadata <- function(path) {
     .y = list(
       # projects
       tibble(
-        id            = integer(),            title         = character(),
-        short_title   = character(),          current_owner = integer(),
-        status        = character(),          deadline_type = character(),
-        deadline      = as.Date(character()),
-
-        stage =
-          factor(
-            levels = c("1: design", "2: data collection", "3: analysis",
-                       "4: manuscript", "5: under review", "6: accepted")),
-
-        path          = character(),          corresp_auth  = integer(),
-        creator       = character()),
+        id            = integer(),
+        title         = character(),
+        short_title   = character(),
+        current_owner = new_projects_author(),
+        status        = character(),
+        deadline_type = character(),
+        deadline      = as.POSIXct(character()),
+        stage         = new_projects_stage(),
+        path          = character(),
+        corresp_auth  = new_projects_author(),
+        creator       = new_projects_author()
+      ),
       # authors
-      tibble(id          = integer(),   last_name = character(),
-             given_names = character(), title     = character(),
-             degree      = character(), email     = character(),
-             phone       = character()),
+      tibble(
+        id          = integer(),
+        last_name   = character(),
+        given_names = character(),
+        title       = character(),
+        degree      = character(),
+        email       = character(),
+        phone       = character()
+      ),
       # affiliations
-      tibble(id               = integer(),   department_name= character(),
-             institution_name = character(), address        = character()),
+      tibble(
+        id               = integer(),
+        department_name  = character(),
+        institution_name = character(),
+        address          = character()),
       # project_author_assoc
       tibble(id1 = integer(), id2 = integer()),
       # author_affiliation_assoc
@@ -211,9 +234,9 @@ restore_metadata <- function(path) {
       function(rds_name, tibble) {
         rds_path <- make_rds_path(rds_name, path)
         if(fs::file_exists(rds_path)) {
-          tibble <- dplyr::bind_rows(readRDS(rds_path), tibble)
+          tibble <- rbind(readRDS(rds_path), tibble)
         }
-        saveRDS(object = tibble, file = rds_path)
+        write_metadata(table = tibble, table_path = rds_path)
       }
   )
 }

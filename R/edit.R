@@ -11,182 +11,204 @@ edit_project <- function(project,
                          status         = NA,
                          deadline_type  = NA,
                          deadline       = NA,
-                         stage          = c("1: design", "2: data collection",
-                                            "3: analysis", "4: manuscript",
-                                            "5: under review", "6: accepted"),
+                         stage          = NA,
                          corresp_auth   = NA,
                          creator        = NA,
-                         reprint_header = TRUE,
                          archived       = FALSE) {
 
-  p_path          <- p_path_internal()
+  p_path          <- p_path()
 
   projects_path   <- make_rds_path("projects", p_path)
 
-  projects_tibble <- get_rds(projects_path)
+  projects_table  <- get_rds(projects_path)
 
-  project         <- validate_entry(project,
-                                    what       = "project",
-                                    rds_tibble = projects_tibble,
-                                    max.length = 1,
-                                    archived   = archived)
-  old_project_row <- dplyr::filter(projects_tibble, .data$id == project)
+  if (!archived) {
+    projects_table <- remove_archived(projects_table)
+  }
 
-  authors_tibble  <- "authors" %>% make_rds_path(p_path) %>% get_rds
+  project <-
+    validate_unique_entry(
+      x     = project,
+      table = projects_table,
+      what  = "project"
+    )
+
+  authors_table   <- authors_internal(p_path)
 
   assoc_path      <- make_rds_path("project_author_assoc", p_path)
-  assoc_tibble    <- get_rds(assoc_path)
+  assoc_table     <- get_rds(assoc_path)
 
-  filtered_assoc  <- dplyr::filter(assoc_tibble, .data$id1 == project)
+  filtered_assoc  <- assoc_table[which(assoc_table$id1 == project$id), ]
 
-  stage <- validate_stage(stage, choices = eval(formals()$stage))
+  title         <- validate_single_string(title)
+  short_title   <- validate_single_string(short_title)
+  status        <- validate_single_string(status)
+  deadline_type <- validate_single_string(deadline_type)
+
+  stage           <- validate_stage(stage)
+
+  deadline        <- validate_deadline(deadline)
 
   ###########################################
   # Handling of adding or removing authors
 
-  if(missing(authors)) {
+  if (missing(authors)) {
     authors <- list(add = list(), remove = list())
-  }
-  else {
-    authors <- parse_formula(formula      = authors,
-                             what         = "author",
-                             what2        = "project",
-                             main_tibble  = authors_tibble,
-                             assoc_tibble = filtered_assoc)
+  } else {
+    authors <-
+      parse_formula(
+        formula      = authors,
+        what         = "author",
+        what2        = "project",
+        main_table   = authors_table,
+        assoc_table  = filtered_assoc
+      )
   }
 
   ###########################################
   # Handling of current_owner, corresp_auth, and creator
-  if(is.na(current_owner)) {
-    if(old_project_row$current_owner %in% authors$remove) {
+  if (is.na(current_owner)) {
+    if (any(authors$remove == project$current_owner)) {
       current_owner <- NULL
     }
-  }
-  else if(!is.null(current_owner)) {
-    current_owner <- validate_entry(x          = current_owner,
-                                    what       = "author",
-                                    rds_tibble = authors_tibble,
-                                    max.length = 1)
+  } else if (!is.null(current_owner)) {
+    current_owner <-
+      validate_projects_author(
+        x     = current_owner,
+        authors_table = authors_table,
+      )
 
-    if(current_owner %in% authors$remove) {
-      stop("The value of current_owner must not be slated for removal in the",
-           '"authors" argument.')
+    if (any(authors$remove == current_owner)) {
+      stop(
+        'The value of current_owner must not be slated for removal in the ',
+        '"authors" argument.'
+      )
     }
 
     # If current_owner isn't in authors$add, makes sure it's already in the
     # author list of the user-specified project
-    if(!(current_owner %in% authors$add)) {
-      validate_assoc(x           = current_owner,
-                     what        = "author",
-                     rds_tibble  = authors_tibble,
-                     what2       = "project",
-                     rds_tibble2 = filtered_assoc)
+    if (!any(authors$add == current_owner)) {
+      validate_assoc(
+        x          = current_owner,
+        what       = "author",
+        rds_table  = authors_table,
+        what2      = "project",
+        rds_table2 = filtered_assoc
+      )
     }
   }
 
 
-  if(is.na(corresp_auth)) {
-    if(old_project_row$corresp_auth %in% authors$remove) {
+  if (is.na(corresp_auth)) {
+    if (any(authors$remove == project$corresp_auth)) {
       corresp_auth <- NULL
     }
-  }
-  else if(!is.null(corresp_auth)) {
-    corresp_auth <- validate_entry(x          = corresp_auth,
-                                   what       = "author",
-                                   rds_tibble = authors_tibble,
-                                   max.length = 1)
+  } else if (!is.null(corresp_auth)) {
+    corresp_auth <-
+      validate_projects_author(
+        x             = corresp_auth,
+        authors_table = authors_table,
+        na.ok         = FALSE
+      )
 
-    if(corresp_auth %in% authors$remove) {
+    if (any(authors$remove == corresp_auth)) {
       stop("The value of corresp_auth must not be slated for removal in the ",
            '"authors" argument.')
     }
 
     # If corresp_auth isn't in authors$add, makes sure it's already in the
     # author list of the user-specified project
-    if(!(corresp_auth %in% authors$add)) {
-      validate_assoc(x           = corresp_auth,
-                     what        = "author",
-                     rds_tibble  = authors_tibble,
-                     what2       = "project",
-                     rds_tibble2 = filtered_assoc)
+    if (!any(authors$add == corresp_auth)) {
+      validate_assoc(
+        x           = corresp_auth,
+        what        = "author",
+        rds_table  = authors_table,
+        what2       = "project",
+        rds_table2 = filtered_assoc
+      )
     }
   }
 
 
-  if(is.na(creator)) {
-    if(suppressWarnings(as.integer(old_project_row$creator)) %in%
-       authors$remove) {
+  if (is.na(creator)) {
+    if (any(authors$remove == project$creator)) {
       creator <- NULL
     }
-  }
-  else if(!is.null(creator)) {
-    creator <- validate_entry(x          = creator,
-                              what       = "author",
-                              rds_tibble = authors_tibble,
-                              max.length = 1)
+  } else if (!is.null(creator)) {
+    creator <-
+      validate_projects_author(
+        x             = creator,
+        authors_table = authors_table,
+        na.ok         = FALSE
+      )
   }
   ###########################################
   ###########################################
 
-  new_project_row <- change_table(action        = "edit",
-                                  rds_path      = projects_path,
-                                  rds_tibble    = projects_tibble,
-                                  id            = project,
-                                  title         = title,
-                                  short_title   = short_title,
-                                  current_owner = current_owner,
-                                  status        = status,
-                                  deadline_type = deadline_type,
-                                  deadline      = as.Date(deadline),
-                                  stage         = stage,
-                                  path          = NA_character_,
-                                  corresp_auth  = corresp_auth,
-                                  creator       = as.character(creator))
+  new_project_row <-
+    change_table(
+      action        = "edit",
+      rds_path      = projects_path,
+      rds_table     = projects_table,
+      id            = project$id,
+      title         = title,
+      short_title   = short_title,
+      current_owner = current_owner,
+      status        = status,
+      deadline_type = deadline_type,
+      deadline      = deadline,
+      stage         = stage,
+      path          = NA_character_,
+      corresp_auth  = corresp_auth,
+      creator       = creator
+    )
 
-  if(length(authors$remove) > 0) {
-    assoc_tibble <-
-      change_assoc(assoc_path   = assoc_path,
-                   assoc_tibble = assoc_tibble,
-                   new          = FALSE,
-                   id1          = project,
-                   id2          = authors$remove)
+  if (length(authors$remove) > 0) {
+    assoc_table <-
+      change_assoc(
+        assoc_path   = assoc_path,
+        assoc_table = assoc_table,
+        new          = FALSE,
+        id1          = project$id,
+        id2          = authors$remove
+      )
   }
 
-  if(length(authors$add) > 0) {
-    assoc_tibble <-
-      change_assoc(assoc_path   = assoc_path,
-                   assoc_tibble = assoc_tibble,
-                   new          = TRUE,
-                   id1          = project,
-                   id2          = authors$add)
+  if (length(authors$add) > 0) {
+    assoc_table <-
+      change_assoc(
+        assoc_path   = assoc_path,
+        assoc_table = assoc_table,
+        new          = TRUE,
+        id1          = project$id,
+        id2          = authors$add
+      )
   }
 
-  filtered_assoc <- dplyr::filter(assoc_tibble, .data$id1 == project)
+  filtered_assoc <- assoc_table[which(assoc_table$id1 == project$id), ]
 
   message("Edited project info:")
   print(new_project_row)
 
   message("\nEdited project's authors:")
-  if(nrow(filtered_assoc) == 0) {
-    print("None")
-  }
-  else {
-    print(filtered_assoc %>%
-            dplyr::left_join(authors_tibble,
-                             by = c("id2" = "id")) %>%
-            dplyr::select(-"id1") %>%
-            dplyr::rename("author_id" = "id2"))
-  }
-
-  if(reprint_header) {
-    print_header_internal(
-      project_id           = project,
-      p_path               = p_path,
-      project_row          = new_project_row,
-      authors_tibble       = authors_tibble,
-      project_author_assoc = assoc_tibble
+  if (nrow(filtered_assoc) == 0) {
+    cat("None")
+  } else {
+    print(
+      filtered_assoc %>%
+        dplyr::left_join(authors_table, by = c("id2" = "id")) %>%
+        dplyr::select(-"id1") %>%
+        dplyr::rename("author_id" = "id2")
     )
   }
+
+  if (!is.na(title) ||
+      !is.na(corresp_auth) ||
+      !identical(authors, list(add = list(), remove = list()))) {
+    message("\nHeader has changed. Reprint it with:\nheader(", project$id, ")")
+  }
+
+  invisible(new_project_row)
 }
 ################################################################################
 ################################################################################
@@ -197,85 +219,107 @@ edit_project <- function(project,
 #' @rdname new_edit_delete
 #' @importFrom rlang .data
 #' @export
-edit_author <- function(author,            given_names   = NA,
-                        last_name = NA,    affiliations,
-                        title     = NA,    degree        = NA,
-                        email     = NA,    phone         = NA) {
+edit_author <- function(author,
+                        given_names   = NA,
+                        last_name     = NA,
+                        affiliations,
+                        title         = NA,
+                        degree        = NA,
+                        email         = NA,
+                        phone         = NA) {
 
-  p_path              <- p_path_internal()
+  p_path             <- p_path()
 
-  authors_path        <- make_rds_path("authors", p_path)
+  authors_path       <- make_rds_path("authors", p_path)
 
-  authors_tibble      <- get_rds(authors_path)
+  authors_table      <- get_rds(authors_path)
 
-  author              <- validate_entry(author,
-                                        what        = "author",
-                                        rds_tibble  = authors_tibble,
-                                        max.length  = 1)
+  author             <-
+    validate_unique_entry(
+      x      = author,
+      table  = authors_table,
+      what   = "author"
+    )$id
 
-  affiliations_tibble <- get_rds(make_rds_path("affiliations", p_path))
+  affiliations_table <- affiliations_internal(p_path)
 
-  assoc_path          <- make_rds_path("author_affiliation_assoc", p_path)
-  assoc_tibble        <- get_rds(assoc_path)
+  assoc_path         <- make_rds_path("author_affiliation_assoc", p_path)
+  assoc_table        <- get_rds(assoc_path)
 
-  if(missing(affiliations)) {
+  given_names <- validate_single_string(given_names)
+  last_name   <- validate_single_string(last_name)
+  title       <- validate_single_string(title)
+  degree      <- validate_single_string(degree)
+  email       <- validate_single_string(email) %>% tolower()
+  phone       <- validate_single_string(phone)
+
+  if (missing(affiliations)) {
     affiliations <- list(add = list(), remove = list())
-  }
-  else {
+  } else {
     affiliations <-
       parse_formula(
-        formula      = affiliations,
-        what         = "affiliation",
-        what2        = "author",
-        main_tibble  = affiliations_tibble,
-        assoc_tibble = dplyr::filter(assoc_tibble, .data$id1 == author))
+        formula     = affiliations,
+        what        = "affiliation",
+        what2       = "author",
+        main_table  = affiliations_table,
+        assoc_table = assoc_table[which(assoc_table$id1 == author), ]
+      )
   }
 
-  new_author_row <- change_table(action      = "edit",
-                                 rds_path    = authors_path,
-                                 rds_tibble  = authors_tibble,
-                                 id          = author,
-                                 given_names = given_names,
-                                 last_name   = last_name,
-                                 title       = title,
-                                 degree      = degree,
-                                 email       = tolower(email),
-                                 phone       = phone)
+  new_author_row <-
+    change_table(
+      action      = "edit",
+      rds_path    = authors_path,
+      rds_table   = authors_table,
+      id          = author,
+      given_names = given_names,
+      last_name   = last_name,
+      title       = title,
+      degree      = degree,
+      email       = email,
+      phone       = phone
+    )
 
-  if(length(affiliations$remove) > 0) {
-    assoc_tibble <-
-      change_assoc(assoc_path   = assoc_path,
-                   assoc_tibble = assoc_tibble,
-                   new          = FALSE,
-                   id1          = author,
-                   id2          = affiliations$remove)
-  }
-  if(length(affiliations$add) > 0) {
-    assoc_tibble <-
-      change_assoc(assoc_path   = assoc_path,
-                   assoc_tibble = assoc_tibble,
-                   new          = TRUE,
-                   id1          = author,
-                   id2          = affiliations$add)
+  if (length(affiliations$remove) > 0) {
+    assoc_table <-
+      change_assoc(
+        assoc_path  = assoc_path,
+        assoc_table = assoc_table,
+        new         = FALSE,
+        id1         = author,
+        id2         = affiliations$remove
+      )
   }
 
+  if (length(affiliations$add) > 0) {
+    assoc_table <-
+      change_assoc(
+        assoc_path  = assoc_path,
+        assoc_table = assoc_table,
+        new         = TRUE,
+        id1         = author,
+        id2         = affiliations$add
+      )
+  }
 
-  filtered_assoc <- dplyr::filter(assoc_tibble, .data$id1 == author)
+  filtered_assoc <- assoc_table[which(assoc_table$id1 == author), ]
 
   message("Edited author:")
   print(new_author_row)
 
   message("\nEdited author's affiliations:")
-  if(nrow(filtered_assoc) == 0) {
+  if (nrow(filtered_assoc) == 0) {
     print("None.")
-  }
-  else {
-    print(filtered_assoc %>%
-            dplyr::left_join(affiliations_tibble, by = c("id2" = "id")) %>%
-            dplyr::select(-"id1") %>%
-            dplyr::rename("affiliation_id" = "id2"))
+  } else {
+    print(
+      filtered_assoc %>%
+        dplyr::left_join(affiliations_table, by = c("id2" = "id")) %>%
+        dplyr::select(-"id1") %>%
+        dplyr::rename("affiliation_id" = "id2")
+    )
   }
 
+  invisible(new_author_row)
 }
 ################################################################################
 
@@ -287,27 +331,37 @@ edit_author <- function(author,            given_names   = NA,
 edit_affiliation <- function(affiliation,           department_name  = NA,
                              institution_name = NA, address          = NA) {
 
-  p_path              <- p_path_internal()
+  p_path             <- p_path()
 
-  affiliations_path   <- make_rds_path("affiliations", p_path)
+  affiliations_path  <- make_rds_path("affiliations", p_path)
 
-  affiliations_tibble <- get_rds(affiliations_path)
+  affiliations_table <- get_rds(affiliations_path)
 
-  affiliation         <- validate_entry(affiliation,
-                                        what       = "affiliation",
-                                        rds_tibble = affiliations_tibble,
-                                        max.length = 1)
+  affiliation        <-
+    validate_unique_entry(
+      x     = affiliation,
+      table = affiliations_table,
+      what  = "affiliation"
+    )$id
+
+  department_name  <- validate_single_string(department_name)
+  institution_name <- validate_single_string(institution_name)
+  address          <- validate_single_string(address)
 
   message("Edited affiliation:")
-  print(change_table(action           = "edit",
-                     rds_path         = affiliations_path,
-                     rds_tibble       = affiliations_tibble,
-                     id               = affiliation,
-                     department_name  = department_name,
-                     institution_name = institution_name,
-                     address          = address))
+  change_table(
+    action           = "edit",
+    rds_path         = affiliations_path,
+    rds_table        = affiliations_table,
+    id               = affiliation,
+    department_name  = department_name,
+    institution_name = institution_name,
+    address          = address
+  )
 }
 ################################################################################
+
+
 
 
 #' @rdname new_edit_delete
@@ -315,25 +369,30 @@ edit_affiliation <- function(affiliation,           department_name  = NA,
 #' @export
 delete_project <- function(project, archived = FALSE) {
 
-  p_path          <- p_path_internal()
+  p_path         <- p_path()
 
-  projects_path   <- make_rds_path("projects", p_path)
-  projects_tibble <- get_rds(projects_path)
+  projects_path  <- make_rds_path("projects", p_path)
+  projects_table <- get_rds(projects_path)
 
-  project         <- validate_entry(project,
-                                    what       = "project",
-                                    rds_tibble = projects_tibble,
-                                    max.length = 1,
-                                    archived   = archived)
+  if (!archived) {
+    projects_table <- remove_archived(projects_table)
+  }
 
-  pa_assoc_path   <- make_rds_path("project_author_assoc", p_path)
-  pa_assoc_tibble <- get_rds(pa_assoc_path)
+  project        <-
+    validate_unique_entry(
+      x     = project,
+      table = projects_table,
+      what  = "project"
+    )$id
 
-  project_row     <- dplyr::filter(projects_tibble, .data$id == project)
+  pa_assoc_path  <- make_rds_path("project_author_assoc", p_path)
+  pa_assoc_table <- get_rds(pa_assoc_path)
+
+  project_row    <- dplyr::filter(projects_table, .data$id == project)
 
   print(project_row)
 
-  if(!fs::dir_exists(project_row$path)) {
+  if (!fs::dir_exists(project_row$path)) {
     user_prompt(
       msg   = paste0("Project folder not found at\n", project_row$path,
                      "\nDelete only its metadata? (y/n)"),
@@ -343,23 +402,39 @@ delete_project <- function(project, archived = FALSE) {
   }
   else {
     user_prompt(
-      msg   = paste0("\nAre you sure you want to delete the above project ",
-                     "and its entire folder, which is located at\n\n",
-                     project_row$path, "\n\n? (y/n)"),
-      n_msg = paste0('\nDeletion not completed. If deletion is desired, try ',
-                     'again and enter "y".'))
+      msg   =
+        paste0(
+          "\nAre you sure you want to delete the above project ",
+          "and its entire folder, which is located at\n\n",
+          project_row$path,
+          "\n\n? (y/n)"
+        ),
+      n_msg =
+        paste0(
+          '\nDeletion not completed. If deletion is desired, try ',
+          'again and enter "y".'
+        )
+    )
     fs::dir_delete(path = project_row$path)
   }
 
-  change_table(action     = "delete",        rds_path   = projects_path,
-               rds_tibble = projects_tibble, id         = project)
+  change_table(
+    action     = "delete",
+    rds_path   = projects_path,
+    rds_table  = projects_table,
+    id         = project
+  )
 
-  change_assoc(assoc_path   = pa_assoc_path, assoc_tibble = pa_assoc_tibble,
-               new          = FALSE,         id1          = project)
+  change_assoc(
+    assoc_path   = pa_assoc_path,
+    assoc_table  = pa_assoc_table,
+    new          = FALSE,
+    id1          = project
+  )
 
   print(project_row)
   message("\nThe above project was deleted.")
-  return(invisible(project_row))
+  invisible(project_row)
 }
 
 
@@ -368,26 +443,26 @@ delete_project <- function(project, archived = FALSE) {
 #' @export
 delete_author <- function(author) {
 
-  p_path          <- p_path_internal()
+  p_path          <- p_path()
 
   projects_path   <- make_rds_path("projects", p_path)
-  projects_tibble <- get_rds(projects_path)
+  projects_table <- get_rds(projects_path)
 
   authors_path    <- make_rds_path("authors", p_path)
-  authors_tibble  <- get_rds(authors_path)
+  authors_table  <- get_rds(authors_path)
 
-  author          <- validate_entry(author,
-                                    what       = "author",
-                                    rds_tibble = authors_tibble,
-                                    max.length = 1)
+  author_row          <-
+    validate_unique_entry(
+      x     = author,
+      table = authors_table,
+      what  = "author"
+    )
 
   pa_assoc_path   <- make_rds_path("project_author_assoc", p_path)
-  pa_assoc_tibble <- get_rds(pa_assoc_path)
+  pa_assoc_table <- get_rds(pa_assoc_path)
 
   aa_assoc_path   <- make_rds_path("author_affiliation_assoc", p_path)
-  aa_assoc_tibble <- get_rds(aa_assoc_path)
-
-  author_row      <- dplyr::filter(authors_tibble, .data$id == author)
+  aa_assoc_table <- get_rds(aa_assoc_path)
 
   print(author_row)
 
@@ -398,22 +473,22 @@ delete_author <- function(author) {
 
   change_table(action     = "delete",
                rds_path   = authors_path,
-               rds_tibble = authors_tibble,
-               id         = author)
+               rds_table = authors_table,
+               id         = author_row$id)
 
-  clear_special_author(author          = author,
+  clear_special_author(author          = author_row$id,
                        projects_path   = projects_path,
-                       projects_tibble = projects_tibble)
+                       projects_table = projects_table)
 
   change_assoc(assoc_path   = pa_assoc_path,
-               assoc_tibble = pa_assoc_tibble,
+               assoc_table = pa_assoc_table,
                new          = FALSE,
-               id2          = author)
+               id2          = author_row$id)
 
   change_assoc(assoc_path   = aa_assoc_path,
-               assoc_tibble = aa_assoc_tibble,
+               assoc_table = aa_assoc_table,
                new          = FALSE,
-               id1          = author)
+               id1          = author_row$id)
 
   print(author_row)
   message("The above author was deleted.")
@@ -425,21 +500,20 @@ delete_author <- function(author) {
 #' @export
 delete_affiliation <- function(affiliation) {
 
-  p_path              <- p_path_internal()
+  p_path             <- p_path()
 
-  affiliations_path   <- make_rds_path("affiliations", p_path)
-  affiliations_tibble <- get_rds(affiliations_path)
+  affiliations_path  <- make_rds_path("affiliations", p_path)
+  affiliations_table <- get_rds(affiliations_path)
 
-  aa_assoc_path       <- make_rds_path("author_affiliation_assoc", p_path)
-  aa_assoc_tibble     <- get_rds(aa_assoc_path)
+  aa_assoc_path      <- make_rds_path("author_affiliation_assoc", p_path)
+  aa_assoc_table     <- get_rds(aa_assoc_path)
 
-  affiliation         <- validate_entry(affiliation,
-                                        what       = "affiliation",
-                                        rds_tibble = affiliations_tibble,
-                                        max.length = 1)
-
-  affiliation_row     <- dplyr::filter(affiliations_tibble,
-                                       .data$id == affiliation)
+  affiliation_row        <-
+    validate_unique_entry(
+      x     = affiliation,
+      table = affiliations_table,
+      what  = "affiliation"
+    )
 
   print(affiliation_row)
 
@@ -450,16 +524,18 @@ delete_affiliation <- function(affiliation) {
 
   change_table(action     = "delete",
                rds_path   = affiliations_path,
-               rds_tibble = affiliations_tibble,
-               id         = affiliation)
+               rds_table = affiliations_table,
+               id         = affiliation_row$id)
 
   change_assoc(assoc_path   = aa_assoc_path,
-               assoc_tibble = aa_assoc_tibble,
+               assoc_table = aa_assoc_table,
                new          = FALSE,
-               id2          = affiliation)
+               id2          = affiliation_row$id)
 
   print(affiliation_row)
   message("The above affiliation was deleted.")
+
+  invisible(affiliation_row)
 }
 
 
@@ -467,9 +543,9 @@ delete_affiliation <- function(affiliation) {
 # These functions are dedicated to dealing with the authors argument in
 # edit_project()
 ################################################################################
-parse_formula <- function(formula, what, what2, main_tibble, assoc_tibble) {
+parse_formula <- function(formula, what, what2, main_table, assoc_table) {
 
-  if(!rlang::is_formula(formula)) {
+  if (!rlang::is_formula(formula)) {
     stop(what, "s argument must be a formula. See help(edit_", what2, ")")
   }
 
@@ -478,14 +554,15 @@ parse_formula <- function(formula, what, what2, main_tibble, assoc_tibble) {
   # know how to process plain integers, but it does know how to process names.
   formula <- process_formula_numbers(formula)
 
-  if(!all(setdiff(all.names(formula),
-                  all.vars(formula)) %in% c("~", "+", "-"))) {
+  if (
+    !all(setdiff(all.names(formula), all.vars(formula)) %in% c("~", "+", "-"))
+  ) {
     stop(what, "s formula must begin with a single ~ and only contain plus ",
          "signs (+) for adding formula and minus signs (-) for removing ",
          "them. See help(edit_", what2, ")")
   }
 
-  if(!is.null(rlang::f_lhs(formula))) {
+  if (!is.null(rlang::f_lhs(formula))) {
     stop(what, "s formula must not have a left-hand side (i.e., must begin ",
          "with a single tilde (~)). See help(edit_", what2, ")")
   }
@@ -499,40 +576,46 @@ parse_formula <- function(formula, what, what2, main_tibble, assoc_tibble) {
     formula %>%
     stats::terms() %>%
     attr("term.labels") %>%
-    sapply(FUN       = function(x) as.character(rlang::parse_expr(x)),
-           USE.NAMES = FALSE)
+    vapply(
+      FUN       = function(x) as.character(rlang::parse_expr(x)),
+      FUN.VALUE = character(1L),
+      USE.NAMES = FALSE
+    )
 
   remove <- setdiff(all.vars(formula), add)
 
-  if(length(remove) > 0) {
+  if (length(remove) > 0) {
 
     # Validates the remove list against the main database, making sure that the
     # authors or affiliations actually exist in the database, first turning any
     # IDs into numbers (via the ifelse() statement)
-    remove <- validate_entry(x = remove, what = what, rds_tibble = main_tibble)
+    remove <-
+      validate_unique_entry_list(x = remove, table = main_table, what = what)$id
 
     # Makes sure the elements to remove are actually listed as elements of
     # the user-specified project/author
 
-    validate_assoc(x           = remove,
-                   what        = what,
-                   rds_tibble  = main_tibble,
-                   what2       = what2,
-                   rds_tibble2 = assoc_tibble)
+    validate_assoc(
+      x           = remove,
+      what        = what,
+      rds_table   = main_table,
+      what2       = what2,
+      rds_table2  = assoc_table
+    )
   }
 
-  if(length(add) > 0) {
+  if (length(add) > 0) {
 
-    # Validates the remove list against the author tibble, first
+    # Validates the add list against the author tibble, first
     # turning any author IDs from characters to integers (via the ifelse()
     # statement)
-    add <- validate_entry(x = add, what = what, rds_tibble = main_tibble)
+    add <-
+      validate_unique_entry_list(x = add, table = main_table, what = what)$id
 
     # Makes sure the formula in add are not already in the
     # user-specified project's author list
-    if(any(add %in% assoc_tibble$id2)) {
-      print(main_tibble %>% dplyr::filter(.data$id %in%
-                                            add[add %in% assoc_tibble$id2]))
+    if (any(add %in% assoc_table$id2)) {
+      print(main_table[main_table$id %in% add[add %in% assoc_table$id2], ])
       stop("The above ", what, "s are already on the ", what2, "'s ",
            what, " list.")
     }
@@ -540,7 +623,7 @@ parse_formula <- function(formula, what, what2, main_tibble, assoc_tibble) {
   #################################################
   #################################################
 
-  return(list(add = add, remove = remove))
+  list(add = add, remove = remove)
 }
 
 
@@ -553,28 +636,32 @@ process_formula_numbers <- function(formula) {
 recursive_number_namer <- function(formula) {
   as.call(
     lapply(
-      X   = as.list(formula),
-      FUN = function(x) {
-        if(is.atomic(x) && length(x) == 1) {
-          return(as.name(x))
-        }
-        else if(is.name(x)) {
-          return(x)
-        }
-        else if(is.call(x)) {
-          if(!(as.list(x)[1] %in% list(quote(`+`), quote(`-`)))) {
-            stop("Computation with the function `", as.list(x)[[1]], "` is ",
-                 "not allowed in formula. Must begin with a single tilde (~)",
-                 " and elements may only be separated with plus signs and ",
-                 "minus signs.")
+      as.list(formula),
+      function(x) {
+        if (is.atomic(x) && length(x) == 1) {
+          as.name(x)
+        } else if (is.name(x)) {
+          x
+        } else if (is.call(x)) {
+          if (!(as.list(x)[1] %in% list(quote(`+`), quote(`-`)))) {
+            stop(
+              "Computation with the function `", as.list(x)[[1]], "` is ",
+              "not allowed in formula. Must begin with a single tilde (~)",
+              " and elements may only be separated with plus signs and ",
+              "minus signs."
+            )
           }
-          return(recursive_number_namer(x))
+          recursive_number_namer(x)
+        } else {
+          stop(
+            "Don't know how to handle object of type ",
+            typeof(x),
+            ". Formulas must only contain author names, IDs, plus signs, ",
+            "and minus signs."
+          )
         }
-        else {
-          stop("Don't know how to handle object of type ", typeof(x),
-               ". Formulas must only contain author names, IDs, plus signs, ",
-               "and minus signs.")
-        }})
+      }
+    )
   )
 }
 ################################################################################
@@ -705,99 +792,121 @@ reorder_affiliations <- function(author, ..., after = 0L) {
 reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
                           archived = TRUE) {
 
-  p_path         <- p_path_internal()
+  p_path         <- p_path()
 
   rds1_path      <- make_rds_path(paste0(rds1, "s"), p_path)
-  rds1_tibble    <- get_rds(rds1_path)
+  rds1_table     <- get_rds(rds1_path)
 
-  id             <- validate_entry(x          = id,
-                                   what       = rds1,
-                                   rds_tibble = rds1_tibble,
-                                   max.length = 1,
-                                   archived   = archived)
-
-  rds1_row       <- dplyr::filter(rds1_tibble, .data$id == !!id)
+  rds1_row       <-
+    validate_unique_entry(x = id, table = rds1_table, what = rds1)
 
   rds2_path      <- make_rds_path(paste0(rds2, "s"), p_path)
-  rds2_tibble    <- get_rds(rds2_path)
+  rds2_table     <- get_rds(rds2_path)
 
   assoc_path     <- make_rds_path(assoc, p_path)
-  assoc_tibble   <- get_rds(assoc_path)
+  assoc_table    <- get_rds(assoc_path)
 
-  filtered_assoc <- dplyr::filter(assoc_tibble, .data$id1 == !!id)
+  filtered_assoc <- dplyr::filter(assoc_table, .data$id1 == rds1_row$id)
 
   user_order     <- rlang::exprs(...)
 
-  if(rlang::is_named(user_order)) {
+  if (rlang::is_named(user_order)) {
 
     user_order <- unlist(user_order)
 
-    if(!checkmate::test_integerish(user_order, lower = 1L,
-                                   max.len = nrow(filtered_assoc),
-                                   any.missing = FALSE, unique = TRUE,
-                                   null.ok = FALSE)) {
+    if (
+      !(
+        rlang::is_integerish(user_order) &&
+        all(!is.na(user_order)) &&
+        all(user_order >= 1L) &&
+        length(user_order) <= nrow(filtered_assoc) &&
+        anyDuplicated(user_order) == 0
+      )
+    ) {
+    # if (!checkmate::test_integerish(user_order, lower = 1L,
+    #                                max.len = nrow(filtered_assoc),
+    #                                any.missing = FALSE, unique = TRUE,
+    #                                null.ok = FALSE)) {
       stop("Ranks must be integers 1 or greater, no two ranks may be the same,",
            " and the number of ranks given must not be greater than the ", rds1,
            "'s total number of ", rds2, "s.")
     }
-    names(user_order) <-
-      names(user_order) %>%
-      validate_entry(what  = rds2, rds_tibble  = rds2_tibble) %>%
-      validate_assoc(what  = rds2, rds_tibble  = rds2_tibble,
-                     what2 = rds1, rds_tibble2 = filtered_assoc)
+    names(user_order) <- names(user_order) %>%
+      validate_unique_entry_list(table = rds2_table, what = rds2) %>%
+      `$`("id") %>%
+      validate_assoc(
+        what  = rds2,
+        rds_table  = rds2_table,
+        what2 = rds1,
+        rds_table2 = filtered_assoc
+      )
 
     user_order <- user_order[order(user_order)]
-  }
+  } else {
 
-  else {
+    user_order <- user_order %>%
+      vapply(as.character, character(1L)) %>%
+      validate_unique_entry_list(table = rds2_table, what  = rds2) %>%
+      `$`("id") %>%
+      validate_assoc(
+        what  = rds2,
+        rds_table  = rds2_table,
+        what2 = rds1,
+        rds_table2 = filtered_assoc
+      )
 
     user_order <-
-      sapply(X = user_order, FUN = as.character) %>%
-      validate_entry(what  = rds2, rds_tibble  = rds2_tibble) %>%
-      validate_assoc(what  = rds2, rds_tibble  = rds2_tibble,
-                     what2 = rds1, rds_tibble2 = filtered_assoc)
-
-    user_order <- stats::setNames(object = seq_along(user_order) + after,
-                                  nm     = user_order)
+      stats::setNames(object = seq_along(user_order) + after, nm = user_order)
   }
 
   reordered <- setdiff(filtered_assoc$id2, names(user_order))
-  purrr::iwalk(user_order,
-               function(new_rank, rds2_id) {
-                 reordered <<- append(x      = reordered,
-                                      values = as.integer(rds2_id),
-                                      after  = new_rank - 1)
-               })
 
-  assoc_tibble <- change_assoc(assoc_path   = assoc_path,
-                               assoc_tibble = assoc_tibble,
-                               new          = FALSE,
-                               id1          = id,
-                               id2          = filtered_assoc$id2)
+  purrr::iwalk(
+    user_order,
+    function(new_rank, rds2_id) {
+      reordered <<- append(x      = reordered,
+                           values = as.integer(rds2_id),
+                           after  = new_rank - 1)
+    }
+  )
 
-  assoc_tibble <- change_assoc(assoc_path   = assoc_path,
-                               assoc_tibble = assoc_tibble,
-                               new          = TRUE,
-                               id1          = id,
-                               id2          = reordered)
+  assoc_table <-
+    change_assoc(
+      assoc_path   = assoc_path,
+      assoc_table  = assoc_table,
+      new          = FALSE,
+      id1          = rds1_row$id,
+      id2          = filtered_assoc$id2
+    )
+
+  assoc_table <-
+    change_assoc(
+      assoc_path   = assoc_path,
+      assoc_table  = assoc_table,
+      new          = TRUE,
+      id1          = rds1_row$id,
+      id2          = reordered
+    )
 
   message(rds1, " info:")
   print(rds1_row)
 
   message("\nReordered ", rds1, " ", rds2, "s:")
-  print(assoc_tibble %>%
-          dplyr::filter(.data$id1 == !!id) %>%
-          dplyr::left_join(rds2_tibble, by = c("id2" = "id")) %>%
-          dplyr::select(-"id1") %>%
-          dplyr::rename(!!paste0(rds2, "_id") := "id2"))
+  print(
+    assoc_table %>%
+      dplyr::filter(.data$id1 == rds1_row$id) %>%
+      dplyr::left_join(rds2_table, by = c("id2" = "id")) %>%
+      dplyr::select(-"id1") %>%
+      dplyr::rename(!!paste0(rds2, "_id") := "id2")
+  )
 
-  if(reprint_header) {
+  if (reprint_header) {
     print_header_internal(
-      project_id           = id,
+      project_id           = rds1_row$id,
       p_path               = p_path,
       project_row          = rds1_row,
-      authors_tibble       = rds2_tibble,
-      project_author_assoc = assoc_tibble
+      authors_table        = rds2_table,
+      project_author_assoc = assoc_table
     )
   }
 }

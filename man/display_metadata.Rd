@@ -12,7 +12,8 @@ affiliations(affiliation, authors = FALSE)
 
 authors(author, affiliations = FALSE, projects = FALSE)
 
-projects(project, authors = FALSE, archived = FALSE)
+projects(project, all_stages = FALSE, exclude = NULL,
+  archived = all_stages, verbose = FALSE, authors = FALSE)
 }
 \arguments{
 \item{projects, authors, affiliations}{Logical values indicating whether or not
@@ -96,9 +97,9 @@ projects(project = "Test")
 # View projects table, including only projects with Plato as current owner
 projects() \%>\% dplyr::filter(current_owner == 303)
 
-# Wrapped in if(interactive()) because it requires interactive console input
+# Wrapped in if (interactive()) because it requires interactive console input
 # and fails automated testing.
-if(interactive()) {
+if (interactive()) {
   # Archive Fun project 5
   archive_project("Fun project 5")
 

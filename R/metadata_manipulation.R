@@ -2,18 +2,61 @@
 ################################################################################
 # RDS helper functions
 
-make_rds_path <- function(rds_name, p_path = p_path_internal()) {
+make_rds_path <- function(rds_name, p_path = p_path()) {
   fs::path(p_path, ".metadata", rds_name, ext = "rds")
 }
 
-get_rds <- function(rds_path) {
+get_rds <- function(rds_path, check = TRUE) {
 
-  if(!fs::file_exists(rds_path)) {
+  if (!fs::file_exists(rds_path)) {
     stop(fs::path_file(rds_path), " file not found at ", rds_path,
          ". Please restore the file or [re]run setup_projects()")
   }
 
-  readRDS(rds_path)
+  rds <- readRDS(rds_path)
+
+  if (check && !up_to_date(rds)) {
+    update_notice()
+    rds <- readRDS(rds_path)
+  }
+
+  rds
+}
+
+
+projects_internal <- function(p_path = p_path(), archived = TRUE) {
+
+  projects_table <- get_rds(make_rds_path("projects", p_path))
+
+  if (archived) {
+    projects_table
+  } else {
+    remove_archived(projects_table)
+  }
+}
+
+authors_internal <- function(p_path = p_path()) {
+  get_rds(make_rds_path("authors", p_path))
+}
+
+affiliations_internal <- function(p_path = p_path()) {
+  get_rds(make_rds_path("affiliations", p_path))
+}
+
+pa_assoc_internal <- function(p_path = p_path()) {
+  get_rds(make_rds_path("project_author_assoc", p_path))
+}
+
+aa_assoc_internal <- function(p_path = p_path()) {
+  get_rds(make_rds_path("author_affiliation_assoc", p_path))
+}
+
+
+write_metadata <- function(table, table_path) {
+
+  attr(table, "projects_version") <- utils::packageVersion("projects")
+
+  readr::write_rds(x = table, path = table_path)
 }
 
 
@@ -22,71 +65,76 @@ get_rds <- function(rds_path) {
 #' @importFrom rlang .data
 change_table <- function(action = c("new", "edit", "delete"),
                          rds_path,
-                         rds_tibble,
+                         rds_table,
                          ...) {
 
   action     <- match.arg(action)
   changes    <- list(...)
 
-  if(action == "edit") {
+  if (action == "edit") {
     changes <-
       purrr::map2(
         .x = changes,
-        .y = as.list(dplyr::filter(rds_tibble, .data$id == changes$id)),
+        .y = as.list(dplyr::filter(rds_table, .data$id == changes$id)),
         .f = function(new, old) {
-          if(is.null(new)) {
-            return(methods::as(NA, class(old)))
+          if (is.null(new)) {
+            methods::as(NA, class(old))
+          } else if (is.na(new)) {
+            old
+          } else {
+            new
           }
-          if(is.na(new)) {
-            return(old)
-          }
-          return(new)
-        })
+        }
+      )
   }
 
-  rds_tibble <- dplyr::filter(rds_tibble, .data$id != changes$id)
+  rds_table <- dplyr::filter(rds_table, .data$id != changes$id)
 
-  if(action != "delete") {
-    rds_tibble <- dplyr::bind_rows(changes, rds_tibble)
-    changes    <- tibble::as_tibble(changes)
+  if (action != "delete") {
+    changes   <- tibble::as_tibble(changes)
+    rds_table <- rbind(changes, rds_table)
   }
 
-  saveRDS(rds_tibble, rds_path)
+  # if (!is.null(rds_table$stage) && !inherits(rds_table$stage,
+  #                                            "projects_stage")) {
+  #   class(rds_table$stage) <- "projects_stage"
+  # }
 
-  return(changes)
+  write_metadata(table = rds_table, table_path = rds_path)
+
+  changes
 }
 
 
 
 ################################################################################
-#' @importFrom tibble tibble
 change_assoc <- function(assoc_path,
-                         assoc_tibble,
+                         assoc_table,
                          new,
                          ...) {
 
-  assoc_change   <- tibble(...)
+  assoc_change   <- tibble::tibble(...)
 
-  if(new) {
-    old_assoc <- dplyr::semi_join(assoc_tibble, assoc_change, by = "id1")
+  if (new) {
+    old_assoc <- dplyr::semi_join(assoc_table, assoc_change, by = "id1")
 
     # The use of head() and tail() ensures that new authors will be inserted
     # right before the last element on the list unless there had been only one
     # element in the list--in that case, elements are added to the end of the
     # list.
-    assoc_tibble <- dplyr::bind_rows(
-      utils::head(old_assoc, n = 1),
-      utils::head(utils::tail(old_assoc, n = -1), n = -1),
-      assoc_change,
-      utils::tail(utils::tail(old_assoc, n = -1), n =  1),
-      dplyr::anti_join(assoc_tibble, assoc_change, by = "id1"))
-  }
-  else {
-    assoc_tibble <- suppressMessages(dplyr::anti_join(assoc_tibble,
-                                                      assoc_change))
+    assoc_table <-
+      rbind(
+        utils::head(old_assoc, n = 1),
+        utils::head(utils::tail(old_assoc, n = -1), n = -1),
+        assoc_change,
+        utils::tail(utils::tail(old_assoc, n = -1), n =  1),
+        dplyr::anti_join(assoc_table, assoc_change, by = "id1")
+      )
+  } else {
+    assoc_table <- suppressMessages(dplyr::anti_join(assoc_table, assoc_change))
   }
 
-  saveRDS(assoc_tibble, assoc_path)
+  write_metadata(table = assoc_table, table_path = assoc_path)
 
-  return(assoc_tibble)
+  assoc_table
 }

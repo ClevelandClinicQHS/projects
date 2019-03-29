@@ -21,7 +21,6 @@ URL: https://www.github.com/NikKrieger/projects
 Depends:
     R (>= 3.4.0)
 Imports:
-    checkmate (>= 1.8.5),
     dplyr (>= 0.7.5),
     fs (>= 1.2.6),
     magrittr (>= 1.5),
@@ -33,8 +32,8 @@ Imports:
     stringr (>= 1.3.1),
     tibble (>= 1.4.2)
 Suggests:
-    here,
-    tidyverse
+    here (>= 0.1),
+    tidyverse (>= 1.2.1)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1

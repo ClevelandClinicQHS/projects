@@ -58,18 +58,16 @@
 #' @export
 header <- function(project, archived = FALSE) {
 
-  p_path  <- p_path_internal()
+  p_path  <- p_path()
 
-  projects_tibble <- get_rds(make_rds_path("projects", p_path))
+  projects_table <- projects_internal(archived = archived)
 
-  project <- validate_entry(project,
-                            what       = "project",
-                            rds_tibble = projects_tibble,
-                            max.length = 1,
-                            archived   = archived)
+  project_row <-
+    validate_unique_entry(project, table = projects_table, what = "project")
 
-  print_header_internal(project_id  = project,
-                        p_path      = p_path,
-                        project_row = dplyr::filter(projects_tibble,
-                                                    .data$id == project))
+  print_header_internal(
+    project_id  = project_row$id,
+    p_path      = p_path,
+    project_row = project_row
+  )
 }

@@ -1,283 +1,451 @@
-validate_new <- function(id, what, rds_tibble) {
 
-  if(nrow(rds_tibble) > 9999L) {
+
+validate_entry <- function(x,
+                           table,
+                           what,
+                           na.ok   = FALSE,
+                           zero.ok = FALSE,
+                           error   = TRUE) {
+
+  if (!rlang::is_scalar_vector(x)) {
+    if (error) {
+      stop("Each entry identifying a ", what, "must be of length 1")
+    } else {
+      return(structure(x, error = "not scalar vector"))
+    }
+  }
+
+  if (is.na(x)) {
+    if (na.ok) {
+      return(table[NULL, ])
+    }
+    stop(what, " may not be missing (NA)")
+  }
+
+  x_int <- as.integer(stringr::str_extract(x, "\\d+"))
+
+  if (is.na(x_int)) {
+    matches <-
+      table[grep(x, paste(table[[2]], table[[3]]), ignore.case = TRUE), ]
+  } else if (x_int == 0 && stringr::str_detect(x, "0: .+") && zero.ok) {
+    return(
+      dplyr::bind_rows(
+        table[NULL, ],
+        tibble::tibble(id = 0, last_name = substr(x, 4L, nchar(x)))
+      )
+    )
+  } else {
+    matches <- table[which(table$id == x), ]
+  }
+
+  if (nrow(matches) == 0) {
+    if (error) {
+      stop(
+        what,
+        ifelse(
+          rlang::is_integerish(x),
+          paste0(" with the id ", x),
+          paste0(" matching '", x, "'")
+        ),
+        " not found"
+      )
+    } else {
+      structure(matches, error = "no match")
+    }
+  } else {
+    matches
+  }
+}
+
+
+validate_unique_entry <- function(x,
+                                  table,
+                                  what,
+                                  na.ok = FALSE,
+                                  zero.ok = FALSE,
+                                  error = TRUE) {
+  match <-
+    validate_entry(
+      x       = x,
+      table   = table,
+      what    = what,
+      na.ok   = na.ok,
+      zero.ok = zero.ok,
+      error   = error
+    )
+
+  if (nrow(match) > 1) {
+    if (error) {
+      print(match)
+      stop("\nThe entry ", x, " matches multiple ", what, "s, seen above.")
+    } else {
+      structure(match, error = "multiple matches")
+    }
+  } else {
+    match
+  }
+}
+
+
+
+validate_entry_list <- function(x,
+                                table,
+                                what,
+                                na.ok = FALSE,
+                                zero.ok = FALSE,
+                                error = TRUE) {
+  x %>%
+    purrr::map_dfr(
+      validate_entry,
+      table = table,
+      what = what,
+      na.ok = na.ok,
+      zero.ok = zero.ok,
+      error = error
+    ) %>%
+    dplyr::distinct()
+}
+
+
+
+
+validate_unique_entry_list <- function(x,
+                                       table,
+                                       what,
+                                       na.ok = FALSE,
+                                       zero.ok = FALSE,
+                                       error = TRUE) {
+  x_valid <-
+    purrr::map_dfr(
+      x,
+      validate_unique_entry,
+      table = table,
+      what = what,
+      na.ok = na.ok,
+      zero.ok = zero.ok,
+      error = error
+    )
+
+  if (anyDuplicated(x_valid)) {
+    if (error) {
+      dup_vector <- duplicated(x_valid) | duplicated(x_valid, fromLast = TRUE)
+      print(x_valid[dup_vector, ])
+      stop(
+        "\nThere are identical matches among the entries:\n",
+        paste(x[dup_vector], collapse = "\n"),
+        "\nCollectively, they match the ", what, "s above."
+      )
+    } else {
+      return(structure(x_valid, error = "duplicate matches"))
+    }
+  } else {
+    x_valid
+  }
+}
+
+
+
+
+validate_new <- function(id, what, rds_table) {
+
+  if (nrow(rds_table) > 9999L) {
     stop("Maximum number of ", what, "s reached.")
   }
 
-  id <- validate_int(x = id, what = what, rds_tibble = NULL)
-
-  if(is.na(id)) {
-    id <- min(setdiff(1L:9999L, rds_tibble$id))
-  }
-  else if(id %in% rds_tibble$id) {
-    stop('id number already taken. Try a different one or leave the ',
-         'argument blank for automatic selection ',
-         '(the lowest counting number still available).')
-  }
-
-  return(id)
-}
-
-
-validate_entry <- function(x, what, rds_tibble = NULL, max.length = 9999,
-                           allow_dups = FALSE, archived = TRUE) {
-
-  if(!checkmate::test_vector(x = x, any.missing = FALSE, min.len = 1,
-                             max.len = max.length, unique = TRUE)) {
-    stop("Must enter ", what, " as a vector of minimum length 1, maximum ",
-         "length ", max.length, " and no missing values or duplicate values.")
-  }
-
-  if(!archived) {
-    rds_tibble <- remove_archived(rds_tibble)
-  }
-
-  ids <-
-    lapply(
-      x,
-      function(char) {
-        num <- suppressWarnings(as.numeric(char))
-        if(is.na(num)) {
-          validate_char(x = char, what = what, rds_tibble = rds_tibble,
-                        allow_dups = allow_dups, archived = archived)
-        }
-        else {
-          validate_int(x = num, what = what, rds_tibble = rds_tibble,
-                       archived = archived)
-        }
-      }) %>%
-    unlist()
-
-  if(!allow_dups && anyDuplicated(ids) > 0) {
-    stop("The following ", what, "s are repeats of other entered", what, "s: ",
-         paste(x[duplicated(ids)], collapse = ", "), ". Check all names/",
-         "titles and id numbers.")
-  }
-
-  return(ids)
-}
-
-
-
-validate_int <- function(x, what, rds_tibble, archived) {
-
-  if(!checkmate::test_integerish(x, lower = 1, upper = 9999)) {
+  if (!is.na(id) &&
+      (!rlang::is_scalar_integerish(id) || !dplyr::between(id, 1L, 9999L))) {
     stop(what, " id number must be a single integer between 1 and 9999.")
   }
 
-  x <- as.integer(x)
+  id <- as.integer(id)
 
-  if(!is.null(rds_tibble)) {
-
-    id_checks <-
-      purrr::map_lgl(x, checkmate::test_choice, choices = rds_tibble$id)
-
-    if(!all(id_checks)) {
-      stop("The following ", what, " id(s) not found:",
-           paste(x[!id_checks], collapse = ", "),
-           ifelse(archived, "", "\nTry setting archived = TRUE"))
-    }
+  if (is.na(id)) {
+    id <- min(setdiff(1L:9999L, rds_table$id))
+  }
+  else if (any(rds_table$id == id)) {
+    stop(
+      'id number already taken. Try a different one or leave the ',
+      'argument blank for automatic selection ',
+      '(the lowest counting number still available).'
+    )
   }
 
-  return(x)
+  id
 }
 
 
 
-validate_char <- function(x, what, rds_tibble, allow_dups, archived) {
 
-  if(!checkmate::test_character(x, min.chars = 1)) {
-    stop("Each ", what, " entered as a character strings must contain at ",
-         "least 1 character")
+validate_authors <- function(general_authors,
+                             current_owner,
+                             corresp_auth,
+                             creator,
+                             authors_table) {
+
+  special_authors <-
+    validate_special_authors(
+      current_owner,
+      corresp_auth,
+      creator,
+      authors_table
+    )
+
+  general_authors <- validate_general_authors(general_authors, authors_table)
+
+  general_authors <-
+    c(general_authors, special_authors[!is.na(special_authors)]) %>%
+    unique()
+
+  if (is.na(special_authors$current_owner) && length(general_authors) > 0) {
+    special_authors$current_owner <- general_authors[[1]]
   }
 
-  matches <- grep(pattern     = x,
-                  x           = paste(rds_tibble[[2]], rds_tibble[[3]]),
-                  ignore.case = TRUE)
-
-  if(length(matches) != 1) {
-
-    if(length(matches) == 0) {
-      stop("No ", what, " found containing '", x, "' in the ",
-           colnames(rds_tibble)[2], "+", colnames(rds_tibble)[3],
-           ifelse(archived, "", "\nTry setting archived = TRUE"))
-    }
-    else if(length(matches) > 1 && !allow_dups) {
-      print(rds_tibble[matches, ])
-      stop(x, " matches the ", colnames(rds_tibble)[2], "+",
-           colnames(rds_tibble)[3], " of all of the above ", what,
-           "s. Be more specific to differentiate or enter their ", what,
-           " id numbers instead.",
-           ifelse(archived, "\nTry setting archived = FALSE", ""))
-    }
+  if (is.na(special_authors$creator)) {
+    special_authors$creator <-
+      new_projects_author(paste0("0: ", Sys.info()["user"]))
   }
 
-  return(rds_tibble$id[matches])
+  c(
+    list("general_authors" = vapply(general_authors, as.integer, integer(1))),
+    special_authors
+  )
+}
+
+
+
+validate_special_authors <- function(current_owner,
+                                     corresp_auth,
+                                     creator,
+                                     authors_table) {
+  sapply(
+    list(
+      "current_owner" = current_owner,
+      "corresp_auth"  = corresp_auth,
+      "creator"       = creator
+    ),
+    validate_projects_author,
+    authors_table = authors_table,
+    na.ok         = TRUE,
+    simplify      = FALSE
+  )
+}
+
+
+
+validate_general_authors <- function(authors, authors_table) {
+
+  if (is.null(authors)) {
+    list()
+  } else {
+
+    if (!rlang::is_vector(authors)) {
+      stop("authors argument must be a vector of author ids and/or names")
+    }
+
+    lapply(
+      authors,
+      validate_projects_author,
+      authors_table = authors_table,
+      na.ok = FALSE
+    )
+  }
 }
 
 
 
 #' @importFrom rlang .data
-validate_assoc <- function(x, what, rds_tibble, what2, rds_tibble2) {
-  id_checks <-
-    purrr::map_lgl(x, checkmate::test_choice, choices = rds_tibble2$id2)
+validate_assoc <- function(x, what, rds_table, what2, rds_table2) {
 
-  if(!all(id_checks)) {
-    print(dplyr::filter(rds_tibble, .data$id %in% x[!id_checks]))
+  id_checks <- x %in% rds_table2$id2
+    #purrr::map_lgl(x, checkmate::test_choice, choices = rds_table2$id2)
+
+  if (!all(id_checks)) {
+    print(rds_table[rds_table$id %in% x[!id_checks], ])
     stop("The above ", what, "(s) not found in ", what2, "'s ", what, " list.")
   }
 
-  return(x)
+  x
 }
 
 
+
+
+validate_single_string <- function(x) {
+  what <- rlang::ensym(x)
+  x    <- as.character(x)
+  if (!rlang::is_scalar_character(x)) {
+    stop(what, " must be coercible to a single character string")
+  }
+  x
+}
+
+
+
+
+validate_deadline <- function(x) {
+  x <- as.POSIXct(x)
+  if (length(x) != 1) {
+    stop("deadline must be coercible to a POSIXct object of length 1")
+  }
+  x
+}
+
+
+
 validate_directory <- function(path,
-                               p_path = p_path_internal(),
+                               p_path = p_path(),
                                make_directories = FALSE) {
 
   path <- fs::path_tidy(path)
 
   # This only occurs during setup_projects()
-  if(is.null(p_path)) {
-    if(tolower(fs::path_file(path)) == "projects") {
+  if (is.null(p_path)) {
+    if (tolower(fs::path_file(path)) == "projects") {
       path <- fs::path_dir(path)
     }
-  }
-
-  else {
+  } else {
     path <- fs::path_abs(path = path, start = p_path)
-    if(!fs::path_has_parent(path, p_path)) {
+    if (!fs::path_has_parent(path, p_path)) {
       path <- fs::path(p_path, path)
     }
   }
 
-  if(!make_directories && !fs::dir_exists(path)) {
+  if (!make_directories && !fs::dir_exists(path)) {
     stop("The directory\n", path, "\n\ndoes not exist. Create it or set ",
          "make_directories = TRUE.")
   }
 
-  return(unclass(path))
+  unclass(path)
 }
 
 
-validate_stage <- function(stage, choices) {
-
-  if(length(stage) == 1 && is.na(stage)) {
-
-    return(choices[1])
-
-  }
-  else {
-
-    if(identical(stage, choices)) {
-      stage <- choices[1]
-    }
-    else {
-      stage <- as.character(stage)
-
-      checkmate::assert_character(stage, min.chars = 1, any.missing = FALSE,
-                                  len = 1)
-    }
-
-    stage <- factor(x      = grep(pattern     = stage,
-                                  x           = choices,
-                                  ignore.case = TRUE,
-                                  value       = TRUE),
-                    levels = choices)
-
-    if(length(stage) != 1) {
-      stop("User input for the 'stage' argument must match one of ",
-           "the following:\n", paste(choices, collapse = "\n"))
-    }
-
-    return(stage)
-  }
-}
 
 validate_protocol <- function(protocol, choices) {
 
   protocol_match <- try(match.arg(protocol, choices), silent = TRUE)
 
-  if(class(protocol_match) == "try-error") {
-    return(protocol)
-  }
-
-  else {
-    return(protocol_match)
+  if (class(protocol_match) == "try-error") {
+    protocol
+  } else {
+    protocol_match
   }
 }
 
-validate_template <- function(file_name, what, default_name, default_template,
+
+
+
+validate_template <- function(file_name,
+                              what,
+                              default_name,
+                              default_template,
                               p_path) {
 
   path <- fs::path(p_path, ".templates", file_name)
 
-  if(fs::file_exists(path)) {
+  if (fs::file_exists(path)) {
     return(readr::read_lines(path))
-  }
+  } else {
 
-  else {
-
-    if(file_name %in% default_name) {
-      return(restore_default_template(file_name, what, default_name,
-                                      default_template, p_path))
-    }
-
-    else {
+    if (any(defaul_name == file_name)) {
+      return(
+        restore_default_template(
+          file_name,
+          what,
+          default_name,
+          default_template,
+          p_path
+        )
+      )
+    } else {
 
       default_path <- fs::path(p_path, ".templates", default_name[1])
 
-      user_prompt(msg   = paste0("Custom template not found at:\n", path,
-                                 "\n\nUse the default at:\n", default_path,
-                                 "\n\n? (y/n)"),
-                  n_msg = paste0("\nChoose an existing ", what,
-                                 " template in\n",
-                                 fs::path(p_path, ".templates")))
+      user_prompt(
+        msg   =
+          paste0(
+            "Custom template not found at:\n",
+            path,
+            "\n\nUse the default at:\n",
+            default_path,
+            "\n\n? (y/n)"
+          ),
+        n_msg =
+          paste0(
+            "\nChoose an existing ",
+            what,
+            " template in\n",
+            fs::path(p_path, ".templates")
+          )
+      )
 
-      if(fs::file_exists(default_path)) {
+      if (fs::file_exists(default_path)) {
         message("\n\nUsing default template.")
         return(readr::read_lines(default_path))
-      }
-
-      else {
-        return(restore_default_template(file_name, what, default_name,
-                                        default_template, p_path))
+      } else {
+        return(
+          restore_default_template(
+            file_name,
+            what,
+            default_name,
+            default_template,
+            p_path
+          )
+        )
       }
     }
   }
 }
 
-restore_default_template <- function(file_name, what, default_name,
-                                     default_template, p_path) {
+restore_default_template <- function(file_name,
+                                     what,
+                                     default_name,
+                                     default_template,
+                                     p_path) {
 
-  user_prompt(msg   = paste0("\n\nDefault template was not found at:\n",
-                             fs::path(p_path, ".templates", file_name),
-                             "\n\nRestore it and use for this project? (y/n)"),
-              y_msg = paste0("\nDefault restored at:\n",
-                             fs::path(p_path, ".templates", file_name),
-                             "\n\nUsing it as the ", what,
-                             " template for this project"),
-              n_msg = paste0("Choose an existing ", what, " template in\n",
-                             fs::path(p_path, ".templates"), "\n\nor respond ",
-                             '"y" to restoring the default next time.'))
+  user_prompt(
+    msg   =
+      paste0(
+        "\n\nDefault template was not found at:\n",
+        fs::path(p_path, ".templates", file_name),
+        "\n\nRestore it and use for this project? (y/n)"
+      ),
+    y_msg =
+      paste0(
+        "\nDefault restored at:\n",
+        fs::path(p_path, ".templates", file_name),
+        "\n\nUsing it as the ",
+        what,
+        " template for this project"
+      ),
+    n_msg =
+      paste0(
+        "Choose an existing ",
+        what,
+        " template in\n",
+        fs::path(p_path, ".templates"),
+        "\n\nor respond ",
+        '"y" to restoring the default next time.'
+      )
+  )
 
-  return(
-    readr::write_lines(
-      x    = default_template[[which(default_name == file_name)]],
-      path = fs::path(p_path, ".templates", file_name)))
-
+  readr::write_lines(
+    x    = default_template[[which(default_name == file_name)]],
+    path = fs::path(p_path, ".templates", file_name)
+  )
 }
 
 yaml_bounds <- function(vector, what) {
 
   yaml_bounds <- grep("^---$", vector)
 
-  if(length(yaml_bounds) < 2) {
-    stop(what, " template must have a yaml header even if it's empty, as in:",
-         "\n\n---\n---",
-         "\n\nCheck that there are no spaces before or after each ---")
+  if (length(yaml_bounds) < 2) {
+    stop(
+      what, " template must have a yaml header even if it's empty, as in:",
+      "\n\n---\n---",
+      "\n\nCheck that there are no spaces before or after each ---"
+    )
   }
 
-  return(yaml_bounds)
+  yaml_bounds
 }
 

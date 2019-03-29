@@ -100,9 +100,16 @@
 #'   \code{new_project()} should create subdirectories specified in the
 #'   \code{path} argument that do not already exist. Ignored if \code{path} is
 #'   left as the default or if all directories in \code{path} already exist.
-#' @param stage A factor with the levels \code{c("1: design", "2: data
-#'   collection", "3: analysis", "4: manuscript", "5: under review", "5:
-#'   accepted")}, communicating the stage the project is in.
+#' @param stage A number or string that will partially match exactly one of
+#'   \code{c("1: design", "2: data collection", "3: analysis", "4: manuscript",
+#'   "5: under review", "6: accepted", "0: ideas")}, communicating the stage the
+#'   project is in. This will be coerced to be a character vector of class
+#'   \code{projects_stage}. Defaults to \code{"1: design"}.
+#'
+#'   If set to one of \code{c("3: analysis", "4: manuscript", "5: under review",
+#'   "6: accepted")}, \code{protocol} and \code{datawork} are ignored and the
+#'   \emph{01_protocol.Rmd} and \emph{02_datawork.Rmd} files will not be
+#'   written.
 #' @param protocol,datawork,analysis,report,css,Rproj A character string
 #'   matching the name of a corresponding template file in the \emph{.templates}
 #'   subdirectory of the main \code{\link{projects_folder}}. Default templates
@@ -110,12 +117,18 @@
 #'   can edit these if desired.
 #'
 #'   Multiple default \code{protocol} templates are available.
+#'
 #'   \emph{01_protocol.Rmd}, which by default is the same as
 #'   \emph{STROBE_protocol.Rmd}, will be selected if \code{protocol} is
 #'   unspecified. Users can edit these default templates.
 #'
-#'   If using a custom template, make sure to match the case and file extension
-#'   exactly.
+#'   If using an edited or custom template, make sure to match the case and file
+#'   extension exactly.
+#'
+#'   If the \code{stage} argument is set to one of \code{c("3: analysis", "4:
+#'   manuscript", "5: under review", "6: accepted")}, \code{protocol} and
+#'   \code{datawork} are ignored and the \emph{01_protocol.Rmd} and
+#'   \emph{02_datawork.Rmd} files will not be written.
 #' @param use_bib Logical. If \code{TRUE}, a blank \emph{.bib} file will be
 #'   written into the \strong{progs} subdirectory of the newly created project
 #'   folder. Its name will be of the form \emph{pXXXX.bib}, and the YAML header
@@ -195,19 +208,20 @@
 #' @importFrom tibble tibble
 #' @export
 new_project <- function(title            = NA,
-                        short_title      = NA,
-                        authors          = NULL,
                         current_owner    = NA,
-                        status           = "just created",
-                        deadline_type    = NA,
-                        deadline         = NA,
                         stage            = c("1: design", "2: data collection",
                                              "3: analysis", "4: manuscript",
-                                             "5: under review", "6: accepted"),
+                                             "5: under review", "6: accepted",
+                                             "0: idea"),
+                        status           = "just created",
+                        short_title      = NA,
+                        authors          = NULL,
+                        deadline_type    = NA,
+                        deadline         = NA,
                         path             = projects_folder(),
                         make_directories = FALSE,
                         corresp_auth     = NA,
-                        creator          = Sys.info()["user"],
+                        creator          = NA,
                         id               = NA,
                         protocol         = c("01_protocol.Rmd",
                                              "STROBE_protocol.Rmd",
@@ -220,259 +234,322 @@ new_project <- function(title            = NA,
                         use_bib          = FALSE,
                         stitle_as_folder = FALSE) {
 
-  p_path                   <- p_path_internal()
+  p_path             <- p_path()
 
-  projects_path            <- make_rds_path("projects", p_path)
-  projects_tibble          <- get_rds(projects_path)
+  projects_path      <- make_rds_path("projects", p_path)
+  projects_table     <- get_rds(projects_path)
 
-  authors_tibble           <- get_rds(make_rds_path("authors", p_path))
+  authors_table      <- authors_internal(p_path)
 
-  pa_assoc_path            <- make_rds_path("project_author_assoc", p_path)
-  pa_assoc_tibble          <- get_rds(pa_assoc_path)
+  pa_assoc_path      <- make_rds_path("project_author_assoc", p_path)
+  pa_assoc_table     <- get_rds(pa_assoc_path)
 
-  affiliations_tibble      <- get_rds(make_rds_path("affiliations", p_path))
+  affiliations_table <- affiliations_internal(p_path)
 
-  aa_assoc_tibble <- get_rds(make_rds_path("author_affiliation_assoc", p_path))
+  aa_assoc_table     <- aa_assoc_internal(p_path)
 
-  if(!is.na(title)) {
-    title <- tools::toTitleCase(title)
+  # Validation-----------------------------------------------------------------
+  id <- validate_new(id = id, what = "project", rds_table = projects_table)
+
+  title         <- validate_single_string(title)
+  short_title   <- validate_single_string(short_title)
+  status        <- validate_single_string(status)
+  deadline_type <- validate_single_string(deadline_type)
+
+  deadline <- validate_deadline(deadline)
+
+  stage         <- validate_stage(stage)
+
+  all_authors   <-
+    validate_authors(
+      general_authors = authors,
+      current_owner   = current_owner,
+      corresp_auth    = corresp_auth,
+      creator         = creator,
+      authors_table   = authors_table
+    )
+
+  if (!is.na(all_authors$corresp_auth)) {
+    corresp_auth_row <-
+      authors_table[match(all_authors$corresp_auth, authors_table$id), ]
+  } else {
+    corresp_auth_row <- NULL
   }
 
-  #######################
-  # Validation of id, path
-  id         <- validate_new(id         = id,
-                             what       = "project",
-                             rds_tibble = projects_tibble)
+  path          <-
+    validate_directory(
+      path             = path,
+      p_path           = p_path,
+      make_directories = make_directories
+    )
 
-  path       <- validate_directory(path             = path,
-                                   p_path           = p_path,
-                                   make_directories = make_directories)
+  # File preparation-----------------------------------------------------------
 
-  pXXXX_name <- make_project_name(ifelse(stitle_as_folder, short_title, id),
-                                  stitle_as_folder)
+  pXXXX_name    <-
+    make_project_name(
+      x           = ifelse(stitle_as_folder, short_title, id),
+      short_title = stitle_as_folder
+    )
+
   pXXXX_path <- make_project_path(pXXXX_name, path)
 
-  if(fs::dir_exists(pXXXX_path)) {
-    stop("The directory\n", pXXXX_path, "\nalready exists.",
-         "\nMove or delete it, or pick a different project id/short_title.")
+  if (fs::dir_exists(pXXXX_path)) {
+    stop(
+      "The directory\n", pXXXX_path, "\nalready exists.",
+      "\nMove or delete it, or pick a different project id/short_title."
+    )
   }
-
-  ########################
-  ########################
-
-  stage <- validate_stage(stage, choices = eval(formals()$stage))
-
-  ########################
-  # Validation of authors, creator, corresp_auth, current_owner
-
-  # Won't let new_project() continue if there are no authors and the user is
-  # trying to add authors
-  if(nrow(authors_tibble) == 0 &&
-     !all(creator == Sys.info()["user"], is.na(corresp_auth),
-          is.na(current_owner), is.null(authors))) {
-    stop("Can't set authors, creator, corresp_auth, or current owner until an",
-         " author is created. Run new_author()")
-  }
-
-  # Validate corresp_auth
-  if(!is.na(corresp_auth)) {
-    corresp_auth <- validate_entry(corresp_auth,
-                                   what       = "author",
-                                   rds_tibble = authors_tibble,
-                                   max.length = 1)
-  }
-
-  # creator is validated against the authors tibble only if it's different from
-  # Sys.info()["user"]. If the user cleverly tries to set creator as NA, it will
-  # be set to Sys.info()["user"].
-  if(is.na(creator)) {
-    creator <- Sys.info()["user"]
-  }
-  else if(creator != Sys.info()["user"]) {
-    creator <- validate_entry(creator,
-                              what       = "author",
-                              rds_tibble = authors_tibble,
-                              max.length = 1)
-  }
-
-  # Validate current_owner
-  if(!is.na(current_owner)) {
-    current_owner <- validate_entry(current_owner,
-                                    what       = "author",
-                                    rds_tibble = authors_tibble,
-                                    max.length = 1)
-  }
-
-  # If authors is left blank and current_owner isn't, authors is populated with
-  # current_owner.
-  # If current_owner is blank and authors isn't, current_owner is populated with
-  # the first author.
-  # If neither are blank and current_owner isn't in authors, current_owner is
-  # added to authors immediately preceding the last author (unless there was
-  # only one author in authors; in that case, it's made to be the second one).
-  # If both authors and current_owner are blank, they're left blank.
-  if(is.null(authors)) {
-    if(!is.na(current_owner)) {
-      authors <- current_owner
-    }
-  }
-  else {
-    authors <- validate_entry(authors,
-                              what       = "author",
-                              rds_tibble = authors_tibble)
-    if(is.na(current_owner)) {
-      current_owner <- authors[1]
-    }
-    else if(!(current_owner %in% authors)) {
-      authors <- c(authors[1],
-                   authors[-c(1, length(authors))],
-                   current_owner,
-                   authors[-1][length(authors) - 1])
-    }
-  }
-  ############################
-  ############################
-
-  protocol <- validate_protocol(protocol, choices = eval(formals()$protocol))
 
   files <-
-    c("protocol", "datawork", "analysis", "report", "css", "Rproj") %>%
-    stats::setNames(
-      object = purrr::pmap(
-        .l     = list(
-          file_name        = list(protocol, datawork, analysis, report, css,
-                                  Rproj),
-          what             = .,
-          default_name     = list(c("01_protocol.Rmd", "STROBE_protocol.Rmd",
-                                    "CONSORT_protocol.Rmd"),
-                                  "02_datawork.Rmd",
-                                  "03_analysis.Rmd",
-                                  "04_report.Rmd",
-                                  "style.css",
-                                  "pXXXX.Rproj"),
-          default_template = list(list(STROBE_template, STROBE_template,
-                                       CONSORT_template),
-                                  list(datawork_template),
-                                  list(analysis_template),
-                                  list(report_template),
-                                  list(css_template),
-                                  list(Rproj_template))),
-        .f     = validate_template,
-        p_path = p_path),
-      nm     = .)
-
-  files$protocol <-
-    build_protocol_report(vector = files$protocol,
-                          what   = "protocol",
-                          project_id          = id,
-                          title               = title,
-                          corresp_auth        = corresp_auth,
-                          authors_tibble      = authors_tibble,
-                          affiliations_tibble = affiliations_tibble,
-                          project_authors     = authors,
-                          aa_assoc_tibble     = aa_assoc_tibble,
-                          use_bib             = use_bib,
-                          pXXXX_name          = pXXXX_name)
-
-  files$report <-
-    build_protocol_report(vector = files$report,
-                          what   = "report",
-                          project_id          = id,
-                          title               = title,
-                          corresp_auth        = corresp_auth,
-                          authors_tibble      = authors_tibble,
-                          affiliations_tibble = affiliations_tibble,
-                          project_authors     = authors,
-                          aa_assoc_tibble     = aa_assoc_tibble,
-                          use_bib             = use_bib,
-                          pXXXX_name          = pXXXX_name)
-
-  files$datawork <- build_datawork_analysis(vector     = files$datawork,
-                                            what       = "datawork",
-                                            p_path     = p_path,
-                                            pXXXX_name = pXXXX_name)
-
-  files$analysis <- build_datawork_analysis(vector     = files$analysis,
-                                            what       = "analysis",
-                                            p_path     = p_path,
-                                            pXXXX_name = pXXXX_name)
+    build_rmds(
+      stage              = stage,
+      protocol           = protocol,
+      datawork           = datawork,
+      analysis           = analysis,
+      report             = report,
+      css                = css,
+      Rproj              = Rproj,
+      p_path             = p_path,
+      id                 = id,
+      title              = title,
+      authors            = all_authors$general_authors,
+      corresp_auth_row   = corresp_auth_row,
+      authors_table      = authors_table,
+      affiliations_table = affiliations_table,
+      aa_assoc_table     = aa_assoc_table,
+      use_bib            = use_bib,
+      pXXXX_name         = pXXXX_name
+    )
 
   # Add new row to project list
-  new_project_row <- change_table(action        = "new",
-                                  rds_path      = projects_path,
-                                  rds_tibble    = projects_tibble,
-                                  id            = id,
-                                  title         = title,
-                                  short_title   = as.character(short_title),
-                                  current_owner = as.integer(current_owner),
-                                  status        = as.character(status),
-                                  deadline_type = as.character(deadline_type),
-                                  deadline      = as.Date(deadline),
-                                  stage         = stage,
-                                  path          = pXXXX_path,
-                                  corresp_auth  = as.integer(corresp_auth),
-                                  creator       = as.character(creator))
+  new_project_row <-
+    change_table(
+      action        = "new",
+      rds_path      = projects_path,
+      rds_table     = projects_table,
+      id            = id,
+      title         = title,
+      short_title   = short_title,
+      current_owner = all_authors$current_owner,
+      status        = status,
+      deadline_type = deadline_type,
+      deadline      = deadline,
+      stage         = stage,
+      path          = pXXXX_path,
+      corresp_auth  = all_authors$corresp_auth,
+      creator       = all_authors$creator
+    )
 
   # Add row(s) to project-author association table
-  if(!is.null(authors)) {
-    pa_assoc_tibble <-
-      change_assoc(assoc_path   = pa_assoc_path,
-                   assoc_tibble = pa_assoc_tibble,
-                   new          = TRUE,
-                   id1          = id,
-                   id2          = authors)
+  if (!is.null(all_authors$general_authors)) {
+    pa_assoc_table <-
+      change_assoc(
+        assoc_path   = pa_assoc_path,
+        assoc_table = pa_assoc_table,
+        new          = TRUE,
+        id1          = id,
+        id2          = all_authors$general_authors
+      )
   }
 
   # Write the files
-  write_project_files(pXXXX_path      = pXXXX_path,
-                      files           = files,
-                      use_bib         = use_bib,
-                      pXXXX_name      = pXXXX_name)
+  write_project_files(
+    pXXXX_path = pXXXX_path,
+    files      = files,
+    use_bib    = use_bib,
+    pXXXX_name = pXXXX_name
+  )
 
+
+  # Print results--------------------------------------------------------------
 
   message("\nProject ", id, " has been created at\n", pXXXX_path)
-  print(dplyr::select(new_project_row,
-                      -c("current_owner", "creator", "corresp_auth")))
+  print(
+    dplyr::select(
+      new_project_row,
+      "id",
+      "title",
+      "stage",
+      "status",
+      "deadline_type",
+      "deadline"
+    )
+  )
 
   message("\nNew project's authors:")
-  if(is.null(authors)) {
-    print("None.")
-  }
-  else {
-    print(pa_assoc_tibble %>%
-            dplyr::filter(.data$id1 == id) %>%
-            dplyr::left_join(authors_tibble,
-                             by = c("id2" = "id")) %>%
-            dplyr::select(-.data$id1) %>%
-            dplyr::rename(author_id = .data$id2))
-  }
-
-  message("\nCurrent owner:")
-  if(is.na(current_owner)) {
-    print("None.")
-  }
-  else {
-    print(dplyr::filter(authors_tibble, .data$id == current_owner))
+  if (length(all_authors$general_authors) == 0) {
+    cat("None.")
+  } else {
+    print(
+      pa_assoc_table %>%
+        dplyr::filter(.data$id1 == id) %>%
+        dplyr::left_join(authors_table, by = c("id2" = "id")) %>%
+        dplyr::select(-"id1") %>%
+        dplyr::rename("author_id" = "id2")
+    )
   }
 
-  message("\nCorresponding author:")
-  if(is.na(corresp_auth)) {
-    print("None.")
-  }
-  else {
-    print(dplyr::filter(authors_tibble, .data$id == corresp_auth))
-  }
+  print(dplyr::select(new_project_row, current_owner, corresp_auth, creator))
 
-  if(creator == Sys.info()["user"]) {
-    message("\nCreator: ", creator)
-  }
-  else {
-    message("\nCreator:")
-    print(dplyr::filter(authors_tibble, .data$id == creator))
-  }
-  return(invisible(new_project_row))
+  invisible(new_project_row)
 }
 ################################################################################
+
+
+
+
+
+build_rmds <- function(stage,
+                       protocol,
+                       datawork,
+                       analysis,
+                       report,
+                       css,
+                       Rproj,
+                       p_path,
+                       id,
+                       title,
+                       authors,
+                       corresp_auth_row,
+                       authors_table,
+                       affiliations_table,
+                       aa_assoc_table,
+                       use_bib,
+                       pXXXX_name) {
+
+  protocol_choices <- eval(formals(new_project)$protocol)
+
+  if (any(c("1: design", "0: idea") == as.character(stage))) {
+    protocol <- validate_protocol(protocol, choices = protocol_choices)
+  }
+
+  files <-
+    list(
+      file_name = list(protocol, datawork, analysis, report, css, Rproj),
+      what =  c("protocol", "datawork", "analysis", "report", "css", "Rproj"),
+      default_name =
+        list(c("01_protocol.Rmd",
+               "STROBE_protocol.Rmd",
+               "CONSORT_protocol.Rmd"),
+             "02_datawork.Rmd",
+             "03_analysis.Rmd",
+             "04_report.Rmd",
+             "style.css",
+             "pXXXX.Rproj"
+        ),
+      default_template =
+        list(
+          list(STROBE_template, STROBE_template, CONSORT_template),
+          list(datawork_template),
+          list(analysis_template),
+          list(report_template),
+          list(css_template),
+          list(Rproj_template)
+        )
+    )
+
+  if (
+    any(
+      c(
+        "2: data collection",
+        "3: analysis",
+        "4: manuscript",
+        "5: under review",
+        "6: accepted"
+      ) == as.character(stage)
+    )
+  ) {
+
+    if (!identical(protocol, protocol_choices)) {
+      stop(
+        "User input to protocol argument detected, but protocol is not\n",
+        "used when stage is set to \"2: data collection\" or higher"
+      )
+    }
+
+    files <- lapply(files, utils::tail, n = -1)
+
+    if (stage != "2: data collection") {
+
+      if (!identical(datawork, eval(formals(new_project)$datawork))) {
+        stop(
+          "User input to datawork argument detected, but datawork is not\n",
+          "used when stage is set to \"3: analysis\" or higher"
+        )
+      }
+
+      files <- lapply(files, utils::tail, n = -1)
+    }
+  }
+
+  files <-
+    stats::setNames(
+      object = purrr::pmap(files, validate_template, p_path = p_path),
+      nm     = files$what
+    )
+
+  if (!is.null(files$protocol)) {
+    files$protocol <-
+      build_protocol_report(
+        vector             = files$protocol,
+        what               = "protocol",
+        project_id         = id,
+        title              = title,
+        corresp_auth_row   = corresp_auth_row,
+        authors_table      = authors_table,
+        affiliations_table = affiliations_table,
+        project_authors    = authors,
+        aa_assoc_table     = aa_assoc_table,
+        use_bib            = use_bib,
+        pXXXX_name         = pXXXX_name
+      )
+  }
+
+  files$report <-
+    build_protocol_report(
+      vector              = files$report,
+      what                = "report",
+      project_id          = id,
+      title               = title,
+      corresp_auth_row    = corresp_auth_row,
+      authors_table       = authors_table,
+      affiliations_table  = affiliations_table,
+      project_authors     = authors,
+      aa_assoc_table      = aa_assoc_table,
+      use_bib             = use_bib,
+      pXXXX_name          = pXXXX_name
+    )
+
+  if (!is.null(files$datawork)) {
+    files$datawork <-
+      build_datawork_analysis(
+        vector     = files$datawork,
+        what       = "datawork",
+        p_path     = p_path,
+        pXXXX_name = pXXXX_name
+      )
+  }
+
+  files$analysis <-
+    build_datawork_analysis(
+      vector     = files$analysis,
+      what       = "analysis",
+      p_path     = p_path,
+      pXXXX_name = pXXXX_name
+    )
+
+  files
+}
+
+
+
+#' @export
+new_idea <- function(title = NA, status = "just an idea") {
+  new_project(title = title, stage = "0: idea", status = status, ...)
+}
+
+
+
 
 
 
@@ -480,69 +557,93 @@ new_project <- function(title            = NA,
 #' @rdname new_edit_delete
 #' @importFrom rlang .data
 #' @export
-new_author <- function(given_names = NA,    last_name    = NA,
-                       title       = NA,    affiliations,
-                       degree      = NA,    email        = NA,
-                       phone       = NA,    id           = NA) {
+new_author <- function(given_names  = NA,
+                       last_name    = NA,
+                       title        = NA,
+                       affiliations = NULL,
+                       degree       = NA,
+                       email        = NA,
+                       phone        = NA,
+                       id           = NA) {
 
-  p_path         <- p_path_internal()
+  p_path         <- p_path()
 
   authors_path   <- make_rds_path("authors", p_path)
-  authors_tibble <- get_rds(authors_path)
+  authors_table  <- get_rds(authors_path)
 
-  id             <- validate_new(id         = id,
-                                 what       = "author",
-                                 rds_tibble = authors_tibble)
+  id <- validate_new(id = id, what = "author", rds_table = authors_table)
 
-  if(!missing(affiliations)) {
-    aa_assoc_path       <- make_rds_path("author_affiliation_assoc", p_path)
-    aa_assoc_tibble     <- get_rds(aa_assoc_path)
-    affiliations_tibble <- get_rds(make_rds_path("affiliations", p_path))
+  given_names <- validate_single_string(given_names)
+  last_name   <- validate_single_string(last_name)
+  title       <- validate_single_string(title)
+  degree      <- validate_single_string(degree)
+  email       <- validate_single_string(email) %>% tolower()
+  phone       <- validate_single_string(phone)
 
-    if(nrow(affiliations_tibble) == 0) {
-      stop("Can't set affiliations until an affiliation is created. ",
-           "Run new_affiliation()")
+  if (!is.null(affiliations)) {
+
+    aa_assoc_path      <- make_rds_path("author_affiliation_assoc", p_path)
+    aa_assoc_table     <- get_rds(aa_assoc_path)
+    affiliations_table <- affiliations_internal(p_path)
+
+    if (nrow(affiliations_table) == 0) {
+      stop(
+        "Can't set affiliations until an affiliation is created. ",
+        "Run new_affiliation()"
+      )
     }
 
-    affiliations        <- validate_entry(affiliations,
-                                          what        = "affiliation",
-                                          rds_tibble  = affiliations_tibble)
+    affiliations <-
+      validate_unique_entry_list(
+        affiliations,
+        table = affiliations_table,
+        what  = "affiliation"
+      )$id
   }
 
-  new_author_row <- change_table(action      = "new",
-                                 rds_path    = authors_path,
-                                 rds_tibble  = authors_tibble,
-                                 id          = id,
-                                 given_names = as.character(given_names),
-                                 last_name   = as.character(last_name),
-                                 title       = as.character(title),
-                                 degree      = as.character(degree),
-                                 email       = tolower(as.character(email)),
-                                 phone       = as.character(phone))
+  new_author_row <-
+    change_table(
+      action      = "new",
+      rds_path    = authors_path,
+      rds_table   = authors_table,
+      id          = id,
+      given_names = given_names,
+      last_name   = last_name,
+      title       = title,
+      degree      = degree,
+      email       = email,
+      phone       = phone
+    )
+
+  if (!is.null(affiliations)) {
+    new_author_affiliations <-
+      change_assoc(
+        assoc_path  = aa_assoc_path,
+        assoc_table = aa_assoc_table,
+        new         = TRUE,
+        id1         = id,
+        id2         = affiliations
+      ) %>%
+      dplyr::filter(.data$id1 == id)
+  }
 
   message("New author:")
   print(new_author_row)
 
-  message("\nNew author's affiliations:")
-  if(!missing(affiliations)) {
-    new_author_affiliations <-
-      change_assoc(assoc_path   = aa_assoc_path,
-                   assoc_tibble = aa_assoc_tibble,
-                   new          = TRUE,
-                   id1          = id,
-                   id2          = affiliations) %>%
-      dplyr::filter(.data$id1 == id)
+  if (!is.null(affiliations)) {
+    message("\nNew author's affiliations:")
+    print(
+      new_author_affiliations %>%
+        dplyr::filter(.data$id1 == id) %>%
+        dplyr::left_join(affiliations_table, by = c("id2" = "id")) %>%
+        dplyr::select(-"id1") %>%
+        dplyr::rename("affiliation_id" = "id2")
+    )
+  } else {
+    cat("None.")
+  }
 
-    #message("\nNew author's affiliations:")
-    print(new_author_affiliations %>%
-            dplyr::filter(.data$id1 == id) %>%
-            dplyr::left_join(affiliations_tibble, by = c("id2" = "id")) %>%
-            dplyr::select(-"id1") %>%
-            dplyr::rename("affiliation_id" = "id2"))
-  }
-  else {
-    print("None.")
-  }
+  invisible(new_author_row)
 }
 ################################################################################
 
@@ -550,23 +651,31 @@ new_author <- function(given_names = NA,    last_name    = NA,
 ################################################################################
 #' @rdname new_edit_delete
 #' @export
-new_affiliation <- function(department_name  = NA, institution_name = NA,
-                            address          = NA, id               = NA) {
+new_affiliation <- function(department_name  = NA,
+                            institution_name = NA,
+                            address          = NA,
+                            id               = NA) {
 
   affiliations_path   <- make_rds_path("affiliations")
-  affiliations_tibble <- get_rds(affiliations_path)
+  affiliations_table  <- get_rds(affiliations_path)
 
-  id                  <- validate_new(id         = id,
-                                      what       = "affiliations",
-                                      rds_tibble = affiliations_tibble)
+  id <-
+    validate_new(id = id, what = "affiliations", rds_table = affiliations_table)
+
+  department_name  <- validate_single_string(department_name)
+  institution_name <- validate_single_string(institution_name)
+  address          <- validate_single_string(address)
 
   message("New affiliation:")
-  print(change_table(action           = "new",
-                     rds_path         = affiliations_path,
-                     rds_tibble       = affiliations_tibble,
-                     id               = id,
-                     department_name  = as.character(department_name),
-                     institution_name = as.character(institution_name),
-                     address          = as.character(address)))
+
+  change_table(
+    action           = "new",
+    rds_path         = affiliations_path,
+    rds_table        = affiliations_table,
+    id               = id,
+    department_name  = department_name,
+    institution_name = institution_name,
+    address          = address
+  )
 }
 ################################################################################

@@ -18,27 +18,29 @@
 #' projects_folder()
 #' @export
 projects_folder <- function() {
-  p_path_internal(error = FALSE)
+  p_path(error = FALSE)
 }
 
 
-p_path_internal <- function(error = TRUE) {
+p_path <- function(error = TRUE) {
 
   path <- Sys.getenv("PROJECTS_FOLDER_PATH")
 
-  if(fs::dir_exists(path)) {
-    return(path)
+  if (fs::dir_exists(path)) {
+    path
   }
   else {
     notice <- '"projects" folder not found. Please run setup_projects()'
-    if(error) {
+    if (error) {
       stop(notice)
     }
     else {
-      return(notice)
+      notice
     }
   }
 }
+
+
 
 
 ################################################################################
@@ -49,46 +51,26 @@ p_path_internal <- function(error = TRUE) {
 #' @export
 affiliations <- function(affiliation, authors = FALSE) {
 
-  p_path              <- p_path_internal()
-  affiliations_tibble <-
-    "affiliations" %>%
-    make_rds_path(p_path) %>%
-    get_rds() %>%
+  p_path             <- p_path()
+
+  affiliations_table <-
+    affiliations_internal(p_path) %>%
     dplyr::arrange(.data$department_name, .data$institution_name)
 
-  if(!missing(affiliation)) {
-    affiliation         <-
-      validate_entry(affiliation,
-                     what        = "affiliation",
-                     rds_tibble  = affiliations_tibble,
-                     allow_dups = TRUE) %>%
-      unique()
-
-    affiliations_tibble <-
-      dplyr::filter(affiliations_tibble, .data$id %in% affiliation)
+  if (!missing(affiliation)) {
+    affiliations_table <- affiliations_table %>%
+      validate_entry_list(x = affiliation, table = ., what  = "affiliation")
   }
 
-  if(authors) {
-    authors_tibble <-
-      "authors" %>%
-      make_rds_path(p_path) %>%
-      get_rds()
-
-    author_affiliation_assoc <-
-      "author_affiliation_assoc" %>%
-      make_rds_path(p_path) %>%
-      get_rds()
-
-    affiliations_tibble <-
-      affiliations_tibble %>%
-      dplyr::left_join(author_affiliation_assoc, by = c("id" = "id2")) %>%
-      dplyr::left_join(authors_tibble, by = c("id1" = "id")) %>%
+  if (authors) {
+    affiliations_table <- affiliations_table %>%
+      dplyr::left_join(aa_assoc_internal(p_path), by = c("id" = "id2")) %>%
+      dplyr::left_join(authors_internal(p_path), by = c("id1" = "id")) %>%
       dplyr::rename("author_id" = "id1")
   }
 
-  return(dplyr::arrange(affiliations_tibble, .data$id))
+  dplyr::arrange(affiliations_table, .data$id)
 }
-
 
 
 
@@ -97,63 +79,42 @@ affiliations <- function(affiliation, authors = FALSE) {
 #' @export
 authors <- function(author, affiliations = FALSE, projects = FALSE) {
 
-  p_path         <- p_path_internal()
-  authors_tibble <-
-    "authors" %>%
-    make_rds_path(p_path) %>%
-    get_rds() %>%
+  p_path        <- p_path()
+
+  authors_table <-
+    authors_internal(p_path) %>%
     dplyr::arrange(.data$last_name, .data$given_names)
 
-  if(!missing(author)) {
-    author         <-
-      validate_entry(author,
-                     what       = "author",
-                     rds_tibble = authors_tibble,
-                     allow_dups = TRUE) %>%
-      unique()
-
-    authors_tibble <- dplyr::filter(authors_tibble, .data$id %in% author)
+  if (!missing(author)) {
+    authors_table <- authors_table %>%
+      validate_entry_list(x = author, table = ., what = "author")
   }
 
-  if(affiliations) {
-    affiliations_tibble <-
-      "affiliations" %>%
-      make_rds_path(p_path) %>%
-      get_rds()
-
-    author_affiliation_assoc <-
-      "author_affiliation_assoc" %>%
-      make_rds_path(p_path) %>%
-      get_rds()
-
-    authors_tibble <-
-      authors_tibble %>%
-      dplyr::left_join(author_affiliation_assoc, by = c("id" = "id1")) %>%
-      dplyr::left_join(affiliations_tibble, by = c("id2" = "id")) %>%
+  if (affiliations) {
+    authors_table <-
+      authors_table %>%
+      dplyr::left_join(aa_assoc_internal(p_path), by = c("id" = "id1")) %>%
+      dplyr::left_join(affiliations_internal(p_path), by = c("id2" = "id")) %>%
       dplyr::rename("affiliation_id" = "id2")
   }
 
-  if(projects) {
-    projects_tibble <-
-      "projects" %>%
-      make_rds_path(p_path) %>%
-      get_rds()
-
-    project_author_assoc <-
-      "project_author_assoc" %>%
-      make_rds_path(p_path) %>%
-      get_rds()
-
-    authors_tibble <-
-      authors_tibble %>%
-      dplyr::left_join(project_author_assoc, by = c("id" = "id2")) %>%
-      dplyr::left_join(projects_tibble, by = c("id1" = "id"),
-                        suffix = c("_of_author", "_of_project")) %>%
+  if (projects) {
+    authors_table <-
+      authors_table %>%
+      dplyr::left_join(pa_assoc_internal(p_path), by = c("id" = "id2")) %>%
+      dplyr::left_join(
+        projects_internal(p_path),
+        by = c("id1" = "id"),
+        suffix = c("_of_author", "_of_project")
+      ) %>%
       dplyr::rename("project_id" = "id1")
   }
 
-  return(dplyr::arrange(authors_tibble, .data$id))
+  dplyr::arrange(authors_table, .data$id)
 }
+
+
+
 
 
 
@@ -238,9 +199,9 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' # View projects table, including only projects with Plato as current owner
 #' projects() %>% dplyr::filter(current_owner == 303)
 #'
-#' # Wrapped in if(interactive()) because it requires interactive console input
+#' # Wrapped in if (interactive()) because it requires interactive console input
 #' # and fails automated testing.
-#' if(interactive()) {
+#' if (interactive()) {
 #'   # Archive Fun project 5
 #'   archive_project("Fun project 5")
 #'
@@ -257,46 +218,98 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' @name display_metadata
 #' @importFrom rlang .data
 #' @export
-projects <- function(project, authors = FALSE, archived = FALSE) {
+projects <- function(project,
+                     all_stages  = FALSE,
+                     exclude     = NULL,
+                     archived    = all_stages,
+                     verbose     = FALSE,
+                     authors     = FALSE) {
 
-  p_path          <- p_path_internal()
-  projects_tibble <- get_rds(make_rds_path("projects", p_path))
+  p_path          <- p_path()
+  projects_path   <- make_rds_path("projects", p_path)
+  projects_table  <- get_rds(projects_path)
 
-  if(!missing(project)) {
-
-    project         <-
-      validate_entry(project,
-                     what       = "project",
-                     rds_tibble = projects_tibble,
-                     allow_dups = TRUE,
-                     archived   = archived) %>%
-      unique()
-
-    projects_tibble <- dplyr::filter(projects_tibble, .data$id %in% project)
-  }
-  else if(!archived) {
-    projects_tibble <- remove_archived(projects_tibble)
+  if (!is.null(exclude)) {
+    exclude <- vapply(exclude, validate_stage, FUN.VALUE = character(1L))
+    if (anyDuplicated(exclude)) {
+      stop("Duplicate stages detected in \"exclude\" argument.")
+    }
   }
 
-  if(authors) {
+  if (!all_stages) {
+    exclude <- unique(c(exclude, "0: idea", "6: accepted"))
+  }
 
-    authors_tibble <-
-      "authors" %>%
-      make_rds_path(p_path) %>%
-      get_rds()
+  if (!archived) {
+    projects_table <- remove_archived(projects_table)
+  }
 
-    project_author_assoc <-
-      "project_author_assoc" %>%
-      make_rds_path(p_path) %>%
-      get_rds()
+  if (!is.null(exclude)) {
+    projects_table <- projects_table[!(projects_table$stage %in% exclude), ]
+  }
 
-    projects_tibble <-
-      projects_tibble %>%
-      dplyr::left_join(project_author_assoc, by = c("id" = "id1")) %>%
-      dplyr::left_join(authors_tibble, by = c("id2" = "id"),
-                       suffix = c("_of_project", "_of_author")) %>%
+  if (!missing(project)) {
+    projects_table <- projects_table %>%
+      validate_entry_list(project, table = ., what = "project")
+  }
+
+  if (authors) {
+    projects_table <- projects_table %>%
+      dplyr::left_join(
+        pa_assoc_internal(p_path),
+        by = c("id" = "id1")
+      ) %>%
+      dplyr::left_join(
+        authors_internal(p_path),
+        by     = c("id2" = "id"),
+        suffix = c("_of_project", "_of_author")
+      ) %>%
       dplyr::rename("author_id" = "id2")
   }
 
-  return(dplyr::arrange(projects_tibble, .data$id))
+  projects_table <- dplyr::arrange(projects_table, .data$id)
+
+  if (!verbose) {
+    projects_table <- projects_table %>%
+      dplyr::select(
+        -"short_title",
+        -"deadline_type",
+        -"deadline",
+        -"path",
+        -"corresp_auth",
+        -"creator"
+      )
+  }
+
+  projects_table
+}
+
+
+
+#' @export
+ideas <- function(project, archived = FALSE, verbose  = FALSE,
+                  authors  = FALSE) {
+  projects(
+    project    = project,
+    all_stages = TRUE,
+    archived   = archived,
+    exclude    = 1L:6L,
+    verbose    = verbose,
+    authors    = authors
+  )
+}
+
+
+
+#' @export
+manuscripts <- function(project, archived = FALSE, verbose = FALSE,
+                        authors = FALSE) {
+  projects(
+    project    = project,
+    all_stages = TRUE,
+    archived   = archived,
+    exclude    = c(0L:3L, 6L),
+    verbose    = verbose,
+    authors    = authors
+  )
 }
