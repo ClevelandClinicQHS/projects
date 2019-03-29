@@ -548,12 +548,15 @@ build_rmds <- function(stage,
 
 
 #' @export
-new_idea <- function(title = NA, status = "just an idea") {
-  new_project(title = title, stage = "0: idea", status = status, ...)
+new_idea <- function(title = NA, status = "just an idea", ...) {
+  utils::capture.output(
+    idea <-
+      suppressMessages(
+        new_project(title = title, stage = "0: idea", status = status, ...)
+      )
+  )
+  idea[c("id", "title", "status")]
 }
-
-
-
 
 
 
