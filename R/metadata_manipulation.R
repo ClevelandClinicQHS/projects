@@ -2,7 +2,8 @@
 ################################################################################
 # RDS helper functions
 
-make_rds_path <- function(rds_name, p_path = p_path()) {
+make_rds_path <- function(rds_name, p_path = get_p_path()) {
+
   fs::path(p_path, ".metadata", rds_name, ext = "rds")
 }
 
@@ -24,7 +25,7 @@ get_rds <- function(rds_path, check = TRUE) {
 }
 
 
-projects_internal <- function(p_path = p_path(), archived = TRUE) {
+projects_internal <- function(p_path = get_p_path(), archived = TRUE) {
 
   projects_table <- get_rds(make_rds_path("projects", p_path))
 
@@ -35,19 +36,19 @@ projects_internal <- function(p_path = p_path(), archived = TRUE) {
   }
 }
 
-authors_internal <- function(p_path = p_path()) {
+authors_internal <- function(p_path = get_p_path()) {
   get_rds(make_rds_path("authors", p_path))
 }
 
-affiliations_internal <- function(p_path = p_path()) {
+affiliations_internal <- function(p_path = get_p_path()) {
   get_rds(make_rds_path("affiliations", p_path))
 }
 
-pa_assoc_internal <- function(p_path = p_path()) {
+pa_assoc_internal <- function(p_path = get_p_path()) {
   get_rds(make_rds_path("project_author_assoc", p_path))
 }
 
-aa_assoc_internal <- function(p_path = p_path()) {
+aa_assoc_internal <- function(p_path = get_p_path()) {
   get_rds(make_rds_path("author_affiliation_assoc", p_path))
 }
 

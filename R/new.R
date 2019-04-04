@@ -234,7 +234,7 @@ new_project <- function(title            = NA,
                         use_bib          = FALSE,
                         stitle_as_folder = FALSE) {
 
-  p_path             <- p_path()
+  p_path             <- get_p_path()
 
   projects_path      <- make_rds_path("projects", p_path)
   projects_table     <- get_rds(projects_path)
@@ -573,7 +573,7 @@ new_author <- function(given_names  = NA,
                        phone        = NA,
                        id           = NA) {
 
-  p_path         <- p_path()
+  p_path         <- get_p_path()
 
   authors_path   <- make_rds_path("authors", p_path)
   authors_table  <- get_rds(authors_path)

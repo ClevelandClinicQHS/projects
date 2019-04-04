@@ -115,7 +115,7 @@
 #' @export
 new_project_group <- function(path) {
 
-  p_path <- p_path()
+  p_path <- get_p_path()
 
   path   <- validate_directory(path, p_path, make_directories = TRUE)
 
@@ -142,7 +142,7 @@ rename_folder <- function(project,
                           change_short_title = TRUE,
                           archived           = FALSE) {
 
-  p_path         <- p_path()
+  p_path         <- get_p_path()
 
   projects_path  <- make_rds_path("projects", p_path)
   projects_table <- get_rds(projects_path)
@@ -209,7 +209,7 @@ move_project <- function(project,
                          make_directories = FALSE,
                          archived         = FALSE) {
 
-  p_path          <- p_path()
+  p_path          <- get_p_path()
 
   projects_path   <- make_rds_path("projects", p_path)
   projects_table  <- get_rds(projects_path)
@@ -292,7 +292,7 @@ copy_project <- function(project_to_copy,
                          make_directories = FALSE,
                          archived         = FALSE) {
 
-  p_path         <- p_path()
+  p_path         <- get_p_path()
 
   pa_assoc_path  <- make_rds_path("project_author_assoc", p_path)
   pa_assoc_table <- get_rds(pa_assoc_path)
@@ -415,7 +415,7 @@ copy_project <- function(project_to_copy,
 #' @export
 archive_project <- function(project) {
 
-  p_path          <- p_path()
+  p_path          <- get_p_path()
 
   projects_path   <- make_rds_path("projects", p_path)
   projects_table  <- get_rds(projects_path) %>% remove_archived()
@@ -461,38 +461,38 @@ archive_project <- function(project) {
 #' @importFrom rlang .data
 open_project <- function(project, new_session = FALSE, archived = FALSE) {
 
-  projects_table <- projects_internal(archived = archived)
-
-  project <-
-    validate_unique_entry(x = project, table = projects_table, what = "project")
-
-  path <- dplyr::filter(projects_table, .data$id == project)$path
+  project_row    <-
+    validate_unique_entry(
+      x     = project,
+      table = projects_internal(archived = archived),
+      what  = "project"
+    )
 
   Rproj_path <-
-    project$path %>%
+    project_row$path %>%
     fs::dir_ls() %>%
     `[`(fs::path_ext(.) == "Rproj")
 
-  if(length(Rproj_path) != 1) {
+  if (length(Rproj_path) != 1) {
 
-    if(length(Rproj_path) == 0) {
+    if (length(Rproj_path) == 0) {
 
       user_prompt(
         msg   =
           paste0(
             "\nCannot open project ",
-            project$id,
+            project_row$id,
             " because there\n",
             "is no .Rproj file in\n",
-            project$path,
+            project_row$path,
             "\n\nRestore it with a default .Rproj file? (y/n)"
           ),
         n_msg =
-          paste0('\nRestore a .Rproj file to the folder\n', project$path)
+          paste0('\nRestore a .Rproj file to the folder\n', project_row$path)
       )
 
       Rproj_path <-
-        fs::path(project$path, make_project_name(project$id), ext = "Rproj")
+        fs::path(project_row$path, make_project_name(project_row$id), ext = "Rproj")
       readr::write_lines(Rproj_template, Rproj_path)
 
       user_prompt(
@@ -505,11 +505,10 @@ open_project <- function(project, new_session = FALSE, archived = FALSE) {
         n_msg =
           paste0("\nProject not opened.")
       )
-    }
-    else {
+    } else {
       stop(
-        "\nCannot open project ", project$id, " because there\n",
-        "are multiple .Rproj files in\n", project$path,
+        "\nCannot open project ", project_row$id, " because there\n",
+        "are multiple .Rproj files in\n", project_row$path,
         "\nNamely: ", paste(fs::path_file(Rproj_path), collapse = ", "),
         "\nMove or delete the extraneous ones."
       )

@@ -9,7 +9,7 @@ make_project_name <- function(x, short_title = FALSE) {
   }
 }
 
-make_project_path <- function(project_name, path = p_path()) {
+make_project_path <- function(project_name, path = get_p_path()) {
   fs::path(path, project_name) %>% unclass()
 }
 
@@ -68,7 +68,7 @@ user_prompt <- function(msg, y_msg, n_msg, error = TRUE) {
 #' @importFrom rlang .data
 print_header_internal <- function(
   project_id,
-  p_path                   = p_path(),
+  p_path                   = get_p_path(),
   project_row              = dplyr::filter(projects_internal(p_path, TRUE),
                                            .data$id == project_id),
   authors_table            = authors_internal(p_path),

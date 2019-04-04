@@ -11,7 +11,7 @@ new_projects_author <- function(x = character()) {
 
 validate_projects_author <- function(x,
                                      authors_table = authors_internal(p_path),
-                                     p_path        = p_path(),
+                                     p_path        = get_p_path(),
                                      na.ok         = TRUE,
                                      error         = TRUE) {
   x_valid <-

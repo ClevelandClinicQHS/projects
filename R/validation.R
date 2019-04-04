@@ -293,7 +293,7 @@ validate_deadline <- function(x) {
 
 
 validate_directory <- function(path,
-                               p_path = p_path(),
+                               p_path = get_p_path(),
                                make_directories = FALSE) {
 
   path <- fs::path_tidy(path)

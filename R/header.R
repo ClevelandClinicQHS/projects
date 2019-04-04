@@ -58,7 +58,7 @@
 #' @export
 header <- function(project, archived = FALSE) {
 
-  p_path  <- p_path()
+  p_path  <- get_p_path()
 
   projects_table <- projects_internal(archived = archived)
 

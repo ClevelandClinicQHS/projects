@@ -68,7 +68,7 @@ update_metadata <- function(ask = TRUE) {
     )
   }
 
-  p_path <- p_path()
+  p_path <- get_p_path()
 
   projects_path <- make_rds_path("projects", p_path)
 

@@ -16,7 +16,7 @@ edit_project <- function(project,
                          creator        = NA,
                          archived       = FALSE) {
 
-  p_path          <- p_path()
+  p_path          <- get_p_path()
 
   projects_path   <- make_rds_path("projects", p_path)
 
@@ -246,7 +246,7 @@ edit_author <- function(author,
                         email         = NA,
                         phone         = NA) {
 
-  p_path             <- p_path()
+  p_path             <- get_p_path()
 
   authors_path       <- make_rds_path("authors", p_path)
 
@@ -349,7 +349,7 @@ edit_author <- function(author,
 edit_affiliation <- function(affiliation,           department_name  = NA,
                              institution_name = NA, address          = NA) {
 
-  p_path             <- p_path()
+  p_path             <- get_p_path()
 
   affiliations_path  <- make_rds_path("affiliations", p_path)
 
@@ -387,7 +387,7 @@ edit_affiliation <- function(affiliation,           department_name  = NA,
 #' @export
 delete_project <- function(project, archived = FALSE) {
 
-  p_path         <- p_path()
+  p_path         <- get_p_path()
 
   projects_path  <- make_rds_path("projects", p_path)
   projects_table <- get_rds(projects_path)
@@ -461,7 +461,7 @@ delete_project <- function(project, archived = FALSE) {
 #' @export
 delete_author <- function(author) {
 
-  p_path          <- p_path()
+  p_path          <- get_p_path()
 
   projects_path   <- make_rds_path("projects", p_path)
   projects_table <- get_rds(projects_path)
@@ -518,7 +518,7 @@ delete_author <- function(author) {
 #' @export
 delete_affiliation <- function(affiliation) {
 
-  p_path             <- p_path()
+  p_path             <- get_p_path()
 
   affiliations_path  <- make_rds_path("affiliations", p_path)
   affiliations_table <- get_rds(affiliations_path)
@@ -810,7 +810,7 @@ reorder_affiliations <- function(author, ..., after = 0L) {
 reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
                           archived = TRUE) {
 
-  p_path         <- p_path()
+  p_path         <- get_p_path()
 
   rds1_path      <- make_rds_path(paste0(rds1, "s"), p_path)
   rds1_table     <- get_rds(rds1_path)

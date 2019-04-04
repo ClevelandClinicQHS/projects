@@ -18,11 +18,11 @@
 #' projects_folder()
 #' @export
 projects_folder <- function() {
-  p_path(error = FALSE)
+  get_p_path(error = FALSE)
 }
 
 
-p_path <- function(error = TRUE) {
+get_p_path <- function(error = TRUE) {
 
   path <- Sys.getenv("PROJECTS_FOLDER_PATH")
 
@@ -51,7 +51,7 @@ p_path <- function(error = TRUE) {
 #' @export
 affiliations <- function(affiliation, authors = FALSE) {
 
-  p_path             <- p_path()
+  p_path             <- get_p_path()
 
   affiliations_table <-
     affiliations_internal(p_path) %>%
@@ -69,7 +69,9 @@ affiliations <- function(affiliation, authors = FALSE) {
       dplyr::rename("author_id" = "id1")
   }
 
-  dplyr::arrange(affiliations_table, .data$id)
+  affiliations_table <- dplyr::arrange(affiliations_table, .data$id)
+
+  print_rds(affiliations_table)
 }
 
 
@@ -79,7 +81,7 @@ affiliations <- function(affiliation, authors = FALSE) {
 #' @export
 authors <- function(author, affiliations = FALSE, projects = FALSE) {
 
-  p_path        <- p_path()
+  p_path        <- get_p_path()
 
   authors_table <-
     authors_internal(p_path) %>%
@@ -110,7 +112,9 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
       dplyr::rename("project_id" = "id1")
   }
 
-  dplyr::arrange(authors_table, .data$id)
+  authors_table <- dplyr::arrange(authors_table, .data$id)
+
+  print_rds(authors_table)
 }
 
 
@@ -225,7 +229,7 @@ projects <- function(project,
                      verbose     = FALSE,
                      authors     = FALSE) {
 
-  p_path          <- p_path()
+  p_path          <- get_p_path()
   projects_path   <- make_rds_path("projects", p_path)
   projects_table  <- get_rds(projects_path)
 
@@ -281,7 +285,16 @@ projects <- function(project,
       )
   }
 
-  projects_table
+  print_rds(projects_table)
+}
+
+
+print_rds <- function(x) {
+
+  old_ops <- options(tibble.print_max = 100L, tibble.print_min = 100L)
+  on.exit(options(old_ops))
+
+  x
 }
 
 
