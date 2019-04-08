@@ -65,34 +65,21 @@ update_metadata <- function(ask = TRUE) {
     )
   }
 
-  p_path <- get_p_path()
+  p_path           <- get_p_path()
 
-  projects_path <- make_rds_path("projects", p_path)
+  projects_path    <- make_rds_path("projects", p_path)
 
-  projects_table <- readRDS(projects_path)
-    # tibble::tibble(
-    #   id = 1:3,
-    #   title = paste("title", id),
-    #   stage = c(7, "ffff", NA),
-    #   current_owner = c(1, 9999, "kriegen"),
-    #   corresp_auth = c("nothing", "0: nothing", NA),
-    #   creator = c("0: something", NA, "daltonj")
-    # )
+  projects_table   <- readRDS(projects_path)
 
   projects_version <- attr(projects_table, "projects_version")
 
-  authors_path <- make_rds_path("authors", p_path)
+  authors_path     <- make_rds_path("authors", p_path)
 
-  authors_table <- readRDS(authors_path)
+  authors_table    <- readRDS(authors_path)
 
-  pa_assoc_path <- make_rds_path("project_author_assoc", p_path)
+  pa_assoc_path    <- make_rds_path("project_author_assoc", p_path)
 
-  pa_assoc <- readRDS(pa_assoc_path)
-
-  # if (identical(projects_version, utils::packageVersion("projects"))) {
-  #   message("Metadata is already up to date.")
-  #   return(invisible(projects_table))
-  # }
+  pa_assoc         <- readRDS(pa_assoc_path)
 
   if (nrow(projects_table) == 0) {
     projects_table <-
