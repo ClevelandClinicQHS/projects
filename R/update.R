@@ -10,20 +10,17 @@ up_to_date <- function(table) {
   }
 
   if (metadata_version > package_version) {
-    if (
-      readline(
-        paste0(
-          "A metadata item was found to be created with\n",
-          "'projects' version ", as.character(metadata_version), ",\n",
-          "whereas R is currently running 'projects' version ",
-          as.character(package_version), ".\n\n",
-          "Updating 'projects' with install.packages('projects') or\n",
-          "remotes::install_github('NikKrieger/projects')\n",
-          "is highly recommended before continuing.",
-          "\n\n(Press [Enter] to continue anway or enter QUIT to quit)\n"
-        )
-      ) == "QUIT"
-    ) {
+    message(
+      "A metadata item was found to be created with\n",
+      "'projects' version ", as.character(metadata_version), ",\n",
+      "whereas R is currently running 'projects' version ",
+      as.character(package_version), ".\n\n",
+      "Updating 'projects' with install.packages('projects') or\n",
+      "remotes::install_github('NikKrieger/projects')\n",
+      "is highly recommended before continuing.",
+      "\n(Press [Enter] to continue anway or enter QUIT to quit)"
+    )
+    if (readline() =="QUIT") {
       stop(
         "\nRun one of these two: commands:\n\n",
         "install.packages('projects')\n\n",
