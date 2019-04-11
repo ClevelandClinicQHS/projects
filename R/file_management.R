@@ -185,11 +185,19 @@ rename_folder <- function(project,
     project_row$short_title <- new_folder_name
   }
 
-  do.call(what = change_table,
-          args = c(list(action        = "edit",
-                        rds_path      = projects_path,
-                        rds_table    = projects_table),
-                   as.list(project_row)))
+  edit_metadata(
+    table = projects_table,
+    row_id = project_row$id,
+    path = project_row$path,
+    short_title = project_row$short_title,
+    table_path = projects_path
+  )
+
+  # do.call(what = change_table,
+  #         args = c(list(action        = "edit",
+  #                       rds_path      = projects_path,
+  #                       rds_table    = projects_table),
+  #                  as.list(project_row)))
 
   message(
     "\nProject ", project_row$id,
@@ -262,18 +270,25 @@ move_project <- function(project,
     fs::path(path, fs::path_file(project_row$path)) %>%
     unclass()
 
-  do.call(
-    what = change_table,
-    args =
-      c(
-        list(
-          action    = "edit",
-          rds_path  = projects_path,
-          rds_table = projects_table
-        ),
-        as.list(project_row)
-      )
+  edit_metadata(
+    table = projects_table,
+    row_id = project_row$id,
+    path = project_row$path,
+    table_path = projects_path
   )
+
+  # do.call(
+  #   what = change_table,
+  #   args =
+  #     c(
+  #       list(
+  #         action    = "edit",
+  #         rds_path  = projects_path,
+  #         rds_table = projects_table
+  #       ),
+  #       as.list(project_row)
+  #     )
+  # )
 
   message(
     "\nProject ", project_row$id,
@@ -365,20 +380,33 @@ copy_project <- function(project_to_copy,
 
   fs::dir_copy(path = old_path, new_path = project_row$path)
 
-  do.call(what = change_table,
-          args = c(list(action     = "new",
-                        rds_path   = projects_path,
-                        rds_table = projects_table),
-                   as.list(project_row)))
+  add_metadata(
+    table = projects_table,
+    new_row = project_row,
+    table_path = projects_path
+  )
+
+  # do.call(what = change_table,
+  #         args = c(list(action     = "new",
+  #                       rds_path   = projects_path,
+  #                       rds_table = projects_table),
+  #                  as.list(project_row)))
 
   old_assoc <- dplyr::filter(pa_assoc_table, .data$id1 == original_project_id)
 
-  if (nrow(old_assoc) > 0) {
-    change_assoc(assoc_path = pa_assoc_path,
-                 assoc_table = pa_assoc_table,
-                 new = TRUE,
-                 id1 = project_row$id,
-                 id2 = old_assoc$id2)
+  if(nrow(old_assoc) > 0) {
+
+    add_assoc(
+      assoc_table = pa_assoc_table,
+      new_rows    = tibble::tibble(id1 = project_row$id, id2 = old_assoc$id2),
+      assoc_path  = pa_assoc_path
+    )
+
+    # change_assoc(assoc_path = pa_assoc_path,
+    #              assoc_table = pa_assoc_table,
+    #              new = TRUE,
+    #              id1 = project_row$id,
+    #              id2 = old_assoc$id2)
   }
 
   message(

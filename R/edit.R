@@ -4,16 +4,16 @@
 #' @importFrom rlang .data
 #' @export
 edit_project <- function(project,
-                         title          = NA,
-                         short_title    = NA,
-                         authors,
-                         current_owner  = NA,
-                         status         = NA,
-                         deadline_type  = NA,
-                         deadline       = NA,
-                         stage          = NA,
-                         corresp_auth   = NA,
-                         creator        = NA,
+                         title          = NULL,
+                         short_title    = NULL,
+                         authors        = NULL,
+                         current_owner  = NULL,
+                         status         = NULL,
+                         deadline_type  = NULL,
+                         deadline       = NULL,
+                         stage          = NULL,
+                         corresp_auth   = NULL,
+                         creator        = NULL,
                          archived       = FALSE) {
 
   p_path          <- get_p_path()
@@ -40,19 +40,19 @@ edit_project <- function(project,
 
   filtered_assoc  <- assoc_table[which(assoc_table$id1 == project$id), ]
 
-  title         <- validate_single_string(title)
-  short_title   <- validate_single_string(short_title)
-  status        <- validate_single_string(status)
-  deadline_type <- validate_single_string(deadline_type)
+  title         <- validate_single_string(title, null.ok = TRUE)
+  short_title   <- validate_single_string(short_title, null.ok = TRUE)
+  status        <- validate_single_string(status, null.ok = TRUE)
+  deadline_type <- validate_single_string(deadline_type, null.ok = TRUE)
 
-  stage           <- validate_stage(stage)
+  stage           <- validate_stage(stage, null.ok = TRUE)
 
-  deadline        <- validate_deadline(deadline)
+  deadline        <- validate_deadline(deadline, null.ok = TRUE)
 
   ###########################################
   # Handling of adding or removing authors
 
-  if (missing(authors)) {
+  if (is.null(authors)) {
     authors <- list(add = list(), remove = list())
   } else {
     authors <-
@@ -67,14 +67,14 @@ edit_project <- function(project,
 
   ###########################################
   # Handling of current_owner, corresp_auth, and creator
-  if (is.na(current_owner)) {
+  if (is.null(current_owner)) {
     if (any(authors$remove == project$current_owner)) {
-      current_owner <- NULL
+      current_owner <- new_projects_author(NA)
     }
-  } else if (!is.null(current_owner)) {
+  } else {
     current_owner <-
       validate_projects_author(
-        x     = current_owner,
+        x             = current_owner,
         authors_table = authors_table
       )
 
@@ -99,11 +99,11 @@ edit_project <- function(project,
   }
 
 
-  if (is.na(corresp_auth)) {
+  if (is.null(corresp_auth)) {
     if (any(authors$remove == project$corresp_auth)) {
-      corresp_auth <- NULL
+      corresp_auth <- new_projects_author(NA)
     }
-  } else if (!is.null(corresp_auth)) {
+  } else {
     corresp_auth <-
       validate_projects_author(
         x             = corresp_auth,
@@ -130,11 +130,11 @@ edit_project <- function(project,
   }
 
 
-  if (is.na(creator)) {
+  if (is.null(creator)) {
     if (any(authors$remove == project$creator)) {
-      creator <- NULL
+      creator <- new_projects_author(NA)
     }
-  } else if (!is.null(creator)) {
+  } else {
     creator <-
       validate_projects_author(
         x             = creator,
@@ -146,11 +146,10 @@ edit_project <- function(project,
   ###########################################
 
   new_project_row <-
-    change_table(
-      action        = "edit",
-      rds_path      = projects_path,
-      rds_table     = projects_table,
-      id            = project$id,
+    edit_metadata(
+      table = projects_table,
+      row_id = project$id,
+
       title         = title,
       short_title   = short_title,
       current_owner = current_owner,
@@ -158,31 +157,64 @@ edit_project <- function(project,
       deadline_type = deadline_type,
       deadline      = deadline,
       stage         = stage,
-      path          = NA_character_,
       corresp_auth  = corresp_auth,
-      creator       = creator
+      creator       = creator,
+
+      table_path = projects_path
     )
+
+  # new_project_row <-
+  #   change_table(
+  #     action        = "edit",
+  #     rds_path      = projects_path,
+  #     rds_table     = projects_table,
+  #     id            = project$id,
+  #     title         = title,
+  #     short_title   = short_title,
+  #     current_owner = current_owner,
+  #     status        = status,
+  #     deadline_type = deadline_type,
+  #     deadline      = deadline,
+  #     stage         = stage,
+  #     path          = NA_character_,
+  #     corresp_auth  = corresp_auth,
+  #     creator       = creator
+  #   )
 
   if (length(authors$remove) > 0) {
     assoc_table <-
-      change_assoc(
-        assoc_path   = assoc_path,
+      delete_assoc(
         assoc_table = assoc_table,
-        new          = FALSE,
-        id1          = project$id,
-        id2          = authors$remove
+        id1 = project$id,
+        id2 = authors$remove,
+        assoc_path = assoc_path
       )
+
+    # assoc_table <-
+    #   change_assoc(
+    #     assoc_path   = assoc_path,
+    #     assoc_table = assoc_table,
+    #     new          = FALSE,
+    #     id1          = project$id,
+    #     id2          = authors$remove
+    #   )
   }
 
   if (length(authors$add) > 0) {
     assoc_table <-
-      change_assoc(
-        assoc_path   = assoc_path,
+      add_assoc(
         assoc_table = assoc_table,
-        new          = TRUE,
-        id1          = project$id,
-        id2          = authors$add
+        new_rows = tibble::tibble(id1 = project$id, id2 = authors$add),
+        assoc_path = assoc_path
       )
+
+      # change_assoc(
+      #   assoc_path   = assoc_path,
+      #   assoc_table = assoc_table,
+      #   new          = TRUE,
+      #   id1          = project$id,
+      #   id2          = authors$add
+      # )
   }
 
   filtered_assoc <- assoc_table[which(assoc_table$id1 == project$id), ]
@@ -238,13 +270,13 @@ edit_project <- function(project,
 #' @importFrom rlang .data
 #' @export
 edit_author <- function(author,
-                        given_names   = NA,
-                        last_name     = NA,
-                        affiliations,
-                        title         = NA,
-                        degree        = NA,
-                        email         = NA,
-                        phone         = NA) {
+                        given_names   = NULL,
+                        last_name     = NULL,
+                        affiliations  = NULL,
+                        title         = NULL,
+                        degree        = NULL,
+                        email         = NULL,
+                        phone         = NULL) {
 
   p_path             <- get_p_path()
 
@@ -264,14 +296,14 @@ edit_author <- function(author,
   assoc_path         <- make_rds_path("author_affiliation_assoc", p_path)
   assoc_table        <- get_rds(assoc_path)
 
-  given_names <- validate_single_string(given_names)
-  last_name   <- validate_single_string(last_name)
-  title       <- validate_single_string(title)
-  degree      <- validate_single_string(degree)
-  email       <- validate_single_string(email) %>% tolower()
-  phone       <- validate_single_string(phone)
+  given_names <- validate_single_string(given_names, null.ok = TRUE)
+  last_name   <- validate_single_string(last_name, null.ok = TRUE)
+  title       <- validate_single_string(title, null.ok = TRUE)
+  degree      <- validate_single_string(degree, null.ok = TRUE)
+  email       <- validate_single_string(email, null.ok = TRUE, tolower = TRUE)
+  phone       <- validate_single_string(phone, null.ok = TRUE)
 
-  if (missing(affiliations)) {
+  if (is.null(affiliations)) {
     affiliations <- list(add = list(), remove = list())
   } else {
     affiliations <-
@@ -285,38 +317,48 @@ edit_author <- function(author,
   }
 
   new_author_row <-
-    change_table(
-      action      = "edit",
-      rds_path    = authors_path,
-      rds_table   = authors_table,
-      id          = author,
+    edit_metadata(
+      table = authors_table,
+      row_id = author,
       given_names = given_names,
       last_name   = last_name,
       title       = title,
       degree      = degree,
       email       = email,
-      phone       = phone
+      phone       = phone,
+      table_path = authors_path
     )
+
+  # new_author_row <-
+  #   change_table(
+  #     action      = "edit",
+  #     rds_path    = authors_path,
+  #     rds_table   = authors_table,
+  #     id          = author,
+  #     given_names = given_names,
+  #     last_name   = last_name,
+  #     title       = title,
+  #     degree      = degree,
+  #     email       = email,
+  #     phone       = phone
+  #   )
 
   if (length(affiliations$remove) > 0) {
     assoc_table <-
-      change_assoc(
-        assoc_path  = assoc_path,
+      delete_assoc(
         assoc_table = assoc_table,
-        new         = FALSE,
         id1         = author,
-        id2         = affiliations$remove
+        id2         = affiliations$remove,
+        assoc_path  = assoc_path
       )
   }
 
   if (length(affiliations$add) > 0) {
     assoc_table <-
-      change_assoc(
-        assoc_path  = assoc_path,
+      add_assoc(
         assoc_table = assoc_table,
-        new         = TRUE,
-        id1         = author,
-        id2         = affiliations$add
+        new_rows = tibble::tibble(id1 = author, id2 = affiliations$add),
+        assoc_path  = assoc_path
       )
   }
 
@@ -346,8 +388,10 @@ edit_author <- function(author,
 ################################################################################
 #' @rdname new_edit_delete
 #' @export
-edit_affiliation <- function(affiliation,           department_name  = NA,
-                             institution_name = NA, address          = NA) {
+edit_affiliation <- function(affiliation,
+                             department_name  = NULL,
+                             institution_name = NULL,
+                             address          = NULL) {
 
   p_path             <- get_p_path()
 
@@ -362,20 +406,33 @@ edit_affiliation <- function(affiliation,           department_name  = NA,
       what  = "affiliation"
     )$id
 
-  department_name  <- validate_single_string(department_name)
-  institution_name <- validate_single_string(institution_name)
-  address          <- validate_single_string(address)
+  department_name  <- validate_single_string(department_name, null.ok = TRUE)
+  institution_name <- validate_single_string(institution_name, null.ok = TRUE)
+  address          <- validate_single_string(address, null.ok = TRUE)
 
   message("Edited affiliation:")
-  change_table(
-    action           = "edit",
-    rds_path         = affiliations_path,
-    rds_table        = affiliations_table,
-    id               = affiliation,
-    department_name  = department_name,
-    institution_name = institution_name,
-    address          = address
-  )
+
+  edited_row <-
+    edit_metadata(
+      table = affiliations_table,
+      row_id = affiliation,
+      department_name  = department_name,
+      institution_name = institution_name,
+      address          = address,
+      table_path = affiliations_path
+    )
+
+  # change_table(
+  #   action           = "edit",
+  #   rds_path         = affiliations_path,
+  #   rds_table        = affiliations_table,
+  #   id               = affiliation,
+  #   department_name  = department_name,
+  #   institution_name = institution_name,
+  #   address          = address
+  # )
+
+  edited_row
 }
 ################################################################################
 
@@ -417,8 +474,7 @@ delete_project <- function(project, archived = FALSE) {
       n_msg = paste0("Deletion not completed. Restore folder to ",
                      project_row$path, ' or rerun this command, inputting "y" ',
                      'instead of "n" when asked whether or not to continue.'))
-  }
-  else {
+  } else {
     user_prompt(
       msg   =
         paste0(
@@ -436,18 +492,24 @@ delete_project <- function(project, archived = FALSE) {
     fs::dir_delete(path = project_row$path)
   }
 
-  change_table(
-    action     = "delete",
-    rds_path   = projects_path,
-    rds_table  = projects_table,
-    id         = project
+
+  delete_metadata(
+    table = projects_table,
+    row_id = project,
+    table_path = projects_path
   )
 
-  change_assoc(
-    assoc_path   = pa_assoc_path,
-    assoc_table  = pa_assoc_table,
-    new          = FALSE,
-    id1          = project
+  # change_table(
+  #   action     = "delete",
+  #   rds_path   = projects_path,
+  #   rds_table  = projects_table,
+  #   id         = project
+  # )
+
+  delete_assoc(
+    assoc_table = pa_assoc_table,
+    id1         = project,
+    assoc_path  = pa_assoc_path
   )
 
   print(project_row)
@@ -489,24 +551,32 @@ delete_author <- function(author) {
     n_msg = paste0('\nDeletion not completed. If deletion is desired, ',
                    'input "y" next time.'))
 
-  change_table(action     = "delete",
-               rds_path   = authors_path,
-               rds_table = authors_table,
-               id         = author_row$id)
+  delete_metadata(
+    table = authors_table,
+    row_id = author_row$id,
+    table_path = authors_path
+  )
+
+  # change_table(action     = "delete",
+  #              rds_path   = authors_path,
+  #              rds_table = authors_table,
+  #              id         = author_row$id)
 
   clear_special_author(author          = author_row$id,
                        projects_path   = projects_path,
                        projects_table = projects_table)
 
-  change_assoc(assoc_path   = pa_assoc_path,
-               assoc_table = pa_assoc_table,
-               new          = FALSE,
-               id2          = author_row$id)
+  delete_assoc(
+    assoc_table  = pa_assoc_table,
+    id2          = author_row$id,
+    assoc_path   = pa_assoc_path
+  )
 
-  change_assoc(assoc_path   = aa_assoc_path,
-               assoc_table = aa_assoc_table,
-               new          = FALSE,
-               id1          = author_row$id)
+  delete_assoc(
+    assoc_table = aa_assoc_table,
+    id1         = author_row$id,
+    assoc_path  = aa_assoc_path
+  )
 
   print(author_row)
   message("The above author was deleted.")
@@ -540,15 +610,22 @@ delete_affiliation <- function(affiliation) {
     n_msg = paste0('\nDeletion not completed. If deletion is desired, ',
                    'input "y" next time.'))
 
-  change_table(action     = "delete",
-               rds_path   = affiliations_path,
-               rds_table = affiliations_table,
-               id         = affiliation_row$id)
+  delete_metadata(
+    table = affiliations_table,
+    row_id = affiliation_row$id,
+    table_path = affiliations_path
+  )
 
-  change_assoc(assoc_path   = aa_assoc_path,
-               assoc_table = aa_assoc_table,
-               new          = FALSE,
-               id2          = affiliation_row$id)
+  # change_table(action     = "delete",
+  #              rds_path   = affiliations_path,
+  #              rds_table = affiliations_table,
+  #              id         = affiliation_row$id)
+
+  delete_assoc(
+    assoc_table = aa_assoc_table,
+    id2         = affiliation_row$id,
+    assoc_path  = aa_assoc_path
+  )
 
   print(affiliation_row)
   message("The above affiliation was deleted.")
@@ -646,9 +723,7 @@ parse_formula <- function(formula, what, what2, main_table, assoc_table) {
 
 
 process_formula_numbers <- function(formula) {
-
   stats::as.formula(recursive_number_namer(formula))
-
 }
 
 recursive_number_namer <- function(formula) {
@@ -698,12 +773,12 @@ recursive_number_namer <- function(formula) {
 #' The order of these affects the order of authors and affiliations in
 #' \code{\link{header}}s.
 #'
-#' When specifying explicit ranks, enter \code{...} as name-value pairs, in
-#' which the names are names of authors/affiliations (or even their [back]quoted
-#' \code{id}s) and the values are integer ranks you want them to occupy. If
-#' entering an integer greater than the total number of authors/affiliations,
-#' the element will be put at the end. The \code{after} argument will be ignored
-#' in this case.
+#' When specifying explicit ranks, enter \code{...} as name-value pairs (e.g.,
+#' Johnson = 2, "Baron Cohen" = 4). You can even enumerate author/affiliations
+#' by their corresponding (quoted) \code{id} numbers (e.g., `7` = 2, ACME = 4,
+#' `22` = 6). If entering an integer greater than the total number of
+#' authors/affiliations, the element will be put at the end. The \code{after}
+#' argument will be ignored in this case.
 #'
 #' When not specifying explicit ranks, simply enter author/affiliations
 #' \code{id}s or names in the order you want them, and the ones you entered will
@@ -714,7 +789,8 @@ recursive_number_namer <- function(formula) {
 #' @param project,author The \code{id} or unambiguous names of a project/author
 #'   whose authors/affiliations you want to reorder.
 #' @param ... The \code{id}s or names of authors/affiliations you want to
-#'   reorder, optionally with their new ranks explicitly stated. See details.
+#'   reorder, optionally with their new ranks explicitly stated. See
+#'   \strong{Details}.
 #' @param after If not specifying explicit ranks in \code{...}, the position you
 #'   want the elements to come after. Works like the \code{after} argument in
 #'   \code{\link[base]{append}} or \code{forcats::fct_relevel}.
@@ -828,7 +904,13 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
 
   user_order     <- rlang::exprs(...)
 
-  if (rlang::is_named(user_order)) {
+  valid_names    <- rlang::have_name(user_order)
+
+  if (any(valid_names)) {
+
+    if (!all(rlang::have_name(user_order))) {
+      stop("Elements in ... must either all be named or have no names at all.")
+    }
 
     user_order <- unlist(user_order)
 
@@ -892,22 +974,37 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
   )
 
   assoc_table <-
-    change_assoc(
-      assoc_path   = assoc_path,
-      assoc_table  = assoc_table,
-      new          = FALSE,
-      id1          = rds1_row$id,
-      id2          = filtered_assoc$id2
+    delete_assoc(
+      assoc_table = assoc_table,
+      id1 = rds1_row$id,
+      id2 = filtered_assoc$id2,
+      assoc_path = assoc_path
     )
 
+  # assoc_table <-
+  #   change_assoc(
+  #     assoc_path   = assoc_path,
+  #     assoc_table  = assoc_table,
+  #     new          = FALSE,
+  #     id1          = rds1_row$id,
+  #     id2          = filtered_assoc$id2
+  #   )
+
   assoc_table <-
-    change_assoc(
-      assoc_path   = assoc_path,
-      assoc_table  = assoc_table,
-      new          = TRUE,
-      id1          = rds1_row$id,
-      id2          = reordered
+    add_assoc(
+      assoc_table = assoc_table,
+      new_rows    = tibble::tibble(id1 = rds1_row$id, id2 = reordered),
+      assoc_path  = assoc_path
     )
+
+  # assoc_table <-
+  #   change_assoc(
+  #     assoc_path   = assoc_path,
+  #     assoc_table  = assoc_table,
+  #     new          = TRUE,
+  #     id1          = rds1_row$id,
+  #     id2          = reordered
+  #   )
 
   message(rds1, " info:")
   print(rds1_row)

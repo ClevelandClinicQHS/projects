@@ -4,15 +4,10 @@ validate_entry <- function(x,
                            table,
                            what,
                            na.ok   = FALSE,
-                           zero.ok = FALSE,
-                           error   = TRUE) {
+                           zero.ok = FALSE) {
 
   if (!rlang::is_scalar_vector(x)) {
-    if (error) {
-      stop("Each entry identifying a ", what, "must be of length 1")
-    } else {
-      return(structure(x, error = "not scalar vector"))
-    }
+    stop("Each entry identifying a ", what, "must be of length 1")
   }
 
   if (is.na(x)) {
@@ -25,62 +20,63 @@ validate_entry <- function(x,
   x_int <- as.integer(stringr::str_extract(x, "\\d+"))
 
   if (is.na(x_int)) {
+
     matches <-
       table[grep(x, paste(table[[2]], table[[3]]), ignore.case = TRUE), ]
-  } else if (x_int == 0 && stringr::str_detect(x, "0: .+") && zero.ok) {
-    return(
-      dplyr::bind_rows(
-        table[NULL, ],
-        tibble::tibble(id = 0, last_name = substr(x, 4L, nchar(x)))
-      )
-    )
+
+  } else if (x_int == 0 && is_creator(x) && zero.ok) {
+
+    table <- table[NULL, ]
+    table[1L, c("id", "last_name")] <- list(0L, substr(x, 4L, nchar(x)))
+    return(table)
+
   } else {
-    matches <- table[which(table$id == x), ]
+
+    matches <- table[which(table$id == x_int), ]
+
   }
 
-  if (nrow(matches) == 0) {
-    if (error) {
-      stop(
-        what,
-        ifelse(
-          rlang::is_integerish(x),
-          paste0(" with the id ", x),
-          paste0(" matching '", x, "'")
-        ),
-        " not found"
-      )
-    } else {
-      structure(matches, error = "no match")
-    }
+  if (nrow(matches) == 0L) {
+    stop(
+      what,
+      ifelse(
+        rlang::is_integerish(x),
+        paste0(" with the id ", x),
+        paste0(" matching '", x, "'")
+      ),
+      " not found"
+    )
   } else {
     matches
   }
 }
 
 
+
+is_creator <- function(x) {
+  stringr::str_detect(x, "0: .+")
+}
+
+
+
+
 validate_unique_entry <- function(x,
                                   table,
                                   what,
                                   na.ok = FALSE,
-                                  zero.ok = FALSE,
-                                  error = TRUE) {
+                                  zero.ok = FALSE) {
   match <-
     validate_entry(
       x       = x,
       table   = table,
       what    = what,
       na.ok   = na.ok,
-      zero.ok = zero.ok,
-      error   = error
+      zero.ok = zero.ok
     )
 
   if (nrow(match) > 1) {
-    if (error) {
-      print(match)
-      stop("\nThe entry ", x, " matches multiple ", what, "s, seen above.")
-    } else {
-      structure(match, error = "multiple matches")
-    }
+    print(match)
+    stop("\nThe entry ", x, " matches multiple ", what, "s, seen above.")
   } else {
     match
   }
@@ -92,17 +88,16 @@ validate_entry_list <- function(x,
                                 table,
                                 what,
                                 na.ok = FALSE,
-                                zero.ok = FALSE,
-                                error = TRUE) {
+                                zero.ok = FALSE) {
   x %>%
-    purrr::map_dfr(
+    lapply(
       validate_entry,
       table = table,
       what = what,
       na.ok = na.ok,
-      zero.ok = zero.ok,
-      error = error
+      zero.ok = zero.ok
     ) %>%
+    do.call(rbind, .) %>%
     dplyr::distinct()
 }
 
@@ -113,31 +108,26 @@ validate_unique_entry_list <- function(x,
                                        table,
                                        what,
                                        na.ok = FALSE,
-                                       zero.ok = FALSE,
-                                       error = TRUE) {
+                                       zero.ok = FALSE) {
   x_valid <-
-    purrr::map_dfr(
+    lapply(
       x,
       validate_unique_entry,
       table = table,
       what = what,
       na.ok = na.ok,
-      zero.ok = zero.ok,
-      error = error
-    )
+      zero.ok = zero.ok
+    ) %>%
+    do.call(rbind, .)
 
   if (anyDuplicated(x_valid)) {
-    if (error) {
-      dup_vector <- duplicated(x_valid) | duplicated(x_valid, fromLast = TRUE)
-      print(x_valid[dup_vector, ])
-      stop(
-        "\nThere are identical matches among the entries:\n",
-        paste(x[dup_vector], collapse = "\n"),
-        "\nCollectively, they match the ", what, "s above."
-      )
-    } else {
-      return(structure(x_valid, error = "duplicate matches"))
-    }
+    dup_vector <- duplicated(x_valid) | duplicated(x_valid, fromLast = TRUE)
+    print(x_valid[dup_vector, ])
+    stop(
+      "\nThere are identical matches among the entries:\n",
+      paste(x[dup_vector], collapse = "\n"),
+      "\nCollectively, they match the ", what, "s above."
+    )
   } else {
     x_valid
   }
@@ -270,19 +260,34 @@ validate_assoc <- function(x, what, rds_table, what2, rds_table2) {
 
 
 
-validate_single_string <- function(x) {
-  what <- rlang::ensym(x)
+validate_single_string <- function(x, null.ok = FALSE, tolower = FALSE) {
+
+  if (is.null(x) && null.ok) {
+    return(NULL)
+  }
+
+  what <- rlang::enexpr(x)
   x    <- as.character(x)
   if (!rlang::is_scalar_character(x)) {
     stop(what, " must be coercible to a single character string")
   }
+
+  if (tolower) {
+    x <- tolower(x)
+  }
+
   x
 }
 
 
 
 
-validate_deadline <- function(x) {
+validate_deadline <- function(x, null.ok = FALSE) {
+
+  if (is.null(x) && null.ok) {
+    return(NULL)
+  }
+
   x <- as.POSIXct(x)
   if (length(x) != 1) {
     stop("deadline must be coercible to a POSIXct object of length 1")

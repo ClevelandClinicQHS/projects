@@ -256,9 +256,19 @@ new_project <- function(title            = NA,
   status        <- validate_single_string(status)
   deadline_type <- validate_single_string(deadline_type)
 
-  deadline <- validate_deadline(deadline)
+  deadline      <- validate_deadline(deadline)
 
   stage         <- validate_stage(stage)
+
+  if (
+    nrow(authors_table) == 0 &&
+    (!is.null(affiliations) || !is.na(current_owner) || !is.na(corresp_auth) ||
+     !is.na(creator))
+  ) {
+    stop(
+      "Can't set authors until an author is created. Run new_author()"
+    )
+  }
 
   all_authors   <-
     validate_authors(
@@ -321,13 +331,9 @@ new_project <- function(title            = NA,
       pXXXX_name         = pXXXX_name
     )
 
-  # Add new row to project list
   new_project_row <-
-    change_table(
-      action        = "new",
-      rds_path      = projects_path,
-      rds_table     = projects_table,
-      id            = id,
+    tibble::tibble(
+      id = id,
       title         = title,
       short_title   = short_title,
       current_owner = all_authors$current_owner,
@@ -340,16 +346,31 @@ new_project <- function(title            = NA,
       creator       = all_authors$creator
     )
 
+  add_metadata(
+    table = projects_table,
+    new_row = new_project_row,
+    table_path = projects_path
+  )
+
   # Add row(s) to project-author association table
   if (!is.null(all_authors$general_authors)) {
-    pa_assoc_table <-
-      change_assoc(
-        assoc_path   = pa_assoc_path,
-        assoc_table = pa_assoc_table,
-        new          = TRUE,
-        id1          = id,
-        id2          = all_authors$general_authors
-      )
+
+    new_pa_assoc <- tibble::tibble(id1 = id, id2 = all_authors$general_authors)
+
+    add_assoc(
+      assoc_table = pa_assoc_table,
+      new_rows    = new_pa_assoc,
+      assoc_path  = pa_assoc_path
+    )
+
+    # pa_assoc_table <-
+    #   change_assoc(
+    #     assoc_path   = pa_assoc_path,
+    #     assoc_table = pa_assoc_table,
+    #     new          = TRUE,
+    #     id1          = id,
+    #     id2          = all_authors$general_authors
+    #   )
   }
 
   # Write the files
@@ -381,8 +402,8 @@ new_project <- function(title            = NA,
     cat("None.")
   } else {
     print(
-      pa_assoc_table %>%
-        dplyr::filter(.data$id1 == !!id) %>%
+      new_pa_assoc %>% # pa_assoc_table %>%
+        # dplyr::filter(.data$id1 == !!id) %>%
         dplyr::left_join(authors_table, by = c("id2" = "id")) %>%
         dplyr::select(-"id1") %>%
         dplyr::rename("author_id" = "id2")
@@ -584,7 +605,7 @@ new_author <- function(given_names  = NA,
   last_name   <- validate_single_string(last_name)
   title       <- validate_single_string(title)
   degree      <- validate_single_string(degree)
-  email       <- validate_single_string(email) %>% tolower()
+  email       <- validate_single_string(email, tolower = TRUE)
   phone       <- validate_single_string(phone)
 
   if (!is.null(affiliations)) {
@@ -609,29 +630,40 @@ new_author <- function(given_names  = NA,
   }
 
   new_author_row <-
-    change_table(
-      action      = "new",
-      rds_path    = authors_path,
-      rds_table   = authors_table,
-      id          = id,
-      given_names = given_names,
-      last_name   = last_name,
-      title       = title,
-      degree      = degree,
-      email       = email,
-      phone       = phone
+    add_metadata(
+      table = authors_table,
+      new_row =
+        tibble::tibble(
+          id          = id,
+          given_names = given_names,
+          last_name   = last_name,
+          title       = title,
+          degree      = degree,
+          email       = email,
+          phone       = phone
+        ),
+      table_path = authors_path
     )
 
   if (!is.null(affiliations)) {
-    new_author_affiliations <-
-      change_assoc(
-        assoc_path  = aa_assoc_path,
-        assoc_table = aa_assoc_table,
-        new         = TRUE,
-        id1         = id,
-        id2         = affiliations
-      ) %>%
-      dplyr::filter(.data$id1 == id)
+
+    new_aa_assoc <- tibble::tibble(id1 = id, id2 = affiliations)
+
+    add_assoc(
+      assoc_table = aa_assoc_table,
+      new_rows    = new_aa_assoc,
+      assoc_path  = aa_assoc_path
+    )
+
+    # new_author_affiliations <-
+    #   change_assoc(
+    #     assoc_path  = aa_assoc_path,
+    #     assoc_table = aa_assoc_table,
+    #     new         = TRUE,
+    #     id1         = id,
+    #     id2         = affiliations
+    #   ) %>%
+    #   dplyr::filter(.data$id1 == id)
   }
 
   message("New author:")
@@ -640,8 +672,7 @@ new_author <- function(given_names  = NA,
   if (!is.null(affiliations)) {
     message("\nNew author's affiliations:")
     print(
-      new_author_affiliations %>%
-        dplyr::filter(.data$id1 == id) %>%
+      new_aa_assoc %>%
         dplyr::left_join(affiliations_table, by = c("id2" = "id")) %>%
         dplyr::select(-"id1") %>%
         dplyr::rename("affiliation_id" = "id2")
@@ -653,6 +684,8 @@ new_author <- function(given_names  = NA,
   invisible(new_author_row)
 }
 ################################################################################
+
+
 
 
 ################################################################################
@@ -675,14 +708,19 @@ new_affiliation <- function(department_name  = NA,
 
   message("New affiliation:")
 
-  change_table(
-    action           = "new",
-    rds_path         = affiliations_path,
-    rds_table        = affiliations_table,
-    id               = id,
-    department_name  = department_name,
-    institution_name = institution_name,
-    address          = address
-  )
+  new_affiliation_row <-
+    add_metadata(
+      table = affiliations_table,
+      new_row =
+        tibble::tibble(
+          id               = id,
+          department_name  = department_name,
+          institution_name = institution_name,
+          address          = address
+        ),
+      table_path = affiliations_path
+    )
+
+  new_affiliation_row
 }
 ################################################################################

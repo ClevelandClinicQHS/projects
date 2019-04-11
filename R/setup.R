@@ -89,23 +89,15 @@ setup_projects <- function(path,
   # PROJECTS_FOLDER_PATH value already exists and does not match up with the
   # user-specified path.
 
-  if (old_path != "") {
-
-    if (old_path == path) {
-      # Acts as a check to see if the projects metadata needs updating
-      projects_path <- make_rds_path("projects", old_path)
-      if (fs::file_exists(projects_path)) {
-        get_rds(projects_path)
-      }
-    } else if(!overwrite) {
-      message(
-        "\nThe .Renviron file at\n",
-        .Renviron_path,
-        "\nindicates that a 'projects' folder already exists at\n",
-        old_path,
-        '\n\nRerun with that path OR set overwrite = TRUE'
-      )
-    }
+  if (old_path != "" && old_path != path && !overwrite) {
+    message(
+      "\nThe .Renviron file at\n",
+      .Renviron_path,
+      "\nindicates that a 'projects' folder already exists at\n",
+      old_path,
+      '\n\nRerun with that path OR set overwrite = TRUE'
+    )
+    return(invisible(old_path))
   }
 
   set_Renviron(path, old_path, .Renviron_path)
@@ -136,9 +128,9 @@ set_Renviron <- function(path, old_path, .Renviron_path) {
     user_prompt(
       msg   = paste0("\nAre you sure you want to abandon the old projects ",
                      "folder at\n", old_path, "\n\nand create a new one at\n",
-                     path, "\n\n? This will change the .Renviron file at\n",
+                     path, "\n?\n\nThis will change the .Renviron file at\n",
                      .Renviron_path, "\nso that its PROJECTS_FOLDER_PATH ",
-                     " line will be:\nPROJECTS_FOLDER_PATH='", path, "'",
+                     "line will be:\nPROJECTS_FOLDER_PATH='", path, "'",
                      "\n\nContinue? (y/n)"),
       n_msg = paste0("\nProjects folder remains at\n", old_path))
   }

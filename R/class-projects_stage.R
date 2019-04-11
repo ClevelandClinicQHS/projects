@@ -8,7 +8,11 @@ new_projects_stage <- function(x = character()) {
 
 
 
-validate_stage <- function(stage, na.ok = TRUE) {
+validate_stage <- function(stage, na.ok = TRUE, null.ok = FALSE) {
+
+  if (is.null(stage) && null.ok) {
+    return(NULL)
+  }
 
   choices <- eval(formals(new_project)$stage)
 

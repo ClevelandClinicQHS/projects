@@ -1,5 +1,4 @@
 
-
 methods::setClass("projects_author")
 
 
@@ -12,24 +11,18 @@ new_projects_author <- function(x = character()) {
 validate_projects_author <- function(x,
                                      authors_table = authors_internal(p_path),
                                      p_path        = get_p_path(),
-                                     na.ok         = TRUE,
-                                     error         = TRUE) {
+                                     na.ok         = TRUE) {
   x_valid <-
     validate_unique_entry(
       x       = x,
       table   = authors_table,
       what    = "author",
       na.ok   = na.ok,
-      zero.ok = TRUE,
-      error   = error
+      zero.ok = TRUE
     )
 
   if (nrow(x_valid) == 0) {
-    if (na.ok) {
-      new_projects_author(NA)
-    } else {
-      structure(x, error = "no matching author")
-    }
+    new_projects_author(NA)
   } else {
     new_projects_author(paste0(x_valid$id, ": ", x_valid$last_name))
   }
@@ -109,7 +102,6 @@ Ops.projects_author <- function(e1, e2) {
 
 
 # Generic methods for match() and `%in%`---------------------------------------
-methods::setGeneric("match")
 
 match.projects_author <- function(x,
                                   table,
@@ -136,11 +128,16 @@ match.projects_author <- function(x,
   base::match(x, table, nomatch, incomparables)
 }
 
+
+
+#' @include class-projects_stage.R
 methods::setMethod(
   "match",
   methods::signature(x = "projects_author"),
   match.projects_author
 )
+
+#' @include class-projects_stage.R
 methods::setMethod(
   "match",
   methods::signature(table = "projects_author"),
@@ -149,17 +146,18 @@ methods::setMethod(
 
 
 
-methods::setGeneric("%in%")
-
 `%in%.projects_author` <- function(x, table) {
   match(x, table, nomatch = 0L) > 0L
 }
 
+#' @include class-projects_stage.R
 methods::setMethod(
   "%in%",
   methods::signature(x = "projects_author"),
   `%in%.projects_author`
 )
+
+#' @include class-projects_stage.R
 methods::setMethod(
   "%in%",
   methods::signature(table = "projects_author"),
