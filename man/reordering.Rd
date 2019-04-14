@@ -16,7 +16,8 @@ reorder_affiliations(author, ..., after = 0L)
 whose authors/affiliations you want to reorder.}
 
 \item{...}{The \code{id}s or names of authors/affiliations you want to
-reorder, optionally with their new ranks explicitly stated. See details.}
+reorder, optionally with their new ranks explicitly stated. See
+\strong{Details}.}
 
 \item{after}{If not specifying explicit ranks in \code{...}, the position you
   want the elements to come after. Works like the \code{after} argument in
@@ -25,7 +26,7 @@ reorder, optionally with their new ranks explicitly stated. See details.}
   Ignored if ranks are explicitly provided in \code{...}.}
 
 \item{reprint_header}{Should the \code{project}'s header be printed to the
-console?}
+console? \code{TRUE} by default.}
 
 \item{archived}{Logical indicating whether or not the function should
   consider archived projects when determining which project the user is
@@ -35,25 +36,26 @@ console?}
   more information on the "archived" status of a project.}
 }
 \description{
-These functions allow the user to reorder authors on a project or to reorder
-an author's affiliations.
+These functions allow the user to reorder a project's authors or an author's
+affiliations.
 }
 \details{
-The order of these affects the order of authors and affiliations in
-\code{\link{header}}s.
+The order of authors and affiliations affects the order in which these items
+appear in project \link{header}s.
 
-When specifying explicit ranks, enter \code{...} as name-value pairs, in
-which the names are names of authors/affiliations (or even their [back]quoted
-\code{id}s) and the values are integer ranks you want them to occupy. If
-entering an integer greater than the total number of authors/affiliations,
-the element will be put at the end. The \code{after} argument will be ignored
-in this case.
+When specifying explicit ranks, enter \code{...} as name-value pairs (e.g.,
+Johnson = 2, "Baron Cohen" = 4). You can even enumerate authors/affiliations
+by their corresponding (quoted) \code{id} numbers (e.g., `7` = 2, ACME = 4,
+`22` = 6). If entering an integer greater than the total number of
+authors/affiliations, the element will be put at the end. The \code{after}
+argument will be ignored in this case.
 
 When not specifying explicit ranks, simply enter author/affiliations
 \code{id}s or names in the order you want them, and the ones you entered will
 be inserted after the position specified by the \code{after} argument. By
 default (\code{after = 0}), the authors/affiliations in \code{...} will be
-moved to the front.
+moved to the front. This behavior corresponds to that of
+\code{\link{append}()} or \code{forcats::\link[forcats]{fct_relevel}()}.
 }
 \examples{
 # SETUP

@@ -1,100 +1,108 @@
 #' Create, edit or delete projects, authors and affiliations
 #'
 #' These functions create, edit, or delete rows in the \code{\link{projects}()},
-#' \code{\link{authors}()}, and \code{\link{affiliations}()} tibbles, which are
+#' \code{\link{authors}()}, and \code{\link{affiliations}()} tables, which are
 #' stored in the \emph{.metadata} subdirectory of the main
-#' \code{\link{projects_folder}}.
+#' \link[=projects_folder]{projects folder}.
 #'
 #' \code{new_project()} creates a new R project folder that is automatically
 #' filled with a \emph{.Rproj} file, helpful subdirectories, and \emph{.Rmd}
 #' files to get your project workflow started; \code{delete_project()} deletes
-#' them. The \code{edit_\*()} functions and the other \code{new_\*()} and
-#' \code{delete_\*()} functions only create or edit rows in the \emph{.metadata}
-#' tibbles.
+#' them. The \code{edit_*()} functions and the other \code{new_*()} and
+#' \code{delete_*()} functions only create or edit rows in the \emph{.metadata}
+#' tables. \code{new_idea()} is a convenience function for quickly creating
+#' projects in the \code{"0: idea"} stage.
 #'
-#' Newly created project folders (and the \emph{.Rproj} files they contain) both
-#' have names of the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the
-#' project \code{id} number. The folder will be an immediate subdirectory of the
-#' main \code{\link{projects_folder}} (see also \code{\link{setup_projects}()})
-#' unless the argument \code{path} specifies a deeper subdirectory. The user may
-#' enter various metadata about the project that is stored and may be called
-#' forth using the \code{\link{projects}()} function. Some of this metadata will
-#' automatically be added to the \code{\link{header}} atop the automatically
-#' created \emph{.Rmd} files called \emph{progs/01_protocol.Rmd} and
-#' \emph{progs/04_report.Rmd}.
+#' Unless the user sets \code{stitle_as_folder = TRUE}, the name of a newly
+#' created project folder (and the \emph{.Rproj} file it contains) will be of
+#' the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project \code{id}
+#' number, left-filled with 0s. The folder will be an immediate subdirectory of
+#' the main \link[=projects_folder]{projects folder} (see also
+#' \code{\link{setup_projects}()}) unless the argument \code{path} specifies a
+#' deeper subdirectory. The user may enter various metadata about the project
+#' that is stored and may be called forth using the \code{\link{projects}()}
+#' function. Some of this metadata will automatically be added to the
+#' \link{header} atop the automatically created \emph{.Rmd} files called
+#' \emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd}.
 #'
 #' @param id An integer that will become the item's permanent identification
 #'   number. Must be in the range 1-9999 or left blank. If left blank, the
 #'   lowest available integer in the aforementioned range will be selected.
 #'
 #'   For \code{new_project}, this number will also determine the project
-#'   folder's and \emph{.Rproj} file's names, which are of the form
-#'   "p\emph{XXXX}". If the \code{id} number is not four digits long, it will be
-#'   padded on the left side with 0s.
-#' @param title For the \code{\*_project()} functions, the title of the project;
-#'   for \code{new_project()} only, the user input is coerced to title case
-#'   using \code{tools::toTitleCase()}.
+#'   folder's and \emph{.Rproj} file's names. See \strong{Details}.
+#' @param title For \code{new_project()}, \code{new_idea()}, and
+#'   \code{edit_project()}, the title of the project.
 #'
-#'   For the \code{\*_author()} functions, the job title of the author.
+#'   For the \code{new_author()} and \code{edit_author()}, the job title of the
+#'   author.
 #' @param short_title A nickname for the project. Can be used in other
 #'   \code{projects} package functions whenever needing to specify a project.
+#'
+#'   Additionally, see the parameter info for \code{stitle_as_folder} below.
 #' @param given_names,last_name,department_name,institution_name Each a single
 #'   character string. Can be used whenever needing to specify a specific
 #'   author/affiliation.
 #' @param degree A character string (preferably an abbreviation) denoting the
 #'   author's academic degree(s). Will be written next to author names in the
-#'   \code{\link{header}}.
+#'   \link{header}.
 #' @param email,phone A character string denoting the email/phone of the author.
 #'   Email will be coerced to lowercase. When a project is given a
-#'   \code{corresp_auth}, these items will be included in the
-#'   \code{\link{header}}.
+#'   \code{corresp_auth}, these items will be included in the \link{header}.
 #' @param address A character string indicating the address of the affiliation.
-#' @param project,author,affiliation The \code{id} or unambiguous names of a
-#'   project/author/affiliation to edit or delete.
+#' @param project,author,affiliation The \code{id} or unambiguous name(s) of a
+#'   project/author/affiliation to \code{edit_*()} or to \code{delete_*()}.
 #' @param authors,affiliations For \code{new_project()}/\code{new_author()}, a
 #'   vector of \code{id}s or unambiguous \code{given_names}/\code{last_name} or
-#'   \code{department_name}/\code{institution_name} of
-#'   \code{\link{authors}}/\code{\link{affiliations}}. Order will be preserved.
+#'   \code{department_name}/\code{institution_name} of authors/affiliations.
+#'   Order will be preserved.
 #'
 #'   For \code{edit_project()}/\code{edit_author()}, a formula specifying
-#'   \code{\link{authors}}/\code{\link{affiliations}} to add or remove from the
-#'   project/author. Formulas must have no left-hand side (i.e., begin with
-#'   \code{~}) and use \code{+} to add authors and \code{-} to remove authors.
-#'   Authors may be specified by \code{id} or name.
+#'   authors/affiliations to add or remove from the project/author. Formulas
+#'   must have no left-hand side (i.e., begin with \code{\link{~}}) and use
+#'   \code{+} to add authors and \code{-} to remove authors (see
+#'   \link{formula}). Authors may be specified by \code{id} or name.
 #'
-#'   Each element must match a row in the \code{\link{authors}} tibble.
-#' @param corresp_auth,current_owner An \code{id} or unambiguous
+#'   Each element must match an existing row in the
+#'   \code{\link{authors}()}/\code{\link{affiliations}()} table.
+#' @param current_owner,corresp_auth,creator An \code{id} or unambiguous
 #'   \code{last_name}/\code{given_names} of one of the authors in the
-#'   \code{\link{authors}} table.
+#'   \code{\link{authors}()} table, which will be coerced into a
+#'   \link{projects_author} class object.
 #'
 #'   If \code{corresp_auth} is specified, all of this author's contact
-#'   information will be especially included in the project's
-#'   \code{\link{header}}.
-#' @param creator The author who created the project. If it is equal to
-#'   \code{Sys.info()["user"]} (the default value), it is kept as is. Otherwise
-#'   it will be validated against the \code{authors()} tibble and populated with
-#'   the matching author \code{id}.
+#'   information will be especially included in the project's \link{header}.
+#'
+#'   If \code{creator} is left blank, the numeric portion of the resulting
+#'   \link{projects_author} class object will be \code{0}, followed by the value
+#'   of \code{Sys.info()["user"]} (e.g., \code{0: user_j_smith}).
 #' @param status A free text field, intended to communicate the most current
 #'   condition the project is in.
 #'
-#'   For \code{new_project()}, default is \code{"just created"}.
+#'   For \code{new_project()}, default is \code{"just created"}. For
+#'   \code{new_idea()}, default is \code{"just an idea"}.
 #' @param deadline_type A free text field, intended to communicate the meaning
 #'   of the next field, \code{deadline}.
-#' @param deadline A \code{Date} or a character string that can be coerced to a
-#'   \code{Date}.
+#' @param deadline A \code{\link{POSIXct}} object or something coercible to one.
 #' @param path A character string that can be read as a file path. Can be
 #'   either:
 #'
-#'   1) the \emph{absolute} path of the \code{\link{projects_folder}} (default)
+#'   \enumerate{
 #'
-#'   2) an \emph{absolute} path pointing to a subfolder within the
-#'   \code{\link{projects_folder}}
+#'   \item the \emph{absolute} path of the \link[=projects_folder]{projects
+#'   folder} (i.e., the value of \code{\link{projects_folder}()}, which is the
+#'   default)
 #'
-#'   3) a \emph{relative} path (leading \code{"."} optional) that will be
-#'   appended onto the end of the \code{\link{projects_folder}}.
+#'   \item an \emph{absolute} path pointing to a subfolder within the
+#'   \link[=projects_folder]{projects folder}
+#'
+#'   \item a \emph{relative} path (leading \code{"."} optional) that will be
+#'   appended onto the end of the \link[=projects_folder]{projects folder}.
+#'
+#'   }
 #'
 #'   In any case, the result is that the new project folder will be a
-#'   subdirectory of the main \code{\link{projects_folder}}. See also
+#'   subdirectory of the main \link[=projects_folder]{projects folder}. See also
 #'   \code{\link{setup_projects}()}.
 #' @param make_directories Logical, indicating whether or not
 #'   \code{new_project()} should create subdirectories specified in the
@@ -104,17 +112,22 @@
 #'   \code{c("1: design", "2: data collection", "3: analysis", "4: manuscript",
 #'   "5: under review", "6: accepted", "0: ideas")}, communicating the stage the
 #'   project is in. This will be coerced to be a character vector of class
-#'   \code{projects_stage}. Defaults to \code{"1: design"}.
+#'   \code{projects_stage}.
+#'
+#'   For \code{new_project()}, defaults to \code{"1: design"}.
 #'
 #'   If set to one of \code{c("3: analysis", "4: manuscript", "5: under review",
 #'   "6: accepted")}, \code{protocol} and \code{datawork} are ignored and the
 #'   \emph{01_protocol.Rmd} and \emph{02_datawork.Rmd} files will not be
 #'   written.
+#'
+#'   See \link{projects_stage}.
+#'
 #' @param protocol,datawork,analysis,report,css,Rproj A character string
 #'   matching the name of a corresponding template file in the \emph{.templates}
-#'   subdirectory of the main \code{\link{projects_folder}}. Default templates
-#'   are placed there when \code{\link{setup_projects}()} is run, and the user
-#'   can edit these if desired.
+#'   subdirectory of the main \link[=projects_folder]{projects folder}. Default
+#'   templates are placed there when \code{\link{setup_projects}()} is run, and
+#'   the user can edit these if desired.
 #'
 #'   Multiple default \code{protocol} templates are available.
 #'
@@ -133,18 +146,32 @@
 #'   written into the \strong{progs} subdirectory of the newly created project
 #'   folder. Its name will be of the form \emph{pXXXX.bib}, and the YAML header
 #'   of \emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd} will include
-#'   the line \code{bibliography: pXXXX.bib}.
+#'   the line \code{bibliography: p}\emph{XXXX}\code{.bib}.
 #' @param stitle_as_folder Logical, indicating whether or not to use the
 #'   \code{short_title} as the name of the new project's folder. Defaults to
 #'   \code{FALSE}.
-#' @param reprint_header Logical, indicating whether or not to reprint the
-#'   project \code{\link{header}} after editing project information.
 #' @param archived Logical indicating whether or not the function should
 #'   consider archived projects when determining which project the user is
 #'   referring to in the \code{project} argument. \code{FALSE} by default.
 #'
 #'   See the \strong{Details} section of \code{\link{archive_project}()} for
 #'   more information on the "archived" status of a project.
+#' @param ... Additional arguments to be passed to \code{new_project()}
+#'
+#' @return \code{new_affiliation()} and \code{edit_affiliation()} simply return
+#'   the new or edited row of the \code{\link{affiliations}()} \code{tibble}.
+#'
+#'   \code{new_project()}, \code{new_author()}, \code{edit_project()},
+#'   \code{edit_author()}, and the \code{delete_*()} functions
+#'   \link[=invisible]{invisibly} return the row of the corresponding metadata
+#'   \code{tibble} that was added/edited/deleted, although the contents of this
+#'   row are printed as a side-effect along with the other relevant information
+#'   where applicable (e.g., project authors, author affiliations, project file
+#'   paths).
+#'
+#'   \code{new_idea()} returns the \code{id}, \code{title}, and \code{status}
+#'   columns of the newly created row of the \code{\link{projects}()}
+#'   \code{tibble}.
 #'
 #' @examples
 #' # SETUP
@@ -165,11 +192,21 @@
 #' edit_affiliation("Math Dept", department_name = "Mathematics Department")
 #'
 #' # Creating authors
-#' new_author(given_names = "Rosetta", last_name = "Stone",
-#'            affiliations = c(42, "Math"), degree = "PhD",
-#'            email = "slab@rock.net", phone = "867-555-5309", id = 8888)
-#' new_author(given_names = "Spiro", last_name = "Agnew", degree = "LLB",
-#'            affiliations = "Art D", id = 13)
+#' new_author(
+#'   given_names = "Rosetta",
+#'   last_name = "Stone",
+#'   affiliations = c(42, "Math"),
+#'   degree = "PhD",
+#'   email = "slab@rock.net",
+#'   phone = "867-555-5309",
+#'   id = 8888
+#' )
+#' new_author(
+#'   given_names = "Spiro",
+#'   last_name = "Agnew",
+#'   degree = "LLB",
+#'   affiliations = "Art D", id = 13
+#' )
 #' new_author(last_name = "Plato", id = 303)
 #'
 #' # Editing an author, showcasing the removal of a text element (last_name)
@@ -179,21 +216,33 @@
 #' edit_author("Spiro", affiliations = ~ -"Art D" + Math)
 #'
 #' # Creating a project
-#' new_project(title = "Understanding the Construction of the United States",
-#'             short_title = "USA", authors = c(13, "Stone"),
-#'             stage = 4, deadline = "2055-02-28", deadline_type = "submission",
-#'             path = "famous_studied/philosophers/rocks",
-#'             corresp_auth = "Stone", current_owner = "agnew",
-#'             make_directories = TRUE, use_bib = TRUE,
-#'             status = "waiting on IRB")
+#' new_project(
+#'   title = "Understanding the Construction of the United States",
+#'   short_title = "USA",
+#'   authors = c(13, "Stone"),
+#'   stage = 4,
+#'   deadline = "2055-02-28",
+#'   deadline_type = "submission",
+#'   path = "famous_studied/philosophers/rocks",
+#'   corresp_auth = "Stone",
+#'   current_owner = "agnew",
+#'   make_directories = TRUE,
+#'   use_bib = TRUE,
+#'   status = "waiting on IRB"
+#' )
 #'
 #' # Editing a project, showcasing the addition and removal of authors
-#' edit_project("Understanding", short_title = "usa1",
-#'              authors = ~ + "303" - 13 - Stone)
+#' edit_project(
+#'   "Understanding",
+#'   short_title = "usa1",
+#'   authors = ~ + "303" - 13 - Stone
+#' )
 #'
-#' # Wrapped in if(interactive()) because it requires interactive console input
+#' new_idea(title = "Boiling the Ocean")
+#'
+#' # Wrapped in if (interactive()) because it requires interactive console input
 #' # and fails automated package checking and testing.
-#' if(interactive()) {
+#' if (interactive()) {
 #'   delete_project("usa1")
 #'   delete_author(303)
 #'   delete_affiliation("Math")
@@ -204,8 +253,6 @@
 #' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
 #' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
 #' @name new_edit_delete
-#' @importFrom rlang .data
-#' @importFrom tibble tibble
 #' @export
 new_project <- function(title            = NA,
                         current_owner    = NA,
@@ -402,8 +449,7 @@ new_project <- function(title            = NA,
     cat("None.")
   } else {
     print(
-      new_pa_assoc %>% # pa_assoc_table %>%
-        # dplyr::filter(.data$id1 == !!id) %>%
+      new_pa_assoc %>%
         dplyr::left_join(authors_table, by = c("id2" = "id")) %>%
         dplyr::select(-"id1") %>%
         dplyr::rename("author_id" = "id2")
@@ -418,9 +464,6 @@ new_project <- function(title            = NA,
 
   invisible(new_project_row)
 }
-################################################################################
-
-
 
 
 
@@ -567,9 +610,9 @@ build_rmds <- function(stage,
 }
 
 
-
+#' @rdname new_edit_delete
 #' @export
-new_idea <- function(title = NA, status = "just an idea", ...) {
+new_idea <- function(title, status = "just an idea", ...) {
   utils::capture.output(
     idea <-
       suppressMessages(
@@ -583,7 +626,6 @@ new_idea <- function(title = NA, status = "just an idea", ...) {
 
 ################################################################################
 #' @rdname new_edit_delete
-#' @importFrom rlang .data
 #' @export
 new_author <- function(given_names  = NA,
                        last_name    = NA,
@@ -654,16 +696,6 @@ new_author <- function(given_names  = NA,
       new_rows    = new_aa_assoc,
       assoc_path  = aa_assoc_path
     )
-
-    # new_author_affiliations <-
-    #   change_assoc(
-    #     assoc_path  = aa_assoc_path,
-    #     assoc_table = aa_assoc_table,
-    #     new         = TRUE,
-    #     id1         = id,
-    #     id2         = affiliations
-    #   ) %>%
-    #   dplyr::filter(.data$id1 == id)
   }
 
   message("New author:")

@@ -2,16 +2,17 @@
 % Please edit documentation in R/getters.R
 \name{projects_folder}
 \alias{projects_folder}
-\title{Get file path of main projects folder}
+\title{projects folder path}
 \usage{
 projects_folder()
 }
 \description{
-Returns the file path of the main projects folder if it has been established.
+Returns the file path of the main projects folder if it has been established
+via \code{\link{setup_projects}()}.
 }
 \details{
 The file path is returned as a simple character string. It simply returns the
-value of \code{\link[base]{Sys.getenv}("PRJOECTS_FOLDER_PATH")}, provided
+value of \code{\link{Sys.getenv}("PRJOECTS_FOLDER_PATH")}, provided
 that its value is a file path of a directory that actually exists (i.e.,
 \code{\link{setup_projects}()} has been successfully run).
 

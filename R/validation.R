@@ -351,7 +351,7 @@ validate_template <- function(file_name,
     return(readr::read_lines(path))
   } else {
 
-    if (any(defaul_name == file_name)) {
+    if (any(default_name == file_name)) {
       return(
         restore_default_template(
           file_name,

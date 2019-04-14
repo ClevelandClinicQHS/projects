@@ -1,7 +1,6 @@
 ################################################################################
+#' @include new.R
 #' @rdname new_edit_delete
-#' @importFrom tibble tibble
-#' @importFrom rlang .data
 #' @export
 edit_project <- function(project,
                          title          = NULL,
@@ -163,24 +162,6 @@ edit_project <- function(project,
       table_path = projects_path
     )
 
-  # new_project_row <-
-  #   change_table(
-  #     action        = "edit",
-  #     rds_path      = projects_path,
-  #     rds_table     = projects_table,
-  #     id            = project$id,
-  #     title         = title,
-  #     short_title   = short_title,
-  #     current_owner = current_owner,
-  #     status        = status,
-  #     deadline_type = deadline_type,
-  #     deadline      = deadline,
-  #     stage         = stage,
-  #     path          = NA_character_,
-  #     corresp_auth  = corresp_auth,
-  #     creator       = creator
-  #   )
-
   if (length(authors$remove) > 0) {
     assoc_table <-
       delete_assoc(
@@ -189,32 +170,15 @@ edit_project <- function(project,
         id2 = authors$remove,
         assoc_path = assoc_path
       )
-
-    # assoc_table <-
-    #   change_assoc(
-    #     assoc_path   = assoc_path,
-    #     assoc_table = assoc_table,
-    #     new          = FALSE,
-    #     id1          = project$id,
-    #     id2          = authors$remove
-    #   )
   }
 
-  if (length(authors$add) > 0) {
+  if (length(authors$add) > 0L) {
     assoc_table <-
       add_assoc(
         assoc_table = assoc_table,
         new_rows = tibble::tibble(id1 = project$id, id2 = authors$add),
         assoc_path = assoc_path
       )
-
-      # change_assoc(
-      #   assoc_path   = assoc_path,
-      #   assoc_table = assoc_table,
-      #   new          = TRUE,
-      #   id1          = project$id,
-      #   id2          = authors$add
-      # )
   }
 
   filtered_assoc <- assoc_table[which(assoc_table$id1 == project$id), ]
@@ -233,7 +197,7 @@ edit_project <- function(project,
   )
 
   message("\nEdited project's authors:")
-  if (nrow(filtered_assoc) == 0) {
+  if (nrow(filtered_assoc) == 0L) {
     cat("None.")
   } else {
     print(
@@ -266,8 +230,8 @@ edit_project <- function(project,
 
 
 ################################################################################
+#' @include new.R
 #' @rdname new_edit_delete
-#' @importFrom rlang .data
 #' @export
 edit_author <- function(author,
                         given_names   = NULL,
@@ -329,20 +293,6 @@ edit_author <- function(author,
       table_path = authors_path
     )
 
-  # new_author_row <-
-  #   change_table(
-  #     action      = "edit",
-  #     rds_path    = authors_path,
-  #     rds_table   = authors_table,
-  #     id          = author,
-  #     given_names = given_names,
-  #     last_name   = last_name,
-  #     title       = title,
-  #     degree      = degree,
-  #     email       = email,
-  #     phone       = phone
-  #   )
-
   if (length(affiliations$remove) > 0) {
     assoc_table <-
       delete_assoc(
@@ -386,6 +336,7 @@ edit_author <- function(author,
 
 
 ################################################################################
+#' @include new.R
 #' @rdname new_edit_delete
 #' @export
 edit_affiliation <- function(affiliation,
@@ -421,16 +372,6 @@ edit_affiliation <- function(affiliation,
       address          = address,
       table_path = affiliations_path
     )
-
-  # change_table(
-  #   action           = "edit",
-  #   rds_path         = affiliations_path,
-  #   rds_table        = affiliations_table,
-  #   id               = affiliation,
-  #   department_name  = department_name,
-  #   institution_name = institution_name,
-  #   address          = address
-  # )
 
   edited_row
 }
@@ -499,13 +440,6 @@ delete_project <- function(project, archived = FALSE) {
     table_path = projects_path
   )
 
-  # change_table(
-  #   action     = "delete",
-  #   rds_path   = projects_path,
-  #   rds_table  = projects_table,
-  #   id         = project
-  # )
-
   delete_assoc(
     assoc_table = pa_assoc_table,
     id1         = project,
@@ -518,8 +452,9 @@ delete_project <- function(project, archived = FALSE) {
 }
 
 
+
+#' @include new.R
 #' @rdname new_edit_delete
-#' @importFrom rlang .data
 #' @export
 delete_author <- function(author) {
 
@@ -557,11 +492,6 @@ delete_author <- function(author) {
     table_path = authors_path
   )
 
-  # change_table(action     = "delete",
-  #              rds_path   = authors_path,
-  #              rds_table = authors_table,
-  #              id         = author_row$id)
-
   clear_special_author(author          = author_row$id,
                        projects_path   = projects_path,
                        projects_table = projects_table)
@@ -580,11 +510,14 @@ delete_author <- function(author) {
 
   print(author_row)
   message("The above author was deleted.")
+
+  invisible(author_row)
 }
 
 
+
+#' @include new.R
 #' @rdname new_edit_delete
-#' @importFrom rlang .data
 #' @export
 delete_affiliation <- function(affiliation) {
 
@@ -615,11 +548,6 @@ delete_affiliation <- function(affiliation) {
     row_id = affiliation_row$id,
     table_path = affiliations_path
   )
-
-  # change_table(action     = "delete",
-  #              rds_path   = affiliations_path,
-  #              rds_table = affiliations_table,
-  #              id         = affiliation_row$id)
 
   delete_assoc(
     assoc_table = aa_assoc_table,
@@ -679,7 +607,7 @@ parse_formula <- function(formula, what, what2, main_table, assoc_table) {
 
   remove <- setdiff(all.vars(formula), add)
 
-  if (length(remove) > 0) {
+  if (length(remove) > 0L) {
 
     # Validates the remove list against the main database, making sure that the
     # authors or affiliations actually exist in the database, first turning any
@@ -699,7 +627,7 @@ parse_formula <- function(formula, what, what2, main_table, assoc_table) {
     )
   }
 
-  if (length(add) > 0) {
+  if (length(add) > 0L) {
 
     # Validates the add list against the author tibble, first
     # turning any author IDs from characters to integers (via the ifelse()
@@ -762,19 +690,16 @@ recursive_number_namer <- function(formula) {
 
 
 
-# Reordering functions
-################################################################################
-
 #' Reordering authors and affiliations
 #'
-#' These functions allow the user to reorder authors on a project or to reorder
-#' an author's affiliations.
+#' These functions allow the user to reorder a project's authors or an author's
+#' affiliations.
 #'
-#' The order of these affects the order of authors and affiliations in
-#' \code{\link{header}}s.
+#' The order of authors and affiliations affects the order in which these items
+#' appear in project \link{header}s.
 #'
 #' When specifying explicit ranks, enter \code{...} as name-value pairs (e.g.,
-#' Johnson = 2, "Baron Cohen" = 4). You can even enumerate author/affiliations
+#' Johnson = 2, "Baron Cohen" = 4). You can even enumerate authors/affiliations
 #' by their corresponding (quoted) \code{id} numbers (e.g., `7` = 2, ACME = 4,
 #' `22` = 6). If entering an integer greater than the total number of
 #' authors/affiliations, the element will be put at the end. The \code{after}
@@ -784,7 +709,8 @@ recursive_number_namer <- function(formula) {
 #' \code{id}s or names in the order you want them, and the ones you entered will
 #' be inserted after the position specified by the \code{after} argument. By
 #' default (\code{after = 0}), the authors/affiliations in \code{...} will be
-#' moved to the front.
+#' moved to the front. This behavior corresponds to that of
+#' \code{\link{append}()} or \code{forcats::\link[forcats]{fct_relevel}()}.
 #'
 #' @param project,author The \code{id} or unambiguous names of a project/author
 #'   whose authors/affiliations you want to reorder.
@@ -797,7 +723,7 @@ recursive_number_namer <- function(formula) {
 #'
 #'   Ignored if ranks are explicitly provided in \code{...}.
 #' @param reprint_header Should the \code{project}'s header be printed to the
-#'   console?
+#'   console? \code{TRUE} by default.
 #' @param archived Logical indicating whether or not the function should
 #'   consider archived projects when determining which project the user is
 #'   referring to in the \code{project} argument. \code{FALSE} by default.
@@ -920,7 +846,7 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
         all(!is.na(user_order)) &&
         all(user_order >= 1L) &&
         length(user_order) <= nrow(filtered_assoc) &&
-        anyDuplicated(user_order) == 0
+        anyDuplicated(user_order) == 0L
       )
     ) {
     # if (!checkmate::test_integerish(user_order, lower = 1L,
@@ -981,30 +907,12 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
       assoc_path = assoc_path
     )
 
-  # assoc_table <-
-  #   change_assoc(
-  #     assoc_path   = assoc_path,
-  #     assoc_table  = assoc_table,
-  #     new          = FALSE,
-  #     id1          = rds1_row$id,
-  #     id2          = filtered_assoc$id2
-  #   )
-
   assoc_table <-
     add_assoc(
       assoc_table = assoc_table,
       new_rows    = tibble::tibble(id1 = rds1_row$id, id2 = reordered),
       assoc_path  = assoc_path
     )
-
-  # assoc_table <-
-  #   change_assoc(
-  #     assoc_path   = assoc_path,
-  #     assoc_table  = assoc_table,
-  #     new          = TRUE,
-  #     id1          = rds1_row$id,
-  #     id2          = reordered
-  #   )
 
   message(rds1, " info:")
   print(rds1_row)

@@ -3,34 +3,33 @@
 #' Tools for Organizing and Managing Project Files
 #'
 #' Projects can be moved (\code{move_project()}), copied
-#' (\code{copy_project()}), deleted (\code{\link{delete_project}()}) or archived
-#' (\code{archive_project}).
+#' (\code{copy_project()}), or archived (\code{archive_project}()).
 #'
 #' The difference between \code{delete_project()} and \code{archive_project()}
 #' is that the latter will just move the project to a directory called
 #' \emph{archive}, located in the same parent directory as the project. This
-#' directory gets created if it doesn't yet exist. Some functions that perform
+#' directory gets created if it doesn't yet exist. Most functions that perform
 #' actions on projects will exclude archived projects by default in order to
 #' make it easier for the user to enter a nonambiguous string that will match an
 #' active (i.e., non-archived) project.
 #'
 #' Projects can also be organized into groups. By default, all projects are
-#' created within the main \code{\link{projects_folder}}. To create a project
-#' group, which essentially is a subfolder of projects that sits within the main
-#' \code{\link{projects_folder}} (or recursively within another project group's
-#' folder), use \code{new_project_group()}.
+#' created within the main \link[=projects_folder]{projects folder}. To create a
+#' project group, which is essentially a subfolder of the main
+#' \link[=projects_folder]{projects folder}, use \code{new_project_group()}.
 #'
 #' The folder name of the project copy created by \code{copy_project()} will be
 #' \code{new_short_title} if the user supplies a value that is different from
 #' the names of any existing directories at \code{path}. Otherwise, its folder
-#' name will be taken from its \code{id} (i.e., "pXXXX").
+#' name will be taken from its \code{id} (i.e., "p\emph{XXXX}").
 #'
 #' \code{open_project()} is a wrapper around
-#' \code{\link[rstudioapi]{openProject}}, but the user only needs to know the
-#' project's \code{id}, \code{title}, or \code{short_title} instead of the file
-#' path of the project's \emph{.Rproj} file. If there is no .Rproj file in the
-#' project's folder, the user has the option to restore a default .Rproj folder.
-#' If there are multiple .Rproj files, an error is thrown.
+#' \code{rstudioapi::\link[rstudioapi]{openProject}()}, but the user only needs
+#' to know the project's \code{id}, \code{title}, or \code{short_title} instead
+#' of the file path of the project's \emph{.Rproj} file. If there is no
+#' \emph{.Rproj} file in the project's folder, the user has the option to
+#' restore a default \emph{.Rproj} folder. If there are multiple \emph{.Rproj}
+#' files, an error is thrown.
 #'
 #' @param path A valid path string.
 #'
@@ -40,13 +39,13 @@
 #'   See the \code{path} argument in \code{\link{new_project}()} for details on
 #'   valid paths.
 #' @param project Project \code{id} or unambiguous substring of the project name
-#'   from the \code{\link{projects}()} tibble.
+#'   from the \code{\link{projects}()} table
 #' @param make_directories Logical. If the path represented by the \code{path}
 #'   parameter does not exist, should the needed directories be created?
 #' @param project_to_copy Project \code{id} or unambiguous substring of the
 #'   project name corresponding to the project that is to be copied.
 #' @param new_id Optional integer, ranging from 1 to 9999, used as the
-#'   newly-created project ID. Must not already exist in
+#'   newly-created project \code{id}. Must not already exist in
 #'   \code{\link{projects}()$id}. If left blank, the lowest available \code{id}
 #'   will be automatically used.
 #' @param new_short_title Optional character string that becomes the
@@ -62,10 +61,7 @@
 #' @param archived Logical indicating whether or not the function should
 #'   consider archived projects when determining which project the user is
 #'   referring to in the \code{project}/\code{project_to_copy} argument.
-#'   \code{FALSE} by default.
-#'
-#'   See the \strong{Details} section of \code{\link{archive_project}()} for
-#'   more information on the "archived" status of a project.
+#'   \code{FALSE} by default. See \strong{Details}.
 #'
 #' @name file_management
 #' @seealso \code{\link{new_project}()} and \code{\link{delete_project}()} for
@@ -193,12 +189,6 @@ rename_folder <- function(project,
     table_path = projects_path
   )
 
-  # do.call(what = change_table,
-  #         args = c(list(action        = "edit",
-  #                       rds_path      = projects_path,
-  #                       rds_table    = projects_table),
-  #                  as.list(project_row)))
-
   message(
     "\nProject ", project_row$id,
     " renamed so that its new path is\n", project_row$path
@@ -277,24 +267,12 @@ move_project <- function(project,
     table_path = projects_path
   )
 
-  # do.call(
-  #   what = change_table,
-  #   args =
-  #     c(
-  #       list(
-  #         action    = "edit",
-  #         rds_path  = projects_path,
-  #         rds_table = projects_table
-  #       ),
-  #       as.list(project_row)
-  #     )
-  # )
-
   message(
     "\nProject ", project_row$id,
     " moved so that its new path is\n", project_row$path
   )
 }
+
 
 
 #' @rdname file_management
@@ -386,27 +364,15 @@ copy_project <- function(project_to_copy,
     table_path = projects_path
   )
 
-  # do.call(what = change_table,
-  #         args = c(list(action     = "new",
-  #                       rds_path   = projects_path,
-  #                       rds_table = projects_table),
-  #                  as.list(project_row)))
-
   old_assoc <- dplyr::filter(pa_assoc_table, .data$id1 == original_project_id)
 
-  if(nrow(old_assoc) > 0) {
+  if (nrow(old_assoc) > 0L) {
 
     add_assoc(
       assoc_table = pa_assoc_table,
       new_rows    = tibble::tibble(id1 = project_row$id, id2 = old_assoc$id2),
       assoc_path  = pa_assoc_path
     )
-
-    # change_assoc(assoc_path = pa_assoc_path,
-    #              assoc_table = pa_assoc_table,
-    #              new = TRUE,
-    #              id1 = project_row$id,
-    #              id2 = old_assoc$id2)
   }
 
   message(
@@ -417,11 +383,11 @@ copy_project <- function(project_to_copy,
 
   new_proj_ls <- fs::dir_ls(project_row$path)
   Rproj_path  <- new_proj_ls[fs::path_ext(new_proj_ls) == "Rproj"]
-  if (length(Rproj_path) == 1) {
+  if (length(Rproj_path) == 1L) {
     new_path  <- fs::path(fs::path_dir(Rproj_path), folder_name, ext = "Rproj")
     fs::file_move(path = Rproj_path, new_path = new_path)
     message("\nThe .Rproj file\n", Rproj_path, "\nwas renamed to\n", new_path)
-  } else if (length(Rproj_path) == 0) {
+  } else if (length(Rproj_path) == 0L) {
     message("\nNo .Rproj file found in the new project folder.")
   } else {
     message("\nMultiple .Rproj files found in newly created directory.",
@@ -433,6 +399,8 @@ copy_project <- function(project_to_copy,
     '\" to \"', folder_name,
     '\" as desired\n(e.g., .bib files and references to them in YAML headers).'
   )
+
+  invisible(project_row)
 }
 
 
@@ -455,7 +423,7 @@ archive_project <- function(project) {
       what  = "project"
     )
 
-  if(!fs::dir_exists(project_row$path)) {
+  if (!fs::dir_exists(project_row$path)) {
     print(project_row)
     stop("The above project not found at\n", project_row$path,
          "\nRestore project folder to this location first.")
@@ -470,7 +438,7 @@ archive_project <- function(project) {
     n_msg = paste0('\nArchiving not completed. To archive this project, try ',
                    'again and enter "y".'))
 
-  if(!fs::file_exists(archive_folder)) {
+  if (!fs::file_exists(archive_folder)) {
     fs::dir_create(archive_folder)
   }
   fs::file_move(path = project_row$path, new_path = archive_folder)
@@ -482,6 +450,7 @@ archive_project <- function(project) {
   print(dplyr::filter(projects_table, .data$id == project_row$id))
   message("\nThe above project was archived and has the file path\n", new_path)
 }
+
 
 
 #' @rdname file_management
@@ -520,7 +489,11 @@ open_project <- function(project, new_session = FALSE, archived = FALSE) {
       )
 
       Rproj_path <-
-        fs::path(project_row$path, make_project_name(project_row$id), ext = "Rproj")
+        fs::path(
+          project_row$path,
+          make_project_name(project_row$id),
+          ext = "Rproj"
+        )
       readr::write_lines(Rproj_template, Rproj_path)
 
       user_prompt(

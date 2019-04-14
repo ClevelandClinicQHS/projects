@@ -23,25 +23,25 @@ would like to store the \code{\link{projects_folder}()} path. Default is
 the home .Renviron file. If the file doesn't exist it will be created.}
 }
 \value{
-The project folder's path, invisibly. It will be "" if it doesn't
-  exist.
+The project folder's path, invisibly. It will be \code{""} if it
+  doesn't exist.
 }
 \description{
 Creates or restores the projects folder at the user-specified path.
 }
 \details{
-The \code{projects} package remembers where the
-\code{\link{projects_folder}()} is located by storing its file path in an
-\link[base]{.Renviron} file (the home .Renviron file by default). The entry
-is named \code{PROJECTS_FOLDER_PATH}.
+The \code{\link[=projects-package]{projects}} package remembers where the
+\link[=projects_folder]{projects folder} is located by storing its file path
+in a \link{.Renviron} file (the home .Renviron file by default). The entry is
+named \code{PROJECTS_FOLDER_PATH}.
 
-Note that changing the .Renviron_path argument may create an .Renviron file
-that R will not notice or use. See \link[base]{Startup} for more details.
+Note that changing the \code{.Renviron_path} argument may create an .Renviron
+file that R will not notice or use. See \link{Startup} for more details.
 }
 \section{Default contents}{
- The \code{\link{projects_folder}} automatically
-  contains the subdirectories \emph{.metadata} and \emph{.template}, which
-  are hidden by default on some operating systems.
+ The \link[=projects_folder]{projects folder}
+  automatically contains the subdirectories \emph{.metadata} and
+  \emph{.template}, which are hidden by default on some operating systems.
 
   The \emph{.metadata} folder and its contents should \strong{never} be
   manually moved or modified.
@@ -56,9 +56,9 @@ that R will not notice or use. See \link[base]{Startup} for more details.
  If \code{overwrite =
   TRUE}, the function will run no matter what. Use with caution.
 
-  If the user has a pre-existing \link{projects_folder} and runs this command
-  with the pre-existing \link{projects_folder}'s path, nothing will be
-  deleted.
+  If the user has a pre-existing \link[=projects_folder]{projects folder} and
+  runs this command with the pre-existing projects folder's path, nothing
+  will be deleted.
 
   \strong{Therefore}, if the user "broke" the projects folder (e.g., by
   deleting metadata; by changing the "PROJECTS_FOLDER_PATH" line in the
@@ -84,6 +84,5 @@ fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
 \seealso{
 \code{\link{new_project}()} for information on templates
 
-  \link[base]{Startup} for more information on how \emph{.Renviron} files
-  work
+  \link{Startup} for more information on how \emph{.Renviron} files work.
 }

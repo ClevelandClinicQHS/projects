@@ -8,9 +8,9 @@ header(project, archived = FALSE)
 }
 \arguments{
 \item{project}{Project \code{id} or unambiguous substring of the project name
-from the \code{\link{projects}()} tibble.}
+from the \code{\link{projects}()} table.}
 
-\item{archived}{Logical indicating whether or not the function should
+\item{archived}{Logical, indicating whether or not the function should
   consider archived projects when determining which project the user is
   referring to in the \code{project} argument. \code{FALSE} by default.
 
@@ -18,19 +18,31 @@ from the \code{\link{projects}()} tibble.}
   more information on the "archived" status of a project.}
 }
 \description{
-This function displays the report header for a project. The
-  project header consists of: 1) the project title; 2) the author list; 3)
-  the list of author affiliations; and 4) corresponding author information.
-  The function is helpful when, after editing details of the project (e.g.,
-  any of the above information), you want to update your markdown documents.
-  The displayed markdown can be pasted directly in place of the header within
-  the markdown documents (specifically \emph{01_protocol.Rmd} and
-  \emph{04_report.Rmd}).
+Prints a project's header to the console to be copied and pasted into a
+project protocol or manuscript.
+}
+\details{
+The project header consists of:
+
+\enumerate{
+
+\item the project title
+
+\item the author list
+
+\item the list of author affiliations
+
+\item corresponding author information
+
+}
+
+The \code{header()} function is helpful when after editing details of the
+project (e.g., any of the above information) you want to update your R
+Markdown files. The displayed markdown can be pasted directly in place of the
+header within the R Markdown documents (specifically \emph{01_protocol.Rmd}
+and \emph{04_report.Rmd}).
 }
 \examples{
-\donttest{
-# Included in \donttest{} to save time on example checking.
-
 # SETUP
 old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
 setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
@@ -62,5 +74,4 @@ header(1)
 # CLEANUP
 Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
 fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
-}
 }

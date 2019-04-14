@@ -1,18 +1,21 @@
+
+if (getRversion() >= "2.15.1") utils::globalVariables(c(".", ":="))
+
 #' Set up the projects folder
 #'
 #' Creates or restores the projects folder at the user-specified path.
 #'
-#' The \code{projects} package remembers where the
-#' \code{\link{projects_folder}()} is located by storing its file path in an
-#' \link[base]{.Renviron} file (the home .Renviron file by default). The entry
-#' is named \code{PROJECTS_FOLDER_PATH}.
+#' The \code{\link[=projects-package]{projects}} package remembers where the
+#' \link[=projects_folder]{projects folder} is located by storing its file path
+#' in a \link{.Renviron} file (the home .Renviron file by default). The entry is
+#' named \code{PROJECTS_FOLDER_PATH}.
 #'
-#' Note that changing the .Renviron_path argument may create an .Renviron file
-#' that R will not notice or use. See \link[base]{Startup} for more details.
+#' Note that changing the \code{.Renviron_path} argument may create an .Renviron
+#' file that R will not notice or use. See \link{Startup} for more details.
 #'
-#' @section Default contents: The \code{\link{projects_folder}} automatically
-#'   contains the subdirectories \emph{.metadata} and \emph{.template}, which
-#'   are hidden by default on some operating systems.
+#' @section Default contents: The \link[=projects_folder]{projects folder}
+#'   automatically contains the subdirectories \emph{.metadata} and
+#'   \emph{.template}, which are hidden by default on some operating systems.
 #'
 #'   The \emph{.metadata} folder and its contents should \strong{never} be
 #'   manually moved or modified.
@@ -25,9 +28,9 @@
 #' @section Behavior when projects folder already exists: If \code{overwrite =
 #'   TRUE}, the function will run no matter what. Use with caution.
 #'
-#'   If the user has a pre-existing \link{projects_folder} and runs this command
-#'   with the pre-existing \link{projects_folder}'s path, nothing will be
-#'   deleted.
+#'   If the user has a pre-existing \link[=projects_folder]{projects folder} and
+#'   runs this command with the pre-existing projects folder's path, nothing
+#'   will be deleted.
 #'
 #'   \strong{Therefore}, if the user "broke" the projects folder (e.g., by
 #'   deleting metadata; by changing the "PROJECTS_FOLDER_PATH" line in the
@@ -59,15 +62,13 @@
 #' # Cleanup
 #' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
 #' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
-#' @return The project folder's path, invisibly. It will be "" if it doesn't
-#'   exist.
+#' @return The project folder's path, invisibly. It will be \code{""} if it
+#'   doesn't exist.
 #'
 #' @seealso \code{\link{new_project}()} for information on templates
 #'
-#'   \link[base]{Startup} for more information on how \emph{.Renviron} files
-#'   work
+#'   \link{Startup} for more information on how \emph{.Renviron} files work.
 #'
-#' @importFrom tibble tibble
 #' @export
 setup_projects <- function(path,
                            overwrite        = FALSE,
@@ -112,7 +113,7 @@ setup_projects <- function(path,
 
 
 p_path_from_explicit_renviron <- function(path) {
-  if(fs::file_exists(path)) {
+  if (fs::file_exists(path)) {
     readRenviron(path)
     Sys.getenv("PROJECTS_FOLDER_PATH")
   } else {
@@ -124,7 +125,7 @@ p_path_from_explicit_renviron <- function(path) {
 
 set_Renviron <- function(path, old_path, .Renviron_path) {
 
-  if(!any(c("", path) == old_path)) {
+  if (!any(c("", path) == old_path)) {
     user_prompt(
       msg   = paste0("\nAre you sure you want to abandon the old projects ",
                      "folder at\n", old_path, "\n\nand create a new one at\n",
@@ -141,7 +142,7 @@ set_Renviron <- function(path, old_path, .Renviron_path) {
   # contents, minus any old values of PROJECTS_FOLDER_PATH, plus the new value
   # of PROJECTS_FOLDER_PATH (i.e., the user-specified path, which could
   # actually be the same as the old value).
-  if(fs::file_exists(.Renviron_path)) {
+  if (fs::file_exists(.Renviron_path)) {
 
     Renviron_entries <-
       c(grep(pattern = "^PROJECTS_FOLDER_PATH",
@@ -175,7 +176,7 @@ restore_templates <- function(path) {
               datawork_template, analysis_template, report_template,
               css_template, Rproj_template),
     .f = function(template_name, template_vector) {
-      if(!fs::file_exists(fs::path(path, ".templates", template_name))) {
+      if (!fs::file_exists(fs::path(path, ".templates", template_name))) {
         readr::write_lines(template_vector,
                            fs::path(path, ".templates", template_name))
       }
@@ -225,7 +226,7 @@ restore_metadata <- function(path) {
     .f =
       function(rds_name, tibble) {
         rds_path <- make_rds_path(rds_name, path)
-        if(fs::file_exists(rds_path)) {
+        if (fs::file_exists(rds_path)) {
           tibble <- rbind(readRDS(rds_path), tibble)
         }
         write_metadata(table = tibble, table_path = rds_path)
@@ -235,12 +236,12 @@ restore_metadata <- function(path) {
 
 
 setup_messages <- function(path, old_path) {
-  if(old_path == "") {
+  if (old_path == "") {
     message('"projects" folder created at\n', path,
             '\n\nAdd affiliations with new_affiliation(), then add authors ',
             'with new_author(),\nthen create projects with new_project()')
   }
-  else if(old_path == path) {
+  else if (old_path == path) {
     message('"projects" folder restored at\n', path)
   }
   else {

@@ -1,12 +1,13 @@
 ################################################################################
 ################################################################################
 
-#' Get file path of main projects folder
+#' projects folder path
 #'
-#' Returns the file path of the main projects folder if it has been established.
+#' Returns the file path of the main projects folder if it has been established
+#' via \code{\link{setup_projects}()}.
 #'
 #' The file path is returned as a simple character string. It simply returns the
-#' value of \code{\link[base]{Sys.getenv}("PRJOECTS_FOLDER_PATH")}, provided
+#' value of \code{\link{Sys.getenv}("PRJOECTS_FOLDER_PATH")}, provided
 #' that its value is a file path of a directory that actually exists (i.e.,
 #' \code{\link{setup_projects}()} has been successfully run).
 #'
@@ -126,34 +127,52 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' View the \code{projects()}, \code{authors()}, and \code{affiliations()}
 #' tables
 #'
-#' Returns a tibble of the projects/authors/affiliations, filtered and joined
+#' Returns a table of the projects/authors/affiliations, filtered and joined
 #' according to the entirely optional arguments.
 #'
+#' \code{ideas()} is a shortcut for \code{projects(exclude = 1:6)} (including
+#' only projects of stage \code{0: idea}).
+#'
+#' \code{manuscripts()} is a shortcut for \code{projects(exclude = c(0:3, 6))}
+#' (yielding only projects of stage \code{4: manuscript} and \code{5: under
+#' review}).
+#'
 #' If one or more of the \code{projects}, \code{authors}, or \code{affiliations}
-#' arguments to set to \code{TRUE}, a \code{\link[dplyr]{left_join}} is
+#' arguments to set to \code{TRUE}, a \code{dplyr::\link[dplyr]{left_join}()} is
 #' performed, with the "left" table being the one sharing the name of the
 #' function being used. As such, rows that don't have matches in any other
 #' tables will still show up in the output, and rows that have multiple matches
 #' in other tables will yield multiple rows in the output. The "right" table's
 #' \code{id} column will be renamed.
 #'
-#' Since all these functions return \code{\link[tibble]{tibble}}s, the user can
-#' further manipulate them using \code{\link[dplyr]{dplyr}} functions like
-#' \code{\link[dplyr]{select}} and \code{\link[dplyr]{filter}}. See the last
-#' example.
-#'
-#' @param project,author,affiliation An optional (unique) vector of \code{id}s
-#'   and/or names. Only rows matching one or more entries will be returned.
+#' @param project,author,affiliation An optional unique vector of \code{id}s
+#'   and/or names. Only rows matching one or more entries will be returned. This
+#'   is the one setting in which the package does not return throw an error if
+#'   user input matches multiple projects.
 #' @param projects,authors,affiliations Logical values indicating whether or not
 #'   to perform a left join with another metadata tibble. All \code{FALSE} by
 #'   default.
+#' @param all_stages Logical, indicating whether or not to include projects of
+#'   all stages, \strong{overriding the} \code{exclude} \strong{argument}.
+#' @param exclude A vector of numbers or character strings that can be validated
+#'   against the list of project stages:
+#'
+#'   \code{0: idea}\cr \code{1: design}\cr \code{2: data collection}\cr \code{3:
+#'   analysis}\cr \code{4: manuscript}\cr \code{5: under review}\cr \code{6:
+#'   accepted}
+#'
+#'   \emph{Ignored if} \code{all_stages = TRUE}
 #' @param archived Logical, indicating whether or not to include projects that
-#'   have been archived using \code{\link{archive_project}()}. False by default.
+#'   have been archived using \code{\link{archive_project}()}. \code{FALSE} by
+#'   default.
+#' @param verbose Logical, indicating whether or not to return all columns of
+#'   the \code{\link{projects}()}; if \code{FALSE}, only the \code{id},
+#'   \code{current_owner}, \code{status}, and \code{stage} columns are returned.
+#'   Defaults to \code{FALSE}.
+#'
+#' @return A \code{\link[tibble]{tibble}}.
 #'
 #' @examples
-#' \donttest{
-#' # Included in \donttest{} to save time on example checking.
-#'
 #' # SETUP
 #' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
 #' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
@@ -174,34 +193,33 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' new_author(given_names = "Plato", id = 303)
 #' new_author(given_names = "Condoleezza", last_name = "Rice",
 #'            affiliations = c(1, 42, "Agency", "ACME"))
-#' new_project(title = "Test project 1", current_owner = "Plato")
-#' new_project(title = "Test project 2", current_owner = "eezza")
-#' new_project(title = "Test project 3", current_owner = "Plato")
-#' new_project(title = "Fun project 4",  current_owner = "Rice")
-#' new_project(title = "Fun project 5",  current_owner = "Rice")
+#' new_project(title = "Test project 1", current_owner = "Plato", stage = 1)
+#' new_project(title = "Test project 2", current_owner = "eezza", stage = 2)
+#' new_project(title = "Test project 3", current_owner = "Plato", stage = 3)
+#' new_project(title = "Fun project 4",  current_owner = "Rice", stage = 4)
+#' new_project(title = "Fun project 5",  current_owner = "Rice", stage = 5)
+#' new_project(title = "Fun project 6",  current_owner = "Rice", stage = 6)
+#' new_project(title = "Good idea",  current_owner = "Rice", stage = 0)
 #' #############################################################################
 #'
 #' # View entire affiliations table
 #' affiliations()
 #'
-#' # View affiliations table joined to authors table
+#' # View authors table joined to affiliations table
 #' # Notice that multiple rows are created for each affiliation-author combination
-#' affiliations(authors = TRUE)
+#' authors(affiliations = TRUE)
 #'
-#' # Using dplyr functions to query the tables:
+#' # View only active projects with "Fun" in their title.
+#' projects("Fun")
 #'
-#' # View authors table joined to affiliations table, and filter out duplicate
-#' # author ids, leaving one row for each author, each including the author's
-#' # primary (i.e., first) affiliation
-#' authors(affiliations = TRUE) %>%
-#'   dplyr::distinct(id, .keep_all = TRUE) %>%
-#'   dplyr::select(id, given_names, last_name, email, phone, address)
+#' # View all projects with "Rice" as the current_owner
+#' projects(all_stages = TRUE) %>% dplyr::filter(current_owner == "Rice")
 #'
-#' # View all projects with "Test" in their title
-#' projects(project = "Test")
+#' # View manuscripts
+#' manuscripts()
 #'
-#' # View projects table, including only projects with Plato as current owner
-#' projects() %>% dplyr::filter(current_owner == 303)
+#' # View ideas
+#' ideas()
 #'
 #' # Wrapped in if (interactive()) because it requires interactive console input
 #' # and fails automated testing.
@@ -218,14 +236,13 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' # CLEANUP
 #' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
 #' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
-#' }
 #' @name display_metadata
 #' @importFrom rlang .data
 #' @export
 projects <- function(project,
                      all_stages  = FALSE,
-                     exclude     = NULL,
-                     archived    = all_stages,
+                     exclude     = c(0L, 6L),
+                     archived    = FALSE,
                      verbose     = FALSE,
                      authors     = FALSE) {
 
@@ -233,28 +250,26 @@ projects <- function(project,
   projects_path   <- make_rds_path("projects", p_path)
   projects_table  <- get_rds(projects_path)
 
-  if (!is.null(exclude)) {
-    exclude <- vapply(exclude, validate_stage, FUN.VALUE = character(1L))
+  if (!all_stages && rlang::is_vector(exclude) && length(exclude) > 0L) {
+
+    if (!rlang::is_integerish(exclude)) {
+      exclude <- vapply(exclude, validate_stage, FUN.VALUE = character(1L))
+    }
+
     if (anyDuplicated(exclude)) {
       stop("Duplicate stages detected in \"exclude\" argument.")
     }
-  }
 
-  if (!all_stages) {
-    exclude <- unique(c(exclude, "0: idea", "6: accepted"))
+    projects_table <- projects_table[!(projects_table$stage %in% exclude), ]
   }
 
   if (!archived) {
     projects_table <- remove_archived(projects_table)
   }
 
-  if (!is.null(exclude)) {
-    projects_table <- projects_table[!(projects_table$stage %in% exclude), ]
-  }
-
   if (!missing(project)) {
     projects_table <- projects_table %>%
-      validate_entry_list(project, table = ., what = "project")
+      validate_entry_list(x = project, table = ., what = "project")
   }
 
   if (authors) {
@@ -276,12 +291,12 @@ projects <- function(project,
   if (!verbose) {
     projects_table <- projects_table %>%
       dplyr::select(
-        -"short_title",
-        -"deadline_type",
-        -"deadline",
-        -"path",
-        -"corresp_auth",
-        -"creator"
+        -c("short_title",
+           "deadline_type",
+           "deadline",
+           "path",
+           "corresp_auth",
+           "creator")
       )
   }
 
@@ -299,12 +314,15 @@ print_rds <- function(x) {
 
 
 
+#' @rdname display_metadata
 #' @export
-ideas <- function(project, archived = FALSE, verbose  = FALSE,
-                  authors  = FALSE) {
+ideas <- function(project,
+                  archived = FALSE,
+                  verbose = FALSE,
+                  authors = FALSE) {
   projects(
     project    = project,
-    all_stages = TRUE,
+    all_stages = FALSE,
     archived   = archived,
     exclude    = 1L:6L,
     verbose    = verbose,
@@ -313,9 +331,11 @@ ideas <- function(project, archived = FALSE, verbose  = FALSE,
 }
 
 
-
+#' @rdname display_metadata
 #' @export
-manuscripts <- function(project, archived = FALSE, verbose = FALSE,
+manuscripts <- function(project,
+                        archived = FALSE,
+                        verbose = FALSE,
                         authors = FALSE) {
   projects(
     project    = project,

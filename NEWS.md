@@ -1,3 +1,9 @@
+# projects 1.0.2.9000
+
+## Minor updates:
+- Documentation updates for functions created in version 1.0.0 and 1.0.1.
+
+
 # projects 1.0.1.9000
 
 ## Major updates:

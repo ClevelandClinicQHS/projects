@@ -34,7 +34,7 @@ open_project(project, new_session = FALSE, archived = FALSE)
   valid paths.}
 
 \item{project}{Project \code{id} or unambiguous substring of the project name
-from the \code{\link{projects}()} tibble.}
+from the \code{\link{projects}()} table}
 
 \item{new_folder_name}{Character string of new name for project folder.
 Always processed with \code{fs::\link[fs]{path_sanitize}()}.}
@@ -44,12 +44,9 @@ Always processed with \code{fs::\link[fs]{path_sanitize}()}.}
 \code{new_folder_name}. Defaults to \code{TRUE}.}
 
 \item{archived}{Logical indicating whether or not the function should
-  consider archived projects when determining which project the user is
-  referring to in the \code{project}/\code{project_to_copy} argument.
-  \code{FALSE} by default.
-
-  See the \strong{Details} section of \code{\link{archive_project}()} for
-  more information on the "archived" status of a project.}
+consider archived projects when determining which project the user is
+referring to in the \code{project}/\code{project_to_copy} argument.
+\code{FALSE} by default. See \strong{Details}.}
 
 \item{make_directories}{Logical. If the path represented by the \code{path}
 parameter does not exist, should the needed directories be created?}
@@ -58,7 +55,7 @@ parameter does not exist, should the needed directories be created?}
 project name corresponding to the project that is to be copied.}
 
 \item{new_id}{Optional integer, ranging from 1 to 9999, used as the
-newly-created project ID. Must not already exist in
+newly-created project \code{id}. Must not already exist in
 \code{\link{projects}()$id}. If left blank, the lowest available \code{id}
 will be automatically used.}
 
@@ -74,34 +71,33 @@ Tools for Organizing and Managing Project Files
 }
 \details{
 Projects can be moved (\code{move_project()}), copied
-(\code{copy_project()}), deleted (\code{\link{delete_project}()}) or archived
-(\code{archive_project}).
+(\code{copy_project()}), or archived (\code{archive_project}()).
 
 The difference between \code{delete_project()} and \code{archive_project()}
 is that the latter will just move the project to a directory called
 \emph{archive}, located in the same parent directory as the project. This
-directory gets created if it doesn't yet exist. Some functions that perform
+directory gets created if it doesn't yet exist. Most functions that perform
 actions on projects will exclude archived projects by default in order to
 make it easier for the user to enter a nonambiguous string that will match an
 active (i.e., non-archived) project.
 
 Projects can also be organized into groups. By default, all projects are
-created within the main \code{\link{projects_folder}}. To create a project
-group, which essentially is a subfolder of projects that sits within the main
-\code{\link{projects_folder}} (or recursively within another project group's
-folder), use \code{new_project_group()}.
+created within the main \link[=projects_folder]{projects folder}. To create a
+project group, which is essentially a subfolder of the main
+\link[=projects_folder]{projects folder}, use \code{new_project_group()}.
 
 The folder name of the project copy created by \code{copy_project()} will be
 \code{new_short_title} if the user supplies a value that is different from
 the names of any existing directories at \code{path}. Otherwise, its folder
-name will be taken from its \code{id} (i.e., "pXXXX").
+name will be taken from its \code{id} (i.e., "p\emph{XXXX}").
 
 \code{open_project()} is a wrapper around
-\code{\link[rstudioapi]{openProject}}, but the user only needs to know the
-project's \code{id}, \code{title}, or \code{short_title} instead of the file
-path of the project's \emph{.Rproj} file. If there is no .Rproj file in the
-project's folder, the user has the option to restore a default .Rproj folder.
-If there are multiple .Rproj files, an error is thrown.
+\code{rstudioapi::\link[rstudioapi]{openProject}()}, but the user only needs
+to know the project's \code{id}, \code{title}, or \code{short_title} instead
+of the file path of the project's \emph{.Rproj} file. If there is no
+\emph{.Rproj} file in the project's folder, the user has the option to
+restore a default \emph{.Rproj} folder. If there are multiple \emph{.Rproj}
+files, an error is thrown.
 }
 \examples{
 # SETUP

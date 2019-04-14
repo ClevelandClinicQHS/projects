@@ -1,6 +1,6 @@
 Package: projects
 Title: A Project Infrastructure for Researchers
-Version: 1.0.1.9000
+Version: 1.1.0
 Authors@R: 
     c(person(given = "Nik",
              family = "Krieger",
@@ -38,14 +38,15 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 Collate: 
-    'class-projects_stage.R'
+    'set_generics.R'
     'class-projects_author.R'
+    'class-projects_stage.R'
+    'new.R'
     'edit.R'
     'file_management.R'
     'getters.R'
     'header.R'
     'metadata_manipulation.R'
-    'new.R'
     'projects.R'
     'setup.R'
     'update.R'

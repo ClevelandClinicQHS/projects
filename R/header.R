@@ -1,16 +1,32 @@
-#' @title Print project header to console
-#' @description This function displays the report header for a project. The
-#'   project header consists of: 1) the project title; 2) the author list; 3)
-#'   the list of author affiliations; and 4) corresponding author information.
-#'   The function is helpful when, after editing details of the project (e.g.,
-#'   any of the above information), you want to update your markdown documents.
-#'   The displayed markdown can be pasted directly in place of the header within
-#'   the markdown documents (specifically \emph{01_protocol.Rmd} and
-#'   \emph{04_report.Rmd}).
+
+#' Print project header to console
+#'
+#' Prints a project's header to the console to be copied and pasted into a
+#' project protocol or manuscript.
+#'
+#' The project header consists of:
+#'
+#' \enumerate{
+#'
+#' \item the project title
+#'
+#' \item the author list
+#'
+#' \item the list of author affiliations
+#'
+#' \item corresponding author information
+#'
+#' }
+#'
+#' The \code{header()} function is helpful when after editing details of the
+#' project (e.g., any of the above information) you want to update your R
+#' Markdown files. The displayed markdown can be pasted directly in place of the
+#' header within the R Markdown documents (specifically \emph{01_protocol.Rmd}
+#' and \emph{04_report.Rmd}).
 #'
 #' @param project Project \code{id} or unambiguous substring of the project name
-#'   from the \code{\link{projects}()} tibble.
-#' @param archived Logical indicating whether or not the function should
+#'   from the \code{\link{projects}()} table.
+#' @param archived Logical, indicating whether or not the function should
 #'   consider archived projects when determining which project the user is
 #'   referring to in the \code{project} argument. \code{FALSE} by default.
 #'
@@ -18,9 +34,6 @@
 #'   more information on the "archived" status of a project.
 #'
 #' @examples
-#' \donttest{
-#' # Included in \donttest{} to save time on example checking.
-#'
 #' # SETUP
 #' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
 #' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
@@ -52,9 +65,7 @@
 #' # CLEANUP
 #' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
 #' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
-#' }
 #' @name header
-#' @importFrom rlang .data
 #' @export
 header <- function(project, archived = FALSE) {
 
@@ -142,7 +153,7 @@ insert_aa <- function(vector,
     append(
       x      = vector,
       values = c("", aa_header, "", "\\pagebreak", ""),
-      after  = yaml_bounds[2]
+      after  = yaml_bounds[2L]
     )
 
   vector
@@ -188,7 +199,7 @@ aa_header <- function(project_id,
       aa_assoc_complete %>%
       dplyr::select(-"id1") %>%
       dplyr::distinct() %>%
-      dplyr::mutate(superscript = 1:nrow(.))
+      dplyr::mutate(superscript = 1L:nrow(.))
 
     # In effect this adds the superscripts created in the previous command to
     # aa_assoc_complete
@@ -228,7 +239,7 @@ aa_header <- function(project_id,
   if (nrow(project_authors) > 0) {
     author_line         <- "**_"
 
-    for(x in 1:nrow(project_authors)) {
+    for (x in 1:nrow(project_authors)) {
 
       if (x != 1) {
         author_line <- paste0(author_line, " ")
@@ -289,14 +300,14 @@ aa_header <- function(project_id,
   else {
     corresp_affils   <-
       aa_assoc_complete[match(corresp_auth_row$id, aa_assoc_complete$id1), ]
-    # dplyr::filter(aa_assoc_complete, .data$id1 == corresp_auth_row$id)
+
     corresp_lines    <- c("", "| \\* Corresponding author")
 
-    if (nrow(corresp_affils) > 0 &&
-        length(stats::na.omit(corresp_affils$address)) > 0){
+    if (nrow(corresp_affils) > 0L &&
+        length(stats::na.omit(corresp_affils$address)) > 0L) {
       corresp_lines <-
         append(corresp_lines,
-               paste0("|   ", stats::na.omit(corresp_affils$address)[1]))
+               paste0("|   ", stats::na.omit(corresp_affils$address)[1L]))
     }
 
     if (!is.na(corresp_auth_row$phone)) {

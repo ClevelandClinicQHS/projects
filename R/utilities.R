@@ -1,4 +1,3 @@
-if (getRversion() >= "2.15.1")  utils::globalVariables(c(".", ":="))
 
 make_project_name <- function(x, short_title = FALSE) {
 
