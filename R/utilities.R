@@ -177,7 +177,7 @@ clear_special_author <- function(author, projects_path, projects_table) {
       projects_table[c("current_owner", "creator", "corresp_auth")] == author
   }
 
-  write_metadata(table = projects_table, table_path = projects_path)
+  readr::write_rds(x = projects_table, path = projects_path)
 
   projects_table
 }

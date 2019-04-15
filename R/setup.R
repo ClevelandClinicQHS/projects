@@ -229,7 +229,7 @@ restore_metadata <- function(path) {
         if (fs::file_exists(rds_path)) {
           tibble <- rbind(readRDS(rds_path), tibble)
         }
-        write_metadata(table = tibble, table_path = rds_path)
+        readr::write_rds(x = tibble, path = rds_path)
       }
   )
 }

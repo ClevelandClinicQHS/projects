@@ -445,7 +445,7 @@ archive_project <- function(project) {
 
   projects_table$path[projects_table$id == project_row$id]   <- new_path
 
-  write_metadata(table = projects_table, table_path = projects_path)
+  readr::write_rds(x = projects_table, path = projects_path)
 
   print(dplyr::filter(projects_table, .data$id == project_row$id))
   message("\nThe above project was archived and has the file path\n", new_path)

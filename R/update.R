@@ -1,58 +1,4 @@
 
-# up_to_date <- function(table) {
-#
-#   metadata_version <- attr(table, "projects_version")
-#
-#   package_version <- utils::packageVersion("projects")
-#
-#   if (is.null(metadata_version)) {
-#     return(FALSE)
-#   }
-#
-#   if (metadata_version > package_version) {
-#     message(
-#       "A metadata item was found to be created with\n",
-#       "'projects' version ", as.character(metadata_version), ",\n",
-#       "whereas R is currently running 'projects' version ",
-#       as.character(package_version), ".\n\n",
-#       "Updating 'projects' with install.packages('projects') or\n",
-#       "remotes::install_github('NikKrieger/projects')\n",
-#       "is highly recommended before continuing.",
-#       "\n(Press [Enter] to continue anway or enter QUIT to quit)"
-#     )
-#     if (readline() =="QUIT") {
-#       stop(
-#         "\nRun one of these two: commands:\n\n",
-#         "install.packages('projects')\n\n",
-#         "remotes::install_github('NikKrieger/projects')",
-#         call. = FALSE
-#       )
-#     }
-#     TRUE
-#   } else {
-#     metadata_version == package_version
-#   }
-# }
-
-
-# update_notice <- function(addendum = ".") {
-#
-#   message(
-#     "\nThe project metadata needs to be updated before proceeding",
-#     addendum,
-#     "\nNo data wil be lost."
-#   )
-#
-#   update_metadata()
-# }
-
-
-
-
-
-
-
-
 #' Update the project metadata
 #'
 #' Safely updates existing project metadata to be compatible with
@@ -92,8 +38,6 @@ update_metadata <- function(ask = TRUE) {
   projects_path    <- make_rds_path("projects", p_path)
 
   projects_table   <- readRDS(projects_path)
-
-  # projects_version <- attr(projects_table, "projects_version")
 
   authors_path     <- make_rds_path("authors", p_path)
 
@@ -157,19 +101,7 @@ update_metadata <- function(ask = TRUE) {
     projects_table$creator <- creator_results$results
   }
 
-  # write_metadata(authors_table, authors_path)
-  #
-  # "affiliations" %>%
-  #   make_rds_path(p_path) %>%
-  #   write_metadata(table = readRDS(.), table_path = .)
-  #
-  # write_metadata(pa_assoc, pa_assoc_path)
-  #
-  # "author_affiliation_assoc" %>%
-  #   make_rds_path(p_path) %>%
-  #   write_metadata(table = readRDS(.), table_path = .)
-
-  write_metadata(projects_table, projects_path)
+  readr::write_rds(x = projects_table, path = projects_path)
 
   message("\nProjects metadata updated.")
 
@@ -241,8 +173,6 @@ validate_sa_column <- function(projects_table,
     projects_table[[colname]],
     projects_table$id,
     function(x, id) {
-
-      browser()
 
       project_authors <-
         authors_table[

@@ -70,7 +70,7 @@ edit_project <- function(project,
     if (any(authors$remove == project$current_owner)) {
       current_owner <- new_projects_author(NA)
     }
-  } else {
+  } else if (!is.na(current_owner)) {
     current_owner <-
       validate_projects_author(
         x             = current_owner,
@@ -102,7 +102,7 @@ edit_project <- function(project,
     if (any(authors$remove == project$corresp_auth)) {
       corresp_auth <- new_projects_author(NA)
     }
-  } else {
+  } else if (!is.na(corresp_auth)) {
     corresp_auth <-
       validate_projects_author(
         x             = corresp_auth,
@@ -133,7 +133,7 @@ edit_project <- function(project,
     if (any(authors$remove == project$creator)) {
       creator <- new_projects_author(NA)
     }
-  } else {
+  } else if (!is.na(creator)) {
     creator <-
       validate_projects_author(
         x             = creator,
@@ -141,8 +141,6 @@ edit_project <- function(project,
         na.ok         = FALSE
       )
   }
-  ###########################################
-  ###########################################
 
   new_project_row <-
     edit_metadata(
@@ -215,8 +213,8 @@ edit_project <- function(project,
   )
 
   if (
-    !is.na(title) ||
-    !is.na(corresp_auth) ||
+    !is.null(title) ||
+    !is.null(corresp_auth) ||
     !identical(authors, list(add = list(), remove = list()))
   ) {
     message("\nHeader has changed. Reprint it with:\nheader(", project$id, ")")
