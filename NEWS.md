@@ -1,3 +1,12 @@
+
+# projects 1.1.1
+
+- Fix of show-stopping bugs with update_metadata() and edit_project()
+
+
+
+
+
 # projects 1.1.0
 
 ## Minor updates:
