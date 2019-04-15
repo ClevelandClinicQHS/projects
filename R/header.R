@@ -162,7 +162,6 @@ insert_aa <- function(vector,
 
 
 #' @importFrom rlang .data
-#' @importFrom tibble tibble
 aa_header <- function(project_id,
                       corresp_auth_row,
                       authors_table,
@@ -173,7 +172,11 @@ aa_header <- function(project_id,
   # The left_join/select/rename combo was used instead of semi_join so that the
   # order in project_author_assoc would be preserved
   project_authors <-
-    dplyr::left_join(tibble(id = project_authors), authors_table, by = "id")
+    dplyr::left_join(
+      tibble::tibble(id = project_authors),
+      authors_table,
+      by = "id"
+    )
 
   # In effect, this is author_affiliations_assoc (1) filtered to only include
   # authors on the project who have at least one affiliation and (2) all

@@ -49,7 +49,7 @@ update_metadata <- function(ask = TRUE) {
 
   if (nrow(projects_table) == 0) {
     projects_table <-
-      tibble(
+      tibble::tibble(
         id            = integer(),
         title         = character(),
         short_title   = character(),

@@ -183,14 +183,13 @@ restore_templates <- function(path) {
     })
 }
 
-#' @importFrom tibble tibble
 restore_metadata <- function(path) {
   purrr::walk2(
     .x = c("projects", "authors", "affiliations",
            "project_author_assoc", "author_affiliation_assoc"),
     .y = list(
       # projects
-      tibble(
+      tibble::tibble(
         id            = integer(),
         title         = character(),
         short_title   = character(),
@@ -204,7 +203,7 @@ restore_metadata <- function(path) {
         creator       = new_projects_author()
       ),
       # authors
-      tibble(
+      tibble::tibble(
         id          = integer(),
         last_name   = character(),
         given_names = character(),
@@ -214,15 +213,15 @@ restore_metadata <- function(path) {
         phone       = character()
       ),
       # affiliations
-      tibble(
+      tibble::tibble(
         id               = integer(),
         department_name  = character(),
         institution_name = character(),
         address          = character()),
       # project_author_assoc
-      tibble(id1 = integer(), id2 = integer()),
+      tibble::tibble(id1 = integer(), id2 = integer()),
       # author_affiliation_assoc
-      tibble(id1 = integer(), id2 = integer())),
+      tibble::tibble(id1 = integer(), id2 = integer())),
     .f =
       function(rds_name, tibble) {
         rds_path <- make_rds_path(rds_name, path)
