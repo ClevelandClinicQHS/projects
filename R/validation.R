@@ -262,14 +262,18 @@ validate_assoc <- function(x, what, rds_table, what2, rds_table2) {
 
 validate_single_string <- function(x, null.ok = FALSE, tolower = FALSE) {
 
+  user_input <- rlang::as_label(rlang::enexpr(x))
+
   if (is.null(x) && null.ok) {
     return(NULL)
   }
 
-  what <- rlang::enexpr(x)
   x    <- as.character(x)
   if (!rlang::is_scalar_character(x)) {
-    stop(what, " must be coercible to a single character string")
+    stop(
+      user_input,
+      " must be coercible to a single character string"
+    )
   }
 
   if (tolower) {

@@ -67,7 +67,10 @@ edit_project <- function(project,
   ###########################################
   # Handling of current_owner, corresp_auth, and creator
   if (is.null(current_owner)) {
-    if (any(authors$remove == project$current_owner)) {
+    if (
+      !is.na(project$current_owner) &&
+      any(authors$remove == project$current_owner)
+    ) {
       current_owner <- new_projects_author(NA)
     }
   } else if (!is.na(current_owner)) {
@@ -99,7 +102,10 @@ edit_project <- function(project,
 
 
   if (is.null(corresp_auth)) {
-    if (any(authors$remove == project$corresp_auth)) {
+    if (
+      !is.na(project$corresp_auth) &&
+      any(authors$remove == project$corresp_auth)
+    ) {
       corresp_auth <- new_projects_author(NA)
     }
   } else if (!is.na(corresp_auth)) {
@@ -119,10 +125,10 @@ edit_project <- function(project,
     # author list of the user-specified project
     if (!any(authors$add == corresp_auth)) {
       validate_assoc(
-        x           = corresp_auth,
-        what        = "author",
+        x          = corresp_auth,
+        what       = "author",
         rds_table  = authors_table,
-        what2       = "project",
+        what2      = "project",
         rds_table2 = filtered_assoc
       )
     }
@@ -130,7 +136,7 @@ edit_project <- function(project,
 
 
   if (is.null(creator)) {
-    if (any(authors$remove == project$creator)) {
+    if (!is.na(project$creator) && any(authors$remove == project$creator)) {
       creator <- new_projects_author(NA)
     }
   } else if (!is.na(creator)) {
@@ -160,7 +166,7 @@ edit_project <- function(project,
       table_path = projects_path
     )
 
-  if (length(authors$remove) > 0) {
+  if (length(authors$remove) > 0L) {
     assoc_table <-
       delete_assoc(
         assoc_table = assoc_table,
