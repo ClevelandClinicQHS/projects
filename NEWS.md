@@ -1,10 +1,16 @@
 
+# projects 1.1.3.9000
+- Changed printing of projects table so it displays projects in descending order by stage before sorting them by id.
+
+
+# projects 1.1.2.9000
+ 
+- Required a later rlang version so that as_label() is available.
+
+
 # projects 1.1.1
 
 - Fix of show-stopping bugs with update_metadata() and edit_project()
-
-
-
 
 
 # projects 1.1.0

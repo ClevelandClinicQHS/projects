@@ -1,6 +1,6 @@
 Package: projects
 Title: A Project Infrastructure for Researchers
-Version: 1.1.2.9000
+Version: 1.1.3.9000
 Authors@R: 
     c(person(given = "Nik",
              family = "Krieger",
@@ -21,16 +21,16 @@ URL: https://www.github.com/NikKrieger/projects
 Depends:
     R (>= 3.4.0)
 Imports:
-    dplyr (>= 0.7.5),
+    dplyr (>= 0.8.0.1),
     fs (>= 1.2.6),
     magrittr (>= 1.5),
     methods,
-    purrr (>= 0.2.4),
+    purrr (>= 0.2.5),
     readr (>= 1.1.1),
     rlang (>= 0.3.4),
     rstudioapi (>= 0.7),
     stringr (>= 1.3.1),
-    tibble (>= 1.4.2)
+    tibble (>= 2.0.1)
 Suggests:
     here (>= 0.1),
     tidyverse (>= 1.2.1)

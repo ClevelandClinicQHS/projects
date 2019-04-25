@@ -286,7 +286,8 @@ projects <- function(project,
       dplyr::rename("author_id" = "id2")
   }
 
-  projects_table <- dplyr::arrange(projects_table, .data$id)
+  projects_table <- projects_table %>%
+    dplyr::arrange(dplyr::desc(.data$stage), .data$id)
 
   if (!verbose) {
     projects_table <- projects_table %>%
