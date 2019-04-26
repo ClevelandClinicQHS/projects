@@ -187,6 +187,6 @@ clear_special_author <- function(author, projects_path, projects_table) {
 #' @importFrom rlang .data
 remove_archived <- function(projects_table) {
   projects_table[
-    which(fs::path_file(fs::path_dir(projects_table$path)) != "archive"),
+    fs::path_file(fs::path_dir(projects_table$path)) != "archive",
   ]
 }

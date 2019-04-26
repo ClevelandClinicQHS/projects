@@ -98,7 +98,7 @@ print_header_internal <- function(
 {
 
   project_authors <-
-    project_author_assoc$id2[which(project_author_assoc$id1 == project_id)]
+    project_author_assoc$id2[project_author_assoc$id1 == project_id]
 
   corresp_auth_row <-
     authors_table[match(project_row$corresp_auth, authors_table$id), ]

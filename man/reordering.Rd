@@ -6,8 +6,7 @@
 \alias{reorder_affiliations}
 \title{Reordering authors and affiliations}
 \usage{
-reorder_authors(project, ..., after = 0L, reprint_header = TRUE,
-  archived = FALSE)
+reorder_authors(project, ..., after = 0L, archived = FALSE)
 
 reorder_affiliations(author, ..., after = 0L)
 }
@@ -24,9 +23,6 @@ reorder, optionally with their new ranks explicitly stated. See
   \code{\link[base]{append}} or \code{forcats::fct_relevel}.
 
   Ignored if ranks are explicitly provided in \code{...}.}
-
-\item{reprint_header}{Should the \code{project}'s header be printed to the
-console? \code{TRUE} by default.}
 
 \item{archived}{Logical indicating whether or not the function should
   consider archived projects when determining which project the user is
@@ -97,8 +93,15 @@ new_project(title = "Understanding the Construction of the United States",
 # Reordering with unnamed arguments
 reorder_affiliations(author = "RICE", "ACME", 42, after = 1)
 
+
+# Project 1 header before reordering authors:
+header(1)
+
 # Reordering with named arguments
 reorder_authors(project = 1, "Rosetta" = 99, `303` = 2, "5" = 1)
+
+# Project 1 header after reordering authors:
+header(1)
 
 #############################################################################
 # CLEANUP

@@ -37,7 +37,7 @@ edit_project <- function(project,
   assoc_path      <- make_rds_path("project_author_assoc", p_path)
   assoc_table     <- get_rds(assoc_path)
 
-  filtered_assoc  <- assoc_table[which(assoc_table$id1 == project$id), ]
+  filtered_assoc  <- assoc_table[assoc_table$id1 == project$id, ]
 
   title         <- validate_single_string(title, null.ok = TRUE)
   short_title   <- validate_single_string(short_title, null.ok = TRUE)
@@ -177,46 +177,12 @@ edit_project <- function(project,
   }
 
   if (length(authors$add) > 0L) {
-    assoc_table <-
-      add_assoc(
-        assoc_table = assoc_table,
-        new_rows = tibble::tibble(id1 = project$id, id2 = authors$add),
-        assoc_path = assoc_path
-      )
-  }
-
-  filtered_assoc <- assoc_table[which(assoc_table$id1 == project$id), ]
-
-  message("Edited project info:")
-  print(
-    dplyr::select(
-      new_project_row,
-      "id",
-      "title",
-      "stage",
-      "status",
-      "deadline_type",
-      "deadline"
-    )
-  )
-
-  message("\nEdited project's authors:")
-  if (nrow(filtered_assoc) == 0L) {
-    cat("None.")
-  } else {
-    print(
-      filtered_assoc %>%
-        dplyr::left_join(authors_table, by = c("id2" = "id")) %>%
-        dplyr::select(-"id1") %>%
-        dplyr::rename("author_id" = "id2")
+    add_assoc(
+      assoc_table = assoc_table,
+      new_rows = tibble::tibble(id1 = project$id, id2 = authors$add),
+      assoc_path = assoc_path
     )
   }
-
-  print(
-    dplyr::select(
-      new_project_row, "current_owner", "corresp_auth", "creator"
-    )
-  )
 
   if (
     !is.null(title) ||
@@ -280,7 +246,7 @@ edit_author <- function(author,
         what        = "affiliation",
         what2       = "author",
         main_table  = affiliations_table,
-        assoc_table = assoc_table[which(assoc_table$id1 == author), ]
+        assoc_table = assoc_table[assoc_table$id1 == author, ]
       )
   }
 
@@ -308,28 +274,10 @@ edit_author <- function(author,
   }
 
   if (length(affiliations$add) > 0) {
-    assoc_table <-
-      add_assoc(
-        assoc_table = assoc_table,
-        new_rows = tibble::tibble(id1 = author, id2 = affiliations$add),
-        assoc_path  = assoc_path
-      )
-  }
-
-  filtered_assoc <- assoc_table[which(assoc_table$id1 == author), ]
-
-  message("Edited author:")
-  print(new_author_row)
-
-  message("\nEdited author's affiliations:")
-  if (nrow(filtered_assoc) == 0) {
-    print("None.")
-  } else {
-    print(
-      filtered_assoc %>%
-        dplyr::left_join(affiliations_table, by = c("id2" = "id")) %>%
-        dplyr::select(-"id1") %>%
-        dplyr::rename("affiliation_id" = "id2")
+    add_assoc(
+      assoc_table = assoc_table,
+      new_rows = tibble::tibble(id1 = author, id2 = affiliations$add),
+      assoc_path  = assoc_path
     )
   }
 
@@ -377,7 +325,7 @@ edit_affiliation <- function(affiliation,
       table_path = affiliations_path
     )
 
-  edited_row
+  invisible(edited_row)
 }
 ################################################################################
 
@@ -726,8 +674,6 @@ recursive_number_namer <- function(formula) {
 #'   \code{\link[base]{append}} or \code{forcats::fct_relevel}.
 #'
 #'   Ignored if ranks are explicitly provided in \code{...}.
-#' @param reprint_header Should the \code{project}'s header be printed to the
-#'   console? \code{TRUE} by default.
 #' @param archived Logical indicating whether or not the function should
 #'   consider archived projects when determining which project the user is
 #'   referring to in the \code{project} argument. \code{FALSE} by default.
@@ -775,8 +721,15 @@ recursive_number_namer <- function(formula) {
 #' # Reordering with unnamed arguments
 #' reorder_affiliations(author = "RICE", "ACME", 42, after = 1)
 #'
+#'
+#' # Project 1 header before reordering authors:
+#' header(1)
+#'
 #' # Reordering with named arguments
 #' reorder_authors(project = 1, "Rosetta" = 99, `303` = 2, "5" = 1)
+#'
+#' # Project 1 header after reordering authors:
+#' header(1)
 #'
 #' #############################################################################
 #' # CLEANUP
@@ -784,28 +737,29 @@ recursive_number_namer <- function(formula) {
 #' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
 #' @name reordering
 #' @export
-reorder_authors <- function(project, ..., after = 0L, reprint_header = TRUE,
-                            archived = FALSE) {
-
-  reorder_assoc(id             = project, ...,
-                after          = after,
-                reprint_header = reprint_header,
-                rds1           = "project",
-                rds2           = "author",
-                assoc          = "project_author_assoc",
-                archived       = archived)
+reorder_authors <- function(project, ..., after = 0L, archived = FALSE) {
+  reorder_assoc(
+    id       = project,
+    ...,
+    after    = after,
+    rds1     = "project",
+    rds2     = "author",
+    assoc    = "project_author_assoc",
+    archived = archived
+  )
 }
 
 #' @rdname reordering
 #' @export
 reorder_affiliations <- function(author, ..., after = 0L) {
-
-  reorder_assoc(id             = author, ...,
-                after          = after,
-                reprint_header = FALSE,
-                rds1           = "author",
-                rds2           = "affiliation",
-                assoc          = "author_affiliation_assoc")
+  reorder_assoc(
+    id    = author,
+    ...,
+    after = after,
+    rds1  = "author",
+    rds2  = "affiliation",
+    assoc = "author_affiliation_assoc"
+  )
 }
 #########################################
 
@@ -813,8 +767,7 @@ reorder_affiliations <- function(author, ..., after = 0L) {
 #########################################
 #########################################
 #' @importFrom rlang .data
-reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
-                          archived = TRUE) {
+reorder_assoc <- function(id, ..., after, rds1, rds2, assoc, archived = TRUE) {
 
   p_path         <- get_p_path()
 
@@ -853,10 +806,6 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
         anyDuplicated(user_order) == 0L
       )
     ) {
-    # if (!checkmate::test_integerish(user_order, lower = 1L,
-    #                                max.len = nrow(filtered_assoc),
-    #                                any.missing = FALSE, unique = TRUE,
-    #                                null.ok = FALSE)) {
       stop("Ranks must be integers 1 or greater, no two ranks may be the same,",
            " and the number of ranks given must not be greater than the ", rds1,
            "'s total number of ", rds2, "s.")
@@ -911,34 +860,23 @@ reorder_assoc <- function(id, ..., after, reprint_header, rds1, rds2, assoc,
       assoc_path = assoc_path
     )
 
-  assoc_table <-
-    add_assoc(
-      assoc_table = assoc_table,
-      new_rows    = tibble::tibble(id1 = rds1_row$id, id2 = reordered),
-      assoc_path  = assoc_path
-    )
+  add_assoc(
+    assoc_table = assoc_table,
+    new_rows    = tibble::tibble(id1 = rds1_row$id, id2 = reordered),
+    assoc_path  = assoc_path
+  )
 
-  message(rds1, " info:")
-  print(rds1_row)
+  if (rds1 == "project") {
+    message("\nHeader has changed. Reprint it with:\nheader(", rds1_row$id, ")")
+  }
 
-  message("\nReordered ", rds1, " ", rds2, "s:")
-  print(
+  invisible(
     assoc_table %>%
       dplyr::filter(.data$id1 == rds1_row$id) %>%
       dplyr::left_join(rds2_table, by = c("id2" = "id")) %>%
       dplyr::select(-"id1") %>%
       dplyr::rename(!!paste0(rds2, "_id") := "id2")
   )
-
-  if (reprint_header) {
-    print_header_internal(
-      project_id           = rds1_row$id,
-      p_path               = p_path,
-      project_row          = rds1_row,
-      authors_table        = rds2_table,
-      project_author_assoc = assoc_table
-    )
-  }
 }
 ################################################################################
 ################################################################################

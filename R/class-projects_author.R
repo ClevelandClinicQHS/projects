@@ -132,22 +132,23 @@ as.numeric.projects_author <- as.double.projects_author
 
 
 # Subsetting methods, per ?`[.data.frame` -------------------------------------
+
+#' @export
 as.data.frame.projects_author <- as.data.frame.vector
 
+#' @export
 `[.projects_author` <- function(x, i, ...) {
   r <- NextMethod("[")
   mostattributes(r) <- attributes(x)
   r
 }
 
-
-
-
+#' @export
 c.projects_author <- function(...) {
   new_projects_author(c(unlist(lapply(list(...), unclass))))
 }
 
-
+#' @export
 Ops.projects_author <- function(e1, e2) {
   if (!any(c("==", "!=") == .Generic)) {
     stop(gettextf("%s not meaningful for projects_authors", sQuote(.Generic)))

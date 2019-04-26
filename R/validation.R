@@ -32,7 +32,7 @@ validate_entry <- function(x,
 
   } else {
 
-    matches <- table[which(table$id == x_int), ]
+    matches <- table[table$id == x_int, ]
 
   }
 

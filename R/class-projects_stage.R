@@ -162,8 +162,11 @@ as.numeric.projects_stage <- as.double.projects_stage
 
 
 # Subsetting methods, per ?`[.data.frame` -------------------------------------
+
+#' @export
 as.data.frame.projects_stage <- as.data.frame.vector
 
+#' @export
 `[.projects_stage` <- function(x, i, ...) {
   r <- NextMethod("[")
   mostattributes(r) <- attributes(x)
@@ -171,14 +174,13 @@ as.data.frame.projects_stage <- as.data.frame.vector
 }
 
 
-
-# Method for c
+#' @export
 c.projects_stage <- function(...) {
   new_projects_stage(c(unlist(lapply(list(...), unclass))))
 }
 
 
-# Mathematical operator methods handle the stages as integers------------------
+#' @export
 Ops.projects_stage <- function(e1, e2) {
   get(.Generic)(as.integer(validate_stage(e1)), as.integer(validate_stage(e2)))
 }

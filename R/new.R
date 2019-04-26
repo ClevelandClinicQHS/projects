@@ -409,15 +409,6 @@ new_project <- function(title            = NA,
       new_rows    = new_pa_assoc,
       assoc_path  = pa_assoc_path
     )
-
-    # pa_assoc_table <-
-    #   change_assoc(
-    #     assoc_path   = pa_assoc_path,
-    #     assoc_table = pa_assoc_table,
-    #     new          = TRUE,
-    #     id1          = id,
-    #     id2          = all_authors$general_authors
-    #   )
   }
 
   # Write the files
