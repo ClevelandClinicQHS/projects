@@ -1,4 +1,13 @@
 
+# projects 1.2.0.9000
+
+## Major updates
+- Moved all header material to YAML when generating 01_protocol.Rmd and 04_report.Rmd.
+- YAML Output options no longer written in function; rather, they are expected to already be in the templates.
+
+## Minor updates
+- Other minor tweaks to default .Rmd files.
+
 # projects 1.1.4.9000
 
 ## Major updates
