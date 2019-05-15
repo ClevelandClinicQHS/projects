@@ -169,18 +169,45 @@ create_projects_folder <- function(path) {
 
 restore_templates <- function(path) {
   purrr::walk2(
-    .x = c("01_protocol.Rmd", "STROBE_protocol.Rmd", "CONSORT_protocol.Rmd",
-           "02_datawork.Rmd", "03_analysis.Rmd", "04_report.Rmd",
-           "style.css", "pXXXX.Rproj"),
-    .y = list(STROBE_template, STROBE_template, CONSORT_template,
-              datawork_template, analysis_template, report_template,
-              css_template, Rproj_template),
-    .f = function(template_name, template_vector) {
-      if (!fs::file_exists(fs::path(path, ".templates", template_name))) {
-        readr::write_lines(template_vector,
-                           fs::path(path, ".templates", template_name))
+    .x =
+      c(
+        "01_protocol.Rmd",
+        "STROBE_protocol.Rmd",
+        "CONSORT_protocol.Rmd",
+        "02_datawork.Rmd",
+        "03_analysis.Rmd",
+        "04_report.Rmd",
+        "style.css",
+        "pXXXX.Rproj"
+      ),
+    .y =
+      list(
+        STROBE_template,
+        STROBE_template,
+        CONSORT_template,
+        datawork_template,
+        analysis_template,
+        report_template,
+        css_template,
+        Rproj_template
+      ),
+    .f =
+      function(template_name, template_vector) {
+        if (!fs::file_exists(fs::path(path, ".templates", template_name))) {
+          readr::write_lines(
+            template_vector,
+            fs::path(path, ".templates", template_name)
+          )
+        }
       }
-    })
+  )
+
+  if (!fs::file_exists(fs::path(path, ".templates", "styles.docx"))) {
+    fs::file_copy(
+      system.file("templates", "style.docx", package = "projects"),
+      fs::path(path, ".templates", "styles.docx")
+    )
+  }
 }
 
 restore_metadata <- function(path) {

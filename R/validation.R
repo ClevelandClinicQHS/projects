@@ -410,7 +410,6 @@ restore_default_template <- function(file_name,
                                      default_name,
                                      default_template,
                                      p_path) {
-
   user_prompt(
     msg   =
       paste0(
@@ -442,6 +441,95 @@ restore_default_template <- function(file_name,
     path = fs::path(p_path, ".templates", file_name)
   )
 }
+
+
+
+validate_docx <- function(docx, p_path) {
+  if (
+    docx != "styles.docx" &&
+    !fs::file_exists(fs::path(p_path, ".templates", docx))
+  ) {
+    user_prompt(
+      msg =
+        paste0(
+          "docx template not found at\n", fs::path(p_path, ".templates", docx),
+          "\n\nUse the default template?"
+        ),
+      n_msg =
+        paste0(
+          "\nChoose an existing docx template in\n",
+          fs::path(p_path, ".templates")
+        )
+    )
+    docx <- "styles.docx"
+  }
+
+  if (
+    docx == "styles.docx" &&
+    !fs::file_exists(fs::path(p_path, ".templates", "styles.docx"))
+  ) {
+    user_prompt(
+      msg   =
+        paste0(
+          "\n\nDefault template was not found at:\n",
+          fs::path(p_path, ".templates", "styles.docx"),
+          "\n\nRestore it and use for this project? (y/n)"
+        ),
+      y_msg =
+        paste0(
+          "\nDefault restored at:\n",
+          fs::path(p_path, ".templates", "styles.docx"),
+          "\n\nUsing it as the .docx template for this project."
+        ),
+      n_msg =
+        paste0(
+          "Choose an existing .docx template in\n",
+          fs::path(p_path, ".templates"),
+          "\n\nor respond ",
+          '"y" to restoring the default next time.'
+        )
+    )
+
+    fs::file_copy(
+      system.file("templates", "styles.docx", package = "projects"),
+      fs::path(p_path, ".templates", "styles.docx")
+    )
+  }
+
+  docx
+}
+
+restore_default_docx_template <- function(p_path) {
+  user_prompt(
+    msg   =
+      paste0(
+        "\n\nDefault template was not found at:\n",
+        fs::path(p_path, ".templates", "styles.docx"),
+        "\n\nRestore it and use for this project? (y/n)"
+      ),
+    y_msg =
+      paste0(
+        "\nDefault restored at:\n",
+        fs::path(p_path, ".templates", "styles.docx"),
+        "\n\nUsing it as the .docx template for this project."
+      ),
+    n_msg =
+      paste0(
+        "Choose an existing .docx template in\n",
+        fs::path(p_path, ".templates"),
+        "\n\nor respond ",
+        '"y" to restoring the default next time.'
+      )
+  )
+
+  fs::file_copy(
+    system.file("templates", "styles.docx", package = "projects"),
+    fs::path(p_path, ".templates", "styles.docx")
+  )
+}
+
+
+
 
 yaml_bounds <- function(vector, what) {
 

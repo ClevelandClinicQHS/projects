@@ -277,6 +277,7 @@ new_project <- function(title            = NA,
                         analysis         = "03_analysis.Rmd",
                         report           = "04_report.Rmd",
                         css              = "style.css",
+                        docx             = "styles.docx",
                         Rproj            = "pXXXX.Rproj",
                         use_bib          = FALSE,
                         stitle_as_folder = FALSE) {
@@ -375,7 +376,8 @@ new_project <- function(title            = NA,
       affiliations_table = affiliations_table,
       aa_assoc_table     = aa_assoc_table,
       use_bib            = use_bib,
-      pXXXX_name         = pXXXX_name
+      pXXXX_name         = pXXXX_name,
+      docx               = docx
     )
 
   new_project_row <-
@@ -416,7 +418,8 @@ new_project <- function(title            = NA,
     pXXXX_path = pXXXX_path,
     files      = files,
     use_bib    = use_bib,
-    pXXXX_name = pXXXX_name
+    pXXXX_name = pXXXX_name,
+    p_path     = p_path
   )
 
 
@@ -436,7 +439,7 @@ new_project <- function(title            = NA,
   )
 
   message("\nNew project's authors:")
-  if (length(all_authors$general_authors) == 0) {
+  if (length(all_authors$general_authors) == 0L) {
     cat("None.")
   } else {
     print(
@@ -447,11 +450,7 @@ new_project <- function(title            = NA,
     )
   }
 
-  print(
-    dplyr::select(
-      new_project_row, "current_owner", "corresp_auth", "creator"
-    )
-  )
+  print(new_project_row[c("current_owner", "corresp_auth", "creator")])
 
   invisible(new_project_row)
 }
@@ -474,7 +473,8 @@ build_rmds <- function(stage,
                        affiliations_table,
                        aa_assoc_table,
                        use_bib,
-                       pXXXX_name) {
+                       pXXXX_name,
+                       docx) {
 
   protocol_choices <- eval(formals(new_project)$protocol)
 
@@ -526,7 +526,7 @@ build_rmds <- function(stage,
       )
     }
 
-    files <- lapply(files, utils::tail, n = -1)
+    files <- lapply(files, utils::tail, n = -1L)
 
     if (stage != "2: data collection") {
 
@@ -537,7 +537,7 @@ build_rmds <- function(stage,
         )
       }
 
-      files <- lapply(files, utils::tail, n = -1)
+      files <- lapply(files, utils::tail, n = -1L)
     }
   }
 
@@ -546,6 +546,8 @@ build_rmds <- function(stage,
       object = purrr::pmap(files, validate_template, p_path = p_path),
       nm     = files$what
     )
+
+  files$docx <- validate_docx(docx = docx, p_path = p_path)
 
   if (!is.null(files$protocol)) {
     files$protocol <-

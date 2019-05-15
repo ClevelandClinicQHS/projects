@@ -84,6 +84,14 @@ build_protocol_report <- function(vector,
 
   yaml_bounds <- yaml_bounds(vector = vector, what = what)
 
+  if (use_bib) {
+    vector <- vector %>%
+      append(
+        paste0("bibliography: ", pXXXX_name, ".bib"),
+        after = yaml_bounds[2L] - 1L
+      )
+  }
+
   vector      <- vector %>%
     insert_aa(
       project_id               = project_id,
@@ -94,34 +102,7 @@ build_protocol_report <- function(vector,
       project_authors          = project_authors,
       author_affiliation_assoc = aa_assoc_table
     ) %>%
-    protocol_report_yaml(
-      title       = title,
-      yaml_bounds = yaml_bounds,
-      use_bib     = use_bib,
-      pXXXX_name  = pXXXX_name
-    )
-
-  vector
-}
-
-
-
-protocol_report_yaml <- function(vector, title, yaml_bounds, use_bib,
-                                 pXXXX_name) {
-
-  yaml <- c(paste0('title: "', title, '"'),
-            "output:",
-            "  word_document: default",
-            "  html_document:",
-            "    css: style.css")
-
-  if (use_bib) {
-    yaml <- append(yaml, paste0("bibliography: ", pXXXX_name, ".bib"))
-  }
-
-  vector <- append(x      = vector,
-                   values = yaml,
-                   after  = yaml_bounds[1])
+    append(paste0('title: "', title, '"'), after = yaml_bounds[1L])
 
   vector
 }
@@ -132,40 +113,70 @@ build_datawork_analysis <- function(vector, what, p_path, pXXXX_name) {
 
   yaml_bounds <- yaml_bounds(vector = vector, what = what)
 
-  vector    <- append(x      = vector,
-                      values = paste0('title: "', pXXXX_name, ' ', what, '"'),
-                      after  = yaml_bounds[1])
+  vector    <-
+    append(
+      x      = vector,
+      values = paste0('title: "', pXXXX_name, ' ', what, '"'),
+      after  = yaml_bounds[1L]
+    )
 
   vector
 }
 
 
 
-write_project_files <- function(pXXXX_path, files, use_bib, pXXXX_name) {
+write_project_files <- function(pXXXX_path,
+                                files,
+                                use_bib,
+                                pXXXX_name,
+                                p_path) {
 
-  fs::dir_create(fs::path(pXXXX_path, c("data", "data_raw", "progs",
-                                        "manuscript", "figures")))
+  docx       <- files$docx
+  files$docx <- NULL
+
+  fs::dir_create(
+    fs::path(
+      pXXXX_path,
+      c("data", "data_raw", "progs", "manuscript", "figures")
+    )
+  )
 
   file_names <-
-    c("01_protocol.Rmd", "02_datawork.Rmd", "03_analysis.Rmd",
-      "04_report.Rmd", "style.css", paste0(pXXXX_name, ".Rproj")) %>%
+    c(
+      "01_protocol.Rmd",
+      "02_datawork.Rmd",
+      "03_analysis.Rmd",
+      "04_report.Rmd",
+      "style.css",
+      paste0(pXXXX_name, ".Rproj")
+    ) %>%
     utils::tail(n = length(files))
 
   if (use_bib) {
-    files      <- append(x      = files,
-                         values = "",
-                         after  = 0)
-    file_names <- append(x      = file_names,
-                         values = paste0(pXXXX_name, ".bib"),
-                         after  = 0)
+    files      <- append(x = files, values = "", after  = 0L)
+    file_names <-
+      append(
+        x      = file_names,
+        values = paste0(pXXXX_name, ".bib"),
+        after  = 0L
+      )
   }
 
   purrr::walk2(
     .x = files,
-    .y = fs::path(pXXXX_path,
-                  c(rep("progs", length(files) - 1), ""),
-                  file_names),
-    .f = readr::write_lines)
+    .y =
+      fs::path(
+        pXXXX_path,
+        c(rep("progs", length(files) - 1L), ""),
+        file_names
+      ),
+    .f = readr::write_lines
+  )
+
+  fs::file_copy(
+    fs::path(p_path, ".templates", docx),
+    fs::path(pXXXX_path, "progs/styles.docx")
+  )
 }
 
 

@@ -120,7 +120,7 @@ print_header_internal <- function(
 
 
 taa_to_console <- function(title, header) {
-  cat('\ntitle: "', title, '"', '\n\n\n', sep = "")
+  cat('\ntitle: "', title, '"\n', sep = "")
   cat(header, sep = '\n')
 }
 
@@ -149,12 +149,7 @@ insert_aa <- function(vector,
       )
   }
 
-  vector <-
-    append(
-      x      = vector,
-      values = c("", aa_header, "", "\\pagebreak", ""),
-      after  = yaml_bounds[2L]
-    )
+  vector <- vector %>% append(aa_header, after = yaml_bounds[1L])
 
   vector
 }
@@ -191,56 +186,55 @@ aa_header <- function(project_id,
     dplyr::left_join(affiliations_table, by = c("id2" = "id"))
 
 
-  ############################################################
-  # Construction of affiliations line to go in 01_protocol.Rmd
-
-  if (nrow(aa_assoc_complete) > 0) {
-
-    # A tibble of the unique affiliations associated with the project, with a
-    # superscript assigned to each
-    unique_affiliations <-
-      aa_assoc_complete %>%
-      dplyr::select(-"id1") %>%
-      dplyr::distinct() %>%
-      dplyr::mutate(superscript = 1L:nrow(.))
-
-    # In effect this adds the superscripts created in the previous command to
-    # aa_assoc_complete
-    aa_assoc_complete <-
-      unique_affiliations %>%
-      dplyr::select(.data$id2, .data$superscript) %>%
-      dplyr::right_join(aa_assoc_complete, by = "id2")
-
-
-    affiliations_lines <- ""
-    for (a in 1:nrow(unique_affiliations)) {
-
-      affiliation_line <- paste0("| ^", a, "^ ",
-                                 unique_affiliations$department_name[a])
-
-      if (!is.na(unique_affiliations$institution_name[a])) {
-        affiliation_line <- paste0(affiliation_line, ", ",
-                                   unique_affiliations$institution_name[a])
-      }
-
-      if (!is.na(unique_affiliations$address[a])) {
-        affiliation_line <- paste0(affiliation_line, ", ",
-                                   unique_affiliations$address[a])
-      }
-
-      affiliations_lines <- append(affiliations_lines, affiliation_line)
-    }
-  }
-  else {
-    affiliations_lines <- character()
-  }
-  ######################################################
-  ######################################################
-
-  ######################################################
-  # Construction of author line to go in 01_protocol.Rmd
   if (nrow(project_authors) > 0) {
-    author_line         <- "**_"
+    ############################################################
+    # Construction of affiliations line to go in 01_protocol.Rmd
+
+    if (nrow(aa_assoc_complete) > 0) {
+
+      # A tibble of the unique affiliations associated with the project, with a
+      # superscript assigned to each
+      unique_affiliations <-
+        aa_assoc_complete %>%
+        dplyr::select(-"id1") %>%
+        dplyr::distinct() %>%
+        dplyr::mutate(superscript = dplyr::row_number())
+
+      # In effect this adds the superscripts created in the previous command to
+      # aa_assoc_complete
+      aa_assoc_complete <-
+        unique_affiliations %>%
+        dplyr::select(.data$id2, .data$superscript) %>%
+        dplyr::right_join(aa_assoc_complete, by = "id2")
+
+
+      affiliations_lines <- character()
+      for (a in 1:nrow(unique_affiliations)) {
+
+        affiliation_line <- paste0("  - ^", a, "^ ",
+                                   unique_affiliations$department_name[a])
+
+        if (!is.na(unique_affiliations$institution_name[a])) {
+          affiliation_line <- paste0(affiliation_line, ", ",
+                                     unique_affiliations$institution_name[a])
+        }
+
+        if (!is.na(unique_affiliations$address[a])) {
+          affiliation_line <- paste0(affiliation_line, ", ",
+                                     unique_affiliations$address[a])
+        }
+
+        affiliations_lines <- append(affiliations_lines, affiliation_line)
+      }
+    }
+    else {
+      affiliations_lines <- character()
+    }
+
+    ######################################################
+    ######################################################
+
+    author_line         <- "  - "
 
     for (x in 1:nrow(project_authors)) {
 
@@ -291,41 +285,40 @@ aa_header <- function(project_id,
       }
     }
 
-    author_line <- paste0(author_line, "_**")
-  }
-  else {
-    author_line <- character()
-  }
+    if (is.null(corresp_auth_row)) {
+      corresp_lines <- character()
+    }
+    else {
+      corresp_affils   <-
+        aa_assoc_complete[match(corresp_auth_row$id, aa_assoc_complete$id1), ]
 
-  if (is.null(corresp_auth_row)) {
-    corresp_lines <- character()
-  }
-  else {
-    corresp_affils   <-
-      aa_assoc_complete[match(corresp_auth_row$id, aa_assoc_complete$id1), ]
+      corresp_lines    <- "  - \\* Corresponding author"
 
-    corresp_lines    <- c("", "| \\* Corresponding author")
+      if (nrow(corresp_affils) > 0L &&
+          length(stats::na.omit(corresp_affils$address)) > 0L) {
+        corresp_lines <-
+          append(
+            corresp_lines,
+            paste0(
+              "  - ",
+              corresp_affils$address[!is.na(corresp_affils$address)][1L]
+            )
+          )
+      }
 
-    if (nrow(corresp_affils) > 0L &&
-        length(stats::na.omit(corresp_affils$address)) > 0L) {
-      corresp_lines <-
-        append(corresp_lines,
-               paste0("|   ", stats::na.omit(corresp_affils$address)[1L]))
+      if (!is.na(corresp_auth_row$phone)) {
+        corresp_lines <-
+          append(corresp_lines, paste0("  - ", corresp_auth_row$phone))
+      }
+
+      if (!is.na(corresp_auth_row$email)) {
+        corresp_lines <-
+          append(corresp_lines, paste0("  - ", corresp_auth_row$email))
+      }
     }
 
-    if (!is.na(corresp_auth_row$phone)) {
-      corresp_lines <- append(corresp_lines,
-                              paste0("|   ", corresp_auth_row$phone))
-    }
-
-    if (!is.na(corresp_auth_row$email)) {
-      corresp_lines <- append(corresp_lines,
-                              paste0("|   ", corresp_auth_row$email))
-    }
+    c("author:", author_line, affiliations_lines, corresp_lines)
+  } else {
+    character()
   }
-
-  ######################################################
-  ######################################################
-
-  c(author_line, affiliations_lines, corresp_lines, "", "| Funding:")
 }
