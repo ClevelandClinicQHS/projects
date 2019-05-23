@@ -38,13 +38,18 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c(".", ":="))
 #'   degree by running this function with the folder's actual file path (e.g.,
 #'   restore all default templates; restore missing metadata files).
 #'
-#' @param path The full file path where the user would like a directory called
-#'   "projects" to be created, wherein all projects and their data will dwell.
+#' @param path The file path of the \strong{directory inside of which} the user
+#'   would like the projects folder to be created. Do not include the name of
+#'   the projects folder itself (i.e., the value of the argument
+#'   \code{folder_name} below).
+#' @param folder_name The name of the projects folder that will be created in
+#'   the directory specified by the argument \code{path} above. Defaults to
+#'   \code{"projects"}.
 #' @param overwrite Logical indicating whether or not to abandon any previously
 #'   stored projects folders stored in the system.
 #' @param make_directories Logical indicating whether or not the function should
 #'   write any directories specified in the \code{path} argument that don't
-#'   already exist.'
+#'   already exist.
 #' @param .Renviron_path The full file path of the .Renviron file where the user
 #'   would like to store the \code{\link{projects_folder}()} path. Default is
 #'   the home .Renviron file. If the file doesn't exist it will be created.
@@ -71,15 +76,23 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c(".", ":="))
 #'
 #' @export
 setup_projects <- function(path,
+                           folder_name      = "projects",
                            overwrite        = FALSE,
                            make_directories = FALSE,
                            .Renviron_path   = fs::path_home_r(".Renviron")) {
+
+  folder_name <- validate_single_string(folder_name)
+
+  if (folder_name != fs::path_file(folder_name)) {
+    stop("folder_name must be a single string, not a file path")
+  }
+
   path     <- path %>%
     validate_directory(
       p_path           = NULL,
       make_directories = make_directories
     ) %>%
-    fs::path("projects")
+    fs::path(folder_name)
 
   old_path <- p_path_from_explicit_renviron(.Renviron_path)
 
@@ -160,6 +173,7 @@ set_Renviron <- function(path, old_path, .Renviron_path) {
 }
 
 
+
 create_projects_folder <- function(path) {
   fs::dir_create(fs::path(path, c(".metadata", ".templates")))
   restore_templates(path)
@@ -168,47 +182,67 @@ create_projects_folder <- function(path) {
 
 
 restore_templates <- function(path) {
-  purrr::walk2(
-    .x =
-      c(
-        "01_protocol.Rmd",
-        "STROBE_protocol.Rmd",
-        "CONSORT_protocol.Rmd",
-        "02_datawork.Rmd",
-        "03_analysis.Rmd",
-        "04_report.Rmd",
-        "style.css",
-        "pXXXX.Rproj"
-      ),
-    .y =
+  purrr::pwalk(
+    .l =
       list(
-        STROBE_template,
-        STROBE_template,
-        CONSORT_template,
-        datawork_template,
-        analysis_template,
-        report_template,
-        css_template,
-        Rproj_template
+        template_name =
+          c(
+            "01_protocol.Rmd",
+            "STROBE_protocol.Rmd",
+            "CONSORT_protocol.Rmd",
+            "02_datawork.Rmd",
+            "03_analysis.Rmd",
+            "04_report.Rmd",
+            "style.css",
+            "pXXXX.Rproj",
+            "styles.docx"
+          ),
+        fn =
+          c(
+            replicate(8L, write_template_from_char, simplify = FALSE),
+            list(copy_template_from_file)
+          ),
+        source =
+          list(
+            STROBE_template,
+            STROBE_template,
+            CONSORT_template,
+            datawork_template,
+            analysis_template,
+            report_template,
+            css_template,
+            Rproj_template,
+            "styles.docx"
+          )
       ),
     .f =
-      function(template_name, template_vector) {
+      function(template_name, fn, source) {
         if (!fs::file_exists(fs::path(path, ".templates", template_name))) {
-          readr::write_lines(
-            template_vector,
-            fs::path(path, ".templates", template_name)
-          )
+          do.call(fn, list(template_name, source, path))
         }
       }
   )
-
-  if (!fs::file_exists(fs::path(path, ".templates", "styles.docx"))) {
-    fs::file_copy(
-      system.file("templates", "style.docx", package = "projects"),
-      fs::path(path, ".templates", "styles.docx")
-    )
-  }
 }
+
+
+
+write_template_from_char <- function(template_name, template_vector, path) {
+  readr::write_lines(
+    template_vector,
+    fs::path(path, ".templates", template_name)
+  )
+}
+
+
+
+copy_template_from_file <- function(template_name, internal_name, path) {
+  fs::file_copy(
+    system.file("templates", internal_name, package = "projects"),
+    fs::path(path, ".templates", template_name)
+  )
+}
+
+
 
 restore_metadata <- function(path) {
   purrr::walk2(
@@ -263,15 +297,18 @@ restore_metadata <- function(path) {
 
 setup_messages <- function(path, old_path) {
   if (old_path == "") {
-    message('"projects" folder created at\n', path,
-            '\n\nAdd affiliations with new_affiliation(), then add authors ',
-            'with new_author(),\nthen create projects with new_project()')
+    message(
+      'projects folder created at\n', path,
+      '\n\nAdd affiliations with new_affiliation(),',
+      '\nthen add authors with new_author(),',
+      '\nthen create projects with new_project()'
+    )
   }
   else if (old_path == path) {
-    message('"projects" folder restored at\n', path)
+    message('projects folder restored at\n', path)
   }
   else {
-    message('"projects" folder is now at\n', path,
-            '\n\nThe "projects" folder at\n', old_path, '\nhas been abandoned.')
+    message('projects folder is now at\n', path,
+            '\n\nThe projects folder at\n', old_path, '\nhas been abandoned.')
   }
 }

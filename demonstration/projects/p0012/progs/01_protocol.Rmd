@@ -1,0 +1,103 @@
+---
+title: "Achieving Cold Fusion"
+author:
+  - Scott Bug, PhD;^1,2^\* Chien-Shiung Wu, PhD;^2,3^ Leonardo da Vinci; George Washington Carver, MS;^1,2,3^ and Marie Curie^3^
+  - ^1^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+  - ^2^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+  - ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+  - \* Corresponding author
+  - Let Gade 27182, 1566 Copenhagen, Denmark
+  - 965-555-5556
+  - scottbug@impossible.net
+output:
+  word_document:
+    reference_docx: styles.docx
+  html_document:
+    css: style.css
+  pdf_document:
+    default
+bibliography: p0012.bib
+---
+
+Funding: 
+
+\pagebreak
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load_libraries, include=FALSE}
+library(skimr)
+library(projects)
+library(here)
+library(tidyverse)
+```
+
+# Abstract
+
+A generalized linear model determining who is ill based on age, income, and whether or not someone lives on the east coast is ineffective at the 0.1 significance level.
+
+# Introduction
+
+It is common knowledge that sometimes people fall ill, and while it seems difficult to predict who will become ill, perhaps it is an attainable goal to determine who is already ill at any given moment.
+
+## Background/rationale
+
+Most people seem not to like being ill, [@wiki] and science has proven that many diseases are communicable. Knowing who is ill may help to decrease transmission of communicable disease.
+
+## Objectives
+
+We hypothesize that characteristics of an individual will help to inform who is ill, and we hope to accomplish this using statistical techniques.
+
+# Methods
+
+##Study design
+
+We will perform a generalized linear model describing who is ill based on certain demographic information. We will use R statistical software, version 3.5.0. [@R]
+
+## Setting
+
+Americentric boundaries on this study lead us to only be interested in people living in the US. Laziness causes us to disregard the period during which these data were collected.
+
+## Participants
+(a) This is a cross-sectional study of adults living in the United States. Subjects must have a non-negative income.
+
+## Variables
+The outcome variable is binary, indicating whether or not the person is ill. The explanatory variables will be gender, income in dollars, age, and city of residence. We will test collinearity of some of these explanatory variables before developingn our final model. 
+
+## Data sources/ measurement
+The study data comprises 149,999 adults between 25 and 65 years of age all living in the United States, taken from a data set of 150,000 such individuals. [@kaggle] 
+
+## Bias
+This data set only contains individuals of age 25 to 65, so all other individuals will be excluded; any resulting model will likely not be useful for people outside this age range.
+
+## Study size
+One individual will be excluded because their listed income is under $0.
+
+## Quantitative variables
+All quantitative variables will be treated at face value; none were categorized nor transformed.
+
+## Statistical methods
+There are no missing data, fortunately. We will utilize a generalized linear model. 
+
+## Descriptive data
+
+Here are descriptive statistics of the raw data set:
+
+```{r skim, echo=FALSE}
+skim(read_csv(here("data_raw", "toy_dataset.csv")))
+```
+
+## Limitations
+The primarly limitation of this study is its use of a toy data set. These data are all fictional. Also, even if they were not, this model is overly simplistic. Nonetheless, we will proceed.
+
+\pagebreak
+
+## References
+
+```{r session_info, include=FALSE}
+save_session_info(here("progs", "session_info", "protocol"))
+```
+

@@ -1,0 +1,47 @@
+---
+title: "p0012 datawork"
+---
+
+```{r setup}
+library(skimr)
+library(projects)
+library(here)
+library(tidyverse)
+```
+
+
+```{r read_raw_data}
+raw_people <- read_csv(here("data_raw", "toy_dataset.csv"))
+skim(raw_people)
+levels(as.factor(raw_people$City))
+```
+
+
+```{r data_wrangling}
+clean_people <-
+  raw_people %>% 
+  rename_all(tolower) %>% 
+  filter(income > 0) %>% 
+  mutate(
+    female = as.integer(gender == "Female"),
+    illness = as.integer(illness == "Yes"),
+    east_coast =
+      as.integer(city %in% c("New York City", "Boston", "Washington D.C."))
+  ) %>% 
+  select(
+    gender,
+    female,
+    age_years = age,
+    income_dollars = income,
+    east_coast,
+    illness
+  )
+
+clean_people
+```
+
+
+```{r saver}
+save(clean_people, file = here("data", "02_datawork_objects.RData"))
+save_session_info(here("progs", "session_info", "datawork"))
+```

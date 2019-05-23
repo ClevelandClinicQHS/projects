@@ -1,0 +1,50 @@
+---
+output:
+  word_document:
+    reference_docx: styles.docx
+  html_document:
+    css: style.css
+  pdf_document:
+    default
+---
+
+Funding: 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_libraries, include=FALSE}
+library(here)
+library(tidyverse)
+```
+
+```{r load_03_analysis_data, include=FALSE}
+# load(file = here("/data/03_analysis_objects.RData"))
+```
+
+# Abstract
+
+xxxxxxxx
+
+\pagebreak
+
+# Introduction
+
+xxxxxxxx
+
+# Methods
+
+xxxxxxxx
+
+# Results
+
+xxxxxxxx
+
+# Discussion
+
+xxxxxxxx
+
+\pagebreak
+
+## References

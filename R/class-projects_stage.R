@@ -146,13 +146,13 @@ validate_stage <- function(stage, na.ok = TRUE, null.ok = FALSE) {
 #' @rdname projects_stage
 #' @export
 as.integer.projects_stage <- function(x, ...) {
-  as.integer(substr(unclass(x), 1, 1), ...)
+  as.integer(substr(unclass(x), 1L, 1L), ...)
 }
 
 #' @rdname projects_stage
 #' @export
 as.double.projects_stage  <- function(x, ...) {
-  as.double(substr(unclass(x), 1, 1), ...)
+  as.double(substr(unclass(x), 1L, 1L), ...)
 }
 
 #' @rdname projects_stage

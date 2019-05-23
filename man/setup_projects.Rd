@@ -4,19 +4,26 @@
 \alias{setup_projects}
 \title{Set up the projects folder}
 \usage{
-setup_projects(path, overwrite = FALSE, make_directories = FALSE,
+setup_projects(path, folder_name = "projects", overwrite = FALSE,
+  make_directories = FALSE,
   .Renviron_path = fs::path_home_r(".Renviron"))
 }
 \arguments{
-\item{path}{The full file path where the user would like a directory called
-"projects" to be created, wherein all projects and their data will dwell.}
+\item{path}{The file path of the \strong{directory inside of which} the user
+would like the projects folder to be created. Do not include the name of
+the projects folder itself (i.e., the value of the argument
+\code{folder_name} below).}
+
+\item{folder_name}{The name of the projects folder that will be created in
+the directory specified by the argument \code{path} above. Defaults to
+\code{"projects"}.}
 
 \item{overwrite}{Logical indicating whether or not to abandon any previously
 stored projects folders stored in the system.}
 
 \item{make_directories}{Logical indicating whether or not the function should
 write any directories specified in the \code{path} argument that don't
-already exist.'}
+already exist.}
 
 \item{.Renviron_path}{The full file path of the .Renviron file where the user
 would like to store the \code{\link{projects_folder}()} path. Default is

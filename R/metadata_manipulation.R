@@ -1,6 +1,5 @@
 
 make_rds_path <- function(rds_name, p_path = get_p_path()) {
-
   fs::path(p_path, ".metadata", rds_name, ext = "rds")
 }
 

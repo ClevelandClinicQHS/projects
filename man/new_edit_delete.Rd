@@ -23,8 +23,8 @@ new_project(title = NA, current_owner = NA, stage = c("1: design",
   protocol = c("01_protocol.Rmd", "STROBE_protocol.Rmd",
   "CONSORT_protocol.Rmd"), datawork = "02_datawork.Rmd",
   analysis = "03_analysis.Rmd", report = "04_report.Rmd",
-  css = "style.css", Rproj = "pXXXX.Rproj", use_bib = FALSE,
-  stitle_as_folder = FALSE)
+  css = "style.css", docx = "styles.docx", Rproj = "pXXXX.Rproj",
+  use_bib = FALSE, stitle_as_folder = FALSE)
 
 new_idea(title, status = "just an idea", ...)
 
@@ -150,7 +150,7 @@ left as the default or if all directories in \code{path} already exist.}
   For \code{new_project}, this number will also determine the project
   folder's and \emph{.Rproj} file's names. See \strong{Details}.}
 
-\item{protocol, datawork, analysis, report, css, Rproj}{A character string
+\item{protocol, datawork, analysis, report, css, docx, Rproj}{A character string
   matching the name of a corresponding template file in the \emph{.templates}
   subdirectory of the main \link[=projects_folder]{projects folder}. Default
   templates are placed there when \code{\link{setup_projects}()} is run, and
@@ -168,7 +168,10 @@ left as the default or if all directories in \code{path} already exist.}
   If the \code{stage} argument is set to one of \code{c("3: analysis", "4:
   manuscript", "5: under review", "6: accepted")}, \code{protocol} and
   \code{datawork} are ignored and the \emph{01_protocol.Rmd} and
-  \emph{02_datawork.Rmd} files will not be written.}
+  \emph{02_datawork.Rmd} files will not be written.
+
+  The \code{css} template is used to style knitted html files, whereas the
+  \code{docx} template is used to style knitted Word documents.}
 
 \item{use_bib}{Logical. If \code{TRUE}, a blank \emph{.bib} file will be
 written into the \strong{progs} subdirectory of the newly created project

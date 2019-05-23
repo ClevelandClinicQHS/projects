@@ -1,9 +1,20 @@
 
+# projects 1.3.0
+
+## Major updates
+- `save_session_info()` function for saving `sessioninfo::session_info()` to a text file.
+- `export_project()` for zipping project folders
+
+## Minor updates
+- Improvements to default .Rmd files.
+- Code improvements
+
 # projects 1.2.0.9000
 
 ## Major updates
 - Moved all header material to YAML when generating 01_protocol.Rmd and 04_report.Rmd.
 - YAML Output options no longer written in function; rather, they are expected to already be in the templates.
+- Addition of .docx style template.
 
 ## Minor updates
 - Other minor tweaks to default .Rmd files.

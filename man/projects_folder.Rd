@@ -18,7 +18,7 @@ that its value is a file path of a directory that actually exists (i.e.,
 
 If it can't find a directory with that path, it returns this string:
 
-\code{"projects" folder not found. Please run \link{setup_projects}()}
+\code{projects folder not found. Please run \link{setup_projects}()}
 }
 \examples{
 projects_folder()

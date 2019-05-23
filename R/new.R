@@ -123,7 +123,7 @@
 #'
 #'   See \link{projects_stage}.
 #'
-#' @param protocol,datawork,analysis,report,css,Rproj A character string
+#' @param protocol,datawork,analysis,report,css,docx,Rproj A character string
 #'   matching the name of a corresponding template file in the \emph{.templates}
 #'   subdirectory of the main \link[=projects_folder]{projects folder}. Default
 #'   templates are placed there when \code{\link{setup_projects}()} is run, and
@@ -142,6 +142,9 @@
 #'   manuscript", "5: under review", "6: accepted")}, \code{protocol} and
 #'   \code{datawork} are ignored and the \emph{01_protocol.Rmd} and
 #'   \emph{02_datawork.Rmd} files will not be written.
+#'
+#'   The \code{css} template is used to style knitted html files, whereas the
+#'   \code{docx} template is used to style knitted Word documents.
 #' @param use_bib Logical. If \code{TRUE}, a blank \emph{.bib} file will be
 #'   written into the \strong{progs} subdirectory of the newly created project
 #'   folder. Its name will be of the form \emph{pXXXX.bib}, and the YAML header
@@ -308,16 +311,6 @@ new_project <- function(title            = NA,
 
   stage         <- validate_stage(stage)
 
-  if (
-    nrow(authors_table) == 0 &&
-    (!is.null(affiliations) || !is.na(current_owner) || !is.na(corresp_auth) ||
-     !is.na(creator))
-  ) {
-    stop(
-      "Can't set authors until an author is created. Run new_author()"
-    )
-  }
-
   all_authors   <-
     validate_authors(
       general_authors = authors,
@@ -326,13 +319,6 @@ new_project <- function(title            = NA,
       creator         = creator,
       authors_table   = authors_table
     )
-
-  if (!is.na(all_authors$corresp_auth)) {
-    corresp_auth_row <-
-      authors_table[match(all_authors$corresp_auth, authors_table$id), ]
-  } else {
-    corresp_auth_row <- NULL
-  }
 
   path          <-
     validate_directory(
@@ -371,7 +357,7 @@ new_project <- function(title            = NA,
       id                 = id,
       title              = title,
       authors            = all_authors$general_authors,
-      corresp_auth_row   = corresp_auth_row,
+      corresp_auth_row   = all_authors$corresp_auth_row,
       authors_table      = authors_table,
       affiliations_table = affiliations_table,
       aa_assoc_table     = aa_assoc_table,
@@ -427,15 +413,9 @@ new_project <- function(title            = NA,
 
   message("\nProject ", id, " has been created at\n", pXXXX_path)
   print(
-    dplyr::select(
-      new_project_row,
-      "id",
-      "title",
-      "stage",
-      "status",
-      "deadline_type",
-      "deadline"
-    )
+    new_project_row[
+      c("id", "title", "stage", "status", "deadline_type", "deadline")
+    ]
   )
 
   message("\nNew project's authors:")
@@ -453,153 +433,6 @@ new_project <- function(title            = NA,
   print(new_project_row[c("current_owner", "corresp_auth", "creator")])
 
   invisible(new_project_row)
-}
-
-
-
-build_rmds <- function(stage,
-                       protocol,
-                       datawork,
-                       analysis,
-                       report,
-                       css,
-                       Rproj,
-                       p_path,
-                       id,
-                       title,
-                       authors,
-                       corresp_auth_row,
-                       authors_table,
-                       affiliations_table,
-                       aa_assoc_table,
-                       use_bib,
-                       pXXXX_name,
-                       docx) {
-
-  protocol_choices <- eval(formals(new_project)$protocol)
-
-  if (any(c("1: design", "0: idea") == as.character(stage))) {
-    protocol <- validate_protocol(protocol, choices = protocol_choices)
-  }
-
-  files <-
-    list(
-      file_name = list(protocol, datawork, analysis, report, css, Rproj),
-      what =  c("protocol", "datawork", "analysis", "report", "css", "Rproj"),
-      default_name =
-        list(c("01_protocol.Rmd",
-               "STROBE_protocol.Rmd",
-               "CONSORT_protocol.Rmd"),
-             "02_datawork.Rmd",
-             "03_analysis.Rmd",
-             "04_report.Rmd",
-             "style.css",
-             "pXXXX.Rproj"
-        ),
-      default_template =
-        list(
-          list(STROBE_template, STROBE_template, CONSORT_template),
-          list(datawork_template),
-          list(analysis_template),
-          list(report_template),
-          list(css_template),
-          list(Rproj_template)
-        )
-    )
-
-  if (
-    any(
-      c(
-        "2: data collection",
-        "3: analysis",
-        "4: manuscript",
-        "5: under review",
-        "6: accepted"
-      ) == as.character(stage)
-    )
-  ) {
-
-    if (!identical(protocol, protocol_choices)) {
-      stop(
-        "User input to protocol argument detected, but protocol is not\n",
-        "used when stage is set to \"2: data collection\" or higher"
-      )
-    }
-
-    files <- lapply(files, utils::tail, n = -1L)
-
-    if (stage != "2: data collection") {
-
-      if (!identical(datawork, eval(formals(new_project)$datawork))) {
-        stop(
-          "User input to datawork argument detected, but datawork is not\n",
-          "used when stage is set to \"3: analysis\" or higher"
-        )
-      }
-
-      files <- lapply(files, utils::tail, n = -1L)
-    }
-  }
-
-  files <-
-    stats::setNames(
-      object = purrr::pmap(files, validate_template, p_path = p_path),
-      nm     = files$what
-    )
-
-  files$docx <- validate_docx(docx = docx, p_path = p_path)
-
-  if (!is.null(files$protocol)) {
-    files$protocol <-
-      build_protocol_report(
-        vector             = files$protocol,
-        what               = "protocol",
-        project_id         = id,
-        title              = title,
-        corresp_auth_row   = corresp_auth_row,
-        authors_table      = authors_table,
-        affiliations_table = affiliations_table,
-        project_authors    = authors,
-        aa_assoc_table     = aa_assoc_table,
-        use_bib            = use_bib,
-        pXXXX_name         = pXXXX_name
-      )
-  }
-
-  files$report <-
-    build_protocol_report(
-      vector              = files$report,
-      what                = "report",
-      project_id          = id,
-      title               = title,
-      corresp_auth_row    = corresp_auth_row,
-      authors_table       = authors_table,
-      affiliations_table  = affiliations_table,
-      project_authors     = authors,
-      aa_assoc_table      = aa_assoc_table,
-      use_bib             = use_bib,
-      pXXXX_name          = pXXXX_name
-    )
-
-  if (!is.null(files$datawork)) {
-    files$datawork <-
-      build_datawork_analysis(
-        vector     = files$datawork,
-        what       = "datawork",
-        p_path     = p_path,
-        pXXXX_name = pXXXX_name
-      )
-  }
-
-  files$analysis <-
-    build_datawork_analysis(
-      vector     = files$analysis,
-      what       = "analysis",
-      p_path     = p_path,
-      pXXXX_name = pXXXX_name
-    )
-
-  files
 }
 
 
@@ -749,3 +582,260 @@ new_affiliation <- function(department_name  = NA,
   new_affiliation_row
 }
 ################################################################################
+
+
+
+build_rmds <- function(stage,
+                       protocol,
+                       datawork,
+                       analysis,
+                       report,
+                       css,
+                       Rproj,
+                       p_path,
+                       id,
+                       title,
+                       authors,
+                       corresp_auth_row,
+                       authors_table,
+                       affiliations_table,
+                       aa_assoc_table,
+                       use_bib,
+                       pXXXX_name,
+                       docx) {
+
+  protocol_choices <- eval(formals(new_project)$protocol)
+
+  if (any(c("1: design", "0: idea") == as.character(stage))) {
+    protocol <- validate_protocol(protocol, choices = protocol_choices)
+  }
+
+  files <-
+    list(
+      file_name = list(protocol, datawork, analysis, report, css, Rproj),
+      what =  c("protocol", "datawork", "analysis", "report", "css", "Rproj"),
+      default_name =
+        list(c("01_protocol.Rmd",
+               "STROBE_protocol.Rmd",
+               "CONSORT_protocol.Rmd"),
+             "02_datawork.Rmd",
+             "03_analysis.Rmd",
+             "04_report.Rmd",
+             "style.css",
+             "pXXXX.Rproj"
+        ),
+      default_template =
+        list(
+          list(STROBE_template, STROBE_template, CONSORT_template),
+          list(datawork_template),
+          list(analysis_template),
+          list(report_template),
+          list(css_template),
+          list(Rproj_template)
+        )
+    )
+
+  if (
+    any(
+      c(
+        "2: data collection",
+        "3: analysis",
+        "4: manuscript",
+        "5: under review",
+        "6: accepted"
+      ) == as.character(stage)
+    )
+  ) {
+
+    if (!identical(protocol, protocol_choices)) {
+      stop(
+        "User input to protocol argument detected, but protocol is not\n",
+        "used when stage is set to \"2: data collection\" or higher"
+      )
+    }
+
+    files <- lapply(files, utils::tail, n = -1L)
+
+    if (stage != "2: data collection") {
+
+      if (!identical(datawork, eval(formals(new_project)$datawork))) {
+        stop(
+          "User input to datawork argument detected, but datawork is not\n",
+          "used when stage is set to \"3: analysis\" or higher"
+        )
+      }
+
+      files <- lapply(files, utils::tail, n = -1L)
+    }
+  }
+
+  files <-
+    stats::setNames(
+      object = purrr::pmap(files, validate_template, p_path = p_path),
+      nm     = files$what
+    )
+
+  files$docx <- validate_docx(docx = docx, p_path = p_path)
+
+  if (!is.null(files$protocol)) {
+    files$protocol <-
+      build_protocol_report(
+        vector             = files$protocol,
+        what               = "protocol",
+        project_id         = id,
+        title              = title,
+        corresp_auth_row   = corresp_auth_row,
+        authors_table      = authors_table,
+        affiliations_table = affiliations_table,
+        project_authors    = authors,
+        aa_assoc_table     = aa_assoc_table,
+        use_bib            = use_bib,
+        pXXXX_name         = pXXXX_name
+      )
+  }
+
+  files$report <-
+    build_protocol_report(
+      vector              = files$report,
+      what                = "report",
+      project_id          = id,
+      title               = title,
+      corresp_auth_row    = corresp_auth_row,
+      authors_table       = authors_table,
+      affiliations_table  = affiliations_table,
+      project_authors     = authors,
+      aa_assoc_table      = aa_assoc_table,
+      use_bib             = use_bib,
+      pXXXX_name          = pXXXX_name
+    )
+
+  if (!is.null(files$datawork)) {
+    files$datawork <-
+      build_datawork_analysis(
+        vector     = files$datawork,
+        what       = "datawork",
+        p_path     = p_path,
+        pXXXX_name = pXXXX_name
+      )
+  }
+
+  files$analysis <-
+    build_datawork_analysis(
+      vector     = files$analysis,
+      what       = "analysis",
+      p_path     = p_path,
+      pXXXX_name = pXXXX_name
+    )
+
+  files
+}
+
+
+build_protocol_report <- function(vector,
+                                  what,
+                                  project_id,
+                                  title,
+                                  corresp_auth_row,
+                                  authors_table,
+                                  affiliations_table,
+                                  project_authors,
+                                  aa_assoc_table,
+                                  use_bib,
+                                  pXXXX_name) {
+
+  yaml_bounds <- yaml_bounds(vector = vector, what = what)
+
+  if (use_bib) {
+    vector <- vector %>%
+      append(
+        paste0("bibliography: ", pXXXX_name, ".bib"),
+        after = yaml_bounds[2L] - 1L
+      )
+  }
+
+  vector      <- vector %>%
+    insert_aa(
+      project_id               = project_id,
+      yaml_bounds              = yaml_bounds,
+      corresp_auth_row         = corresp_auth_row,
+      authors_table            = authors_table,
+      affiliations_table       = affiliations_table,
+      project_authors          = project_authors,
+      author_affiliation_assoc = aa_assoc_table
+    ) %>%
+    append(paste0('title: "', title, '"'), after = yaml_bounds[1L])
+
+  vector
+}
+
+
+
+build_datawork_analysis <- function(vector, what, p_path, pXXXX_name) {
+
+  yaml_bounds <- yaml_bounds(vector = vector, what = what)
+
+  vector    <-
+    append(
+      x      = vector,
+      values = paste0('title: "', pXXXX_name, ' ', what, '"'),
+      after  = yaml_bounds[1L]
+    )
+
+  vector
+}
+
+
+
+write_project_files <- function(pXXXX_path,
+                                files,
+                                use_bib,
+                                pXXXX_name,
+                                p_path) {
+
+  docx       <- files$docx
+  files$docx <- NULL
+
+  fs::dir_create(
+    fs::path(
+      pXXXX_path,
+      c("data", "data_raw", "progs", "manuscript", "figures")
+    )
+  )
+
+  file_names <-
+    c(
+      "01_protocol.Rmd",
+      "02_datawork.Rmd",
+      "03_analysis.Rmd",
+      "04_report.Rmd",
+      "style.css",
+      paste0(pXXXX_name, ".Rproj")
+    ) %>%
+    utils::tail(n = length(files))
+
+  if (use_bib) {
+    files      <- append(x = files, values = "", after  = 0L)
+    file_names <-
+      append(
+        x      = file_names,
+        values = paste0(pXXXX_name, ".bib"),
+        after  = 0L
+      )
+  }
+
+  purrr::walk2(
+    .x = files,
+    .y =
+      fs::path(
+        pXXXX_path,
+        c(rep("progs", length(files) - 1L), ""),
+        file_names
+      ),
+    .f = readr::write_lines
+  )
+
+  fs::file_copy(
+    fs::path(p_path, ".templates", docx),
+    fs::path(pXXXX_path, "progs/styles.docx")
+  )
+}

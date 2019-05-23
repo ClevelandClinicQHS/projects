@@ -1,0 +1,81 @@
+---
+title: "Achieving Cold Fusion"
+author:
+  - Scott Bug, PhD;^1,2^\* Chien-Shiung Wu, PhD;^2,3^ Leonardo da Vinci; George Washington Carver, MS;^1,2,3^ and Marie Curie^3^
+  - ^1^ Impossibles Investigation Team, Creekshirebrook Academy of Thinks, Let Gade 27182, 1566 Copenhagen, Denmark
+  - ^2^ Department of Physics, University of North Science, 314 Newton Blvd, Springfield CT 06003
+  - ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
+  - \* Corresponding author
+  - Let Gade 27182, 1566 Copenhagen, Denmark
+  - 965-555-5556
+  - scottbug@impossible.net
+output:
+  html_document:
+    css: style.css
+  word_document:
+    reference_docx: styles.docx
+  pdf_document:
+    default
+bibliography: p0012.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_libraries, include=FALSE}
+library(projects)
+library(here)
+library(tidyverse)
+```
+
+```{r load_03_analysis_data, include=FALSE}
+load(file = here("/data/03_analysis_objects.RData"))
+```
+
+# Abstract
+
+A generalized linear model determining who is ill based on age, income, and whether or not someone lives on the east coast is ineffective at the 0.1 significance level.
+
+\pagebreak
+
+# Introduction
+
+Studies have shown that people are ill sometimes. [@wiki] This includes women, men, young people, and older people throughout the UnitedStates. However, research fails to explain exactly which people are ill at any given moment. Statistical modeling may be able to shed light on this subject. 
+
+# Methods
+
+A generalized linear model was developed in order to understand who was ill among a sample of adults living in the United States. Explanatory variables include annual income in dollars, truncated age in years, and whether or not individuals lived in an east coast city. The study sample contained 149,999 men and women between the ages of 25 and 65 living in the US, taken from a dataset of 150,000. [@kaggle] The excluded individual had a listed annual income under $0. 
+
+Before model creation, the relationship between gender and annual income was examined graphically in order to inspect collinearity.
+
+The model was created using R statistical software version 3.5.0. [@R]
+
+```{r ibgp, echo=FALSE}
+income_by_gender_plot
+```
+
+The distribution of men's income is higher overall than women's income, so gender was excluded from the model.
+
+# Results
+
+None of the explanatory variables in the generalized linear model were statistically significant at the 0.1 significance level:
+
+```{r model, echo=FALSE}
+summary(model1)
+```
+
+# Discussion
+
+A generalized linear model explaining who is ill based on age, income, and residence in an east coast city is insufficient. More research is needed in order to determine the factors that explain who is ill.
+
+The primarly limitation of this study is its use of a toy data set. These data are all fictional. Also, even if they were not, this model is overly simplistic.
+
+\pagebreak
+
+## References
+
+```{r session_info, include=FALSE}
+save_session_info(here("progs", "session_info", "report"))
+```
+

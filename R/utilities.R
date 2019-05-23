@@ -66,124 +66,9 @@ user_prompt <- function(msg, y_msg, n_msg, error = TRUE) {
 
 
 
-
-
-
-
-build_protocol_report <- function(vector,
-                                  what,
-                                  project_id,
-                                  title,
-                                  corresp_auth_row,
-                                  authors_table,
-                                  affiliations_table,
-                                  project_authors,
-                                  aa_assoc_table,
-                                  use_bib,
-                                  pXXXX_name) {
-
-  yaml_bounds <- yaml_bounds(vector = vector, what = what)
-
-  if (use_bib) {
-    vector <- vector %>%
-      append(
-        paste0("bibliography: ", pXXXX_name, ".bib"),
-        after = yaml_bounds[2L] - 1L
-      )
-  }
-
-  vector      <- vector %>%
-    insert_aa(
-      project_id               = project_id,
-      yaml_bounds              = yaml_bounds,
-      corresp_auth_row         = corresp_auth_row,
-      authors_table            = authors_table,
-      affiliations_table       = affiliations_table,
-      project_authors          = project_authors,
-      author_affiliation_assoc = aa_assoc_table
-    ) %>%
-    append(paste0('title: "', title, '"'), after = yaml_bounds[1L])
-
-  vector
-}
-
-
-
-build_datawork_analysis <- function(vector, what, p_path, pXXXX_name) {
-
-  yaml_bounds <- yaml_bounds(vector = vector, what = what)
-
-  vector    <-
-    append(
-      x      = vector,
-      values = paste0('title: "', pXXXX_name, ' ', what, '"'),
-      after  = yaml_bounds[1L]
-    )
-
-  vector
-}
-
-
-
-write_project_files <- function(pXXXX_path,
-                                files,
-                                use_bib,
-                                pXXXX_name,
-                                p_path) {
-
-  docx       <- files$docx
-  files$docx <- NULL
-
-  fs::dir_create(
-    fs::path(
-      pXXXX_path,
-      c("data", "data_raw", "progs", "manuscript", "figures")
-    )
-  )
-
-  file_names <-
-    c(
-      "01_protocol.Rmd",
-      "02_datawork.Rmd",
-      "03_analysis.Rmd",
-      "04_report.Rmd",
-      "style.css",
-      paste0(pXXXX_name, ".Rproj")
-    ) %>%
-    utils::tail(n = length(files))
-
-  if (use_bib) {
-    files      <- append(x = files, values = "", after  = 0L)
-    file_names <-
-      append(
-        x      = file_names,
-        values = paste0(pXXXX_name, ".bib"),
-        after  = 0L
-      )
-  }
-
-  purrr::walk2(
-    .x = files,
-    .y =
-      fs::path(
-        pXXXX_path,
-        c(rep("progs", length(files) - 1L), ""),
-        file_names
-      ),
-    .f = readr::write_lines
-  )
-
-  fs::file_copy(
-    fs::path(p_path, ".templates", docx),
-    fs::path(pXXXX_path, "progs/styles.docx")
-  )
-}
-
-
-
 clear_special_author <- function(author, projects_path, projects_table) {
 
-  if (nrow(projects_table) > 0) {
+  if (nrow(projects_table) > 0L) {
     is.na(projects_table[c("current_owner", "creator", "corresp_auth")]) <-
       projects_table[c("current_owner", "creator", "corresp_auth")] == author
   }
@@ -195,7 +80,6 @@ clear_special_author <- function(author, projects_path, projects_table) {
 
 
 
-#' @importFrom rlang .data
 remove_archived <- function(projects_table) {
   projects_table[
     fs::path_file(fs::path_dir(projects_table$path)) != "archive",

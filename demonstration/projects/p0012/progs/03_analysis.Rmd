@@ -1,0 +1,49 @@
+---
+title: "p0012 analysis"
+---
+
+```{r setup}
+library(projects)
+library(here)
+library(tidyverse)
+```
+
+
+```{r load_02_datawork_data}
+load(file = here("data", "02_datawork_objects.RData"))
+```
+
+
+```{r analysis}
+income_by_gender_plot <-
+  ggplot(clean_people) +
+  geom_density(aes(income_dollars)) +
+  facet_wrap(vars(gender), nrow = 2) +
+  theme_minimal()
+
+ggsave(
+  here("figures", "income_by_gender_plot.png"),
+  plot = income_by_gender_plot,
+  dpi = "retina"
+)
+```
+
+```{r illness_model}
+model1 <-
+  glm(
+    illness ~ age_years + income_dollars + east_coast,
+    data = clean_people
+  )
+
+summary(model1)
+```
+
+
+```{r saver}
+save(
+  income_by_gender_plot,
+  model1,
+  file = here("/data/03_analysis_objects.RData")
+)
+save_session_info(here("progs", "session_info", "analysis"))
+```

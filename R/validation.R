@@ -74,7 +74,7 @@ validate_unique_entry <- function(x,
       zero.ok = zero.ok
     )
 
-  if (nrow(match) > 1) {
+  if (nrow(match) > 1L) {
     print(match)
     stop("\nThe entry ", x, " matches multiple ", what, "s, seen above.")
   } else {
@@ -171,6 +171,15 @@ validate_authors <- function(general_authors,
                              corresp_auth,
                              creator,
                              authors_table) {
+  if (
+    nrow(authors_table) == 0L &&
+    (!is.null(general_authors) || !is.na(current_owner) ||
+     !is.na(corresp_auth) || !is.na(creator))
+  ) {
+    stop(
+      "Can't set authors until an author is created. Run new_author()"
+    )
+  }
 
   special_authors <-
     validate_special_authors(
@@ -186,8 +195,8 @@ validate_authors <- function(general_authors,
     c(general_authors, special_authors[!is.na(special_authors)]) %>%
     unique()
 
-  if (is.na(special_authors$current_owner) && length(general_authors) > 0) {
-    special_authors$current_owner <- general_authors[[1]]
+  if (is.na(special_authors$current_owner) && length(general_authors) > 0L) {
+    special_authors$current_owner <- general_authors[[1L]]
   }
 
   if (is.na(special_authors$creator)) {
@@ -195,9 +204,17 @@ validate_authors <- function(general_authors,
       new_projects_author(paste0("0: ", Sys.info()["user"]))
   }
 
+  if (!is.na(special_authors$corresp_auth)) {
+    corresp_auth_row <-
+      authors_table[match(special_authors$corresp_auth, authors_table$id), ]
+  } else {
+    corresp_auth_row <- NULL
+  }
+
   c(
-    list("general_authors" = vapply(general_authors, as.integer, integer(1))),
-    special_authors
+    list("general_authors" = vapply(general_authors, as.integer, integer(1L))),
+    special_authors,
+    list(corresp_auth_row = corresp_auth_row)
   )
 }
 
@@ -243,7 +260,6 @@ validate_general_authors <- function(authors, authors_table) {
 
 
 
-#' @importFrom rlang .data
 validate_assoc <- function(x, what, rds_table, what2, rds_table2) {
 
   id_checks <- x %in% rds_table2$id2
@@ -307,12 +323,8 @@ validate_directory <- function(path,
 
   path <- fs::path_tidy(path)
 
-  # This only occurs during setup_projects()
-  if (is.null(p_path)) {
-    if (tolower(fs::path_file(path)) == "projects") {
-      path <- fs::path_dir(path)
-    }
-  } else {
+  # setup_projects() is the only place where p_path is NULL
+  if (!is.null(p_path)) {
     path <- fs::path_abs(path = path, start = p_path)
     if (!fs::path_has_parent(path, p_path)) {
       path <- fs::path(p_path, path)
@@ -333,7 +345,7 @@ validate_protocol <- function(protocol, choices) {
 
   protocol_match <- try(match.arg(protocol, choices), silent = TRUE)
 
-  if (class(protocol_match) == "try-error") {
+  if (inherits(protocol_match, "try-error")) {
     protocol
   } else {
     protocol_match

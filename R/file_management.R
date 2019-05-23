@@ -470,9 +470,9 @@ open_project <- function(project, new_session = FALSE, archived = FALSE) {
     fs::dir_ls() %>%
     `[`(fs::path_ext(.) == "Rproj")
 
-  if (length(Rproj_path) != 1) {
+  if (length(Rproj_path) != 1L) {
 
-    if (length(Rproj_path) == 0) {
+    if (length(Rproj_path) == 0L) {
 
       user_prompt(
         msg   =
