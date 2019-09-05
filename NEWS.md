@@ -4,6 +4,7 @@
 ## Major updates:
 - `new_project()` now copies a single template project folder within *.templates* instead of assembling multiple template components into a file. This allows users to customize project folders to a very high degree. Thus, `new_project()` has fewer arguments, having only `template_folder` insofar as template-related arguments.
 - Consequently, header/title page YAML text is NOT written automatically into .Rmd files when they are created by `new_project()`. Users must run `header()` and copy the resulting text into desired *.Rmd* files.
+- Added the function email_authors(), which opens a new email for the currently open project (or, a specified project).
 
 ## Minor updates:
 - There are now separate arguments in `new_project()` and `copy_project()` for specifying the new project's folder name. It can be distinct from a project's `short_title` and its `id` number.

@@ -48,6 +48,7 @@ Collate:
     'class-projects_stage.R'
     'new.R'
     'edit.R'
+    'email_authors.R'
     'file_management.R'
     'getters.R'
     'header.R'
