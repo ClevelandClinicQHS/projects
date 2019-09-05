@@ -6,29 +6,22 @@ test_that("Setup works", {
   old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
   temp_dir <- tempfile("dir")
   dir.create(temp_dir)
-  Sys.setenv(HOME = temp_dir, R_FS_HOME = temp_dir)
+  Sys.setenv(HOME = temp_dir)
   Sys.unsetenv("PROJECTS_FOLDER_PATH")
 
   expect_equal(
-    setup_projects(
-      temp_dir,
-      .Renviron_path = file.path(Sys.getenv("HOME"), ".Renviron")
-    ),
-    file.path(temp_dir, "projects")
+    fs::path_tidy(setup_projects(temp_dir)),
+    fs::path_tidy(fs::path(temp_dir, "projects"))
   )
 
   expect_message(
-    setup_projects(
-      temp_dir,
-      "projects2",
-      .Renviron_path = file.path(Sys.getenv("HOME"), ".Renviron")
-    ),
+    setup_projects(temp_dir, folder_name = "projects2"),
     "The .Renviron file at"
   )
 
   expect_equal(
-    fs::dir_ls(projects_folder(), all = TRUE, recurse = TRUE),
-    c(
+    sort(fs::dir_ls(projects_folder(), all = TRUE, recurse = TRUE)),
+    sort(
       fs::path(
         projects_folder(),
         c(

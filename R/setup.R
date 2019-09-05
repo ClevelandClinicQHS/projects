@@ -120,7 +120,8 @@ setup_projects <- function(path,
                            folder_name      = "projects",
                            overwrite        = FALSE,
                            make_directories = FALSE,
-                           .Renviron_path   = fs::path_home_r(".Renviron")) {
+                           .Renviron_path   =
+                             file.path(Sys.getenv("HOME"), ".Renviron")) {
   folder_name <-
     validate_single_string(folder_name, na.ok = FALSE, zero.chars.ok = FALSE)
 

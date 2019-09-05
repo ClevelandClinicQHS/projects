@@ -6,7 +6,7 @@
 \usage{
 setup_projects(path, folder_name = "projects", overwrite = FALSE,
   make_directories = FALSE,
-  .Renviron_path = fs::path_home_r(".Renviron"))
+  .Renviron_path = file.path(Sys.getenv("HOME"), ".Renviron"))
 }
 \arguments{
 \item{path}{The file path of the \strong{directory inside of which} the user
