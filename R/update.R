@@ -10,7 +10,7 @@
 #'
 #' The \code{stage} column was a \link{factor}, and users had to type stage
 #' names exactly, down to the integer, colon, and space. Now, this column is of
-#' class \code{\link{projects_stage}}.
+#' class \code{\link{projects_stage-class}}.
 #'
 #' The latter three columns were integers corresponding to \code{id}s in the
 #' \code{\link{authors}()} table, so users would have to query that table if
@@ -19,7 +19,8 @@
 #' @param ask Logical, indicating whether or not the user would be asked at the
 #'   command line whether or not to proceed. Defaults to \code{TRUE}.
 #'
-#' @seealso \code{\link{projects_stage}}; \code{\link{projects_author}}.
+#' @seealso \code{\link{projects_stage-class}};
+#'   \code{\link{projects_author-class}}.
 #'
 #' @importFrom rlang .data
 #' @export
@@ -56,7 +57,7 @@ update_metadata <- function(ask = TRUE) {
         current_owner = new_projects_author(),
         status        = character(),
         deadline_type = character(),
-        deadline      = as.POSIXct(character()),
+        deadline      = lubridate::as_datetime(character()),
         stage         = new_projects_stage(),
         path          = character(),
         corresp_auth  = new_projects_author(),

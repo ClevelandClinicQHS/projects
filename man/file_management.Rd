@@ -17,8 +17,9 @@ rename_folder(project, new_folder_name, change_short_title = TRUE,
 
 move_project(project, path, make_directories = FALSE, archived = FALSE)
 
-copy_project(project_to_copy, path, new_id = NA, new_short_title = NA,
-  make_directories = FALSE, archived = FALSE)
+copy_project(project_to_copy, path, new_id = NA,
+  new_folder_name = paste0("p", stringr::str_pad(new_id, 4, pad = "0")),
+  new_short_title = NA, make_directories = FALSE, archived = FALSE)
 
 archive_project(project)
 
@@ -86,23 +87,24 @@ created within the main \link[=projects_folder]{projects folder}. To create a
 project group, which is essentially a subfolder of the main
 \link[=projects_folder]{projects folder}, use \code{new_project_group()}.
 
-The folder name of the project copy created by \code{copy_project()} will be
-\code{new_short_title} if the user supplies a value that is different from
-the names of any existing directories at \code{path}. Otherwise, its folder
-name will be taken from its \code{id} (i.e., "p\emph{XXXX}").
-
 \code{open_project()} is a wrapper around
 \code{rstudioapi::\link[rstudioapi]{openProject}()}, but the user only needs
 to know the project's \code{id}, \code{title}, or \code{short_title} instead
 of the file path of the project's \emph{.Rproj} file. If there is no
 \emph{.Rproj} file in the project's folder, the user has the option to
-restore a default \emph{.Rproj} folder. If there are multiple \emph{.Rproj}
+restore a default \emph{.Rproj} file. If there are multiple \emph{.Rproj}
 files, an error is thrown.
 }
 \examples{
+#############################################################################
 # SETUP
-old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
-setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+old_home <- Sys.getenv("HOME")
+old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+temp_dir <- tempfile("dir")
+dir.create(temp_dir)
+Sys.unsetenv("PROJECTS_FOLDER_PATH")
+Sys.setenv(HOME = temp_dir)
+setup_projects(path = temp_dir)
 #############################################################################
 
 # setting up a simple project directory tree
@@ -111,10 +113,10 @@ new_project_group("kidney/genomics")
 new_project_group("prostate/clinical")
 new_project_group("prostate/genomics")
 
-# Wrapped in if(interactive()) because it requires interactive console input
+# Wrapped in if (interactive()) because it requires interactive console input
 # and fails automated package checking and testing.
-if(interactive()){
-  new_project(title = "Sample Authorless Project", path = "kidney")
+if (interactive()){
+  new_project(title = "Sample Authorless Project", parent_directory = "kidney")
 
   # Moving the project folder, then moving it again.
   move_project(project = 1, "kidney/genomics")
@@ -137,8 +139,7 @@ if(interactive()){
 }
 #############################################################################
 # CLEANUP
-Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
-fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
+Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
 }
 \seealso{
 \code{\link{new_project}()} and \code{\link{delete_project}()} for

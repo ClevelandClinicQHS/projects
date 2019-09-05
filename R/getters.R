@@ -7,13 +7,15 @@
 #' via \code{\link{setup_projects}()}.
 #'
 #' The file path is returned as a simple character string. It simply returns the
-#' value of \code{\link{Sys.getenv}("PRJOECTS_FOLDER_PATH")}, provided
+#' value of \code{\link{Sys.getenv}("PROJECTS_FOLDER_PATH")}, provided
 #' that its value is a file path of a directory that actually exists (i.e.,
 #' \code{\link{setup_projects}()} has been successfully run).
 #'
 #' If it can't find a directory with that path, it returns this string:
 #'
 #' \code{projects folder not found. Please run \link{setup_projects}()}
+#'
+#' @seealso \code{\link{setup_projects}()} for setting up the projects folder.
 #'
 #' @examples
 #' projects_folder()
@@ -85,8 +87,8 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
   p_path        <- get_p_path()
 
   authors_table <-
-    authors_internal(p_path) %>%
-    dplyr::arrange(.data$last_name, .data$given_names)
+    authors_internal(p_path)
+    # %>% dplyr::arrange(.data$last_name, .data$given_names)
 
   if (!missing(author)) {
     authors_table <- authors_table %>%
@@ -138,7 +140,7 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' review}).
 #'
 #' If one or more of the \code{projects}, \code{authors}, or \code{affiliations}
-#' arguments to set to \code{TRUE}, a \code{dplyr::\link[dplyr]{left_join}()} is
+#' arguments is set to \code{TRUE}, a \code{dplyr::\link[dplyr]{left_join}()} is
 #' performed, with the "left" table being the one sharing the name of the
 #' function being used. As such, rows that don't have matches in any other
 #' tables will still show up in the output, and rows that have multiple matches
@@ -173,9 +175,15 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' @return A \code{\link[tibble]{tibble}}.
 #'
 #' @examples
+#' #############################################################################
 #' # SETUP
-#' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
-#' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+#' old_home <- Sys.getenv("HOME")
+#' old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+#' temp_dir <- tempfile("dir")
+#' dir.create(temp_dir)
+#' Sys.unsetenv("PROJECTS_FOLDER_PATH")
+#' Sys.setenv(HOME = temp_dir)
+#' setup_projects(path = temp_dir)
 #' new_affiliation(department_name = "Math Dept.",
 #'                 institution_name = "Springfield College",
 #'                 address = "123 College St, Springfield, AB")
@@ -234,8 +242,8 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #'
 #' #############################################################################
 #' # CLEANUP
-#' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
-#' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
+#' # (or, the user can just restart R)
+#' Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
 #' @name display_metadata
 #' @importFrom rlang .data
 #' @export
@@ -306,10 +314,8 @@ projects <- function(project,
 
 
 print_rds <- function(x) {
-
   old_ops <- options(tibble.print_max = 100L, tibble.print_min = 100L)
   on.exit(options(old_ops))
-
   x
 }
 

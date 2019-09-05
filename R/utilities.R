@@ -1,15 +1,7 @@
 
-make_project_name <- function(x, short_title = FALSE) {
-
-  if (short_title) {
-    fs::path_sanitize(x)
-  } else {
-    paste0("p", stringr::str_pad(x, width = 4, side = "left", pad = "0"))
-  }
-}
 
 make_project_path <- function(project_name, path = get_p_path()) {
-  fs::path(path, project_name) %>% unclass()
+  unclass(fs::path(path, project_name))
 }
 
 
@@ -37,13 +29,9 @@ check_all_rds <- function() {
 
 user_prompt <- function(msg, y_msg, n_msg, error = TRUE) {
 
-  if (isTRUE(getOption('knitr.in.progress'))) {
-    prompt <- "y"
-  } else {
-    prompt <- NULL
-  }
+  prompt <- if (isTRUE(getOption('knitr.in.progress'))) "y"
 
-  while (is.null(prompt) || !(prompt %in% c("y", "n"))) {
+  while (is.null(prompt) || !any(c("y", "n") == prompt)) {
     if (!is.null(prompt)) {
       message("\nInvalid input.\n")
     }
@@ -62,26 +50,4 @@ user_prompt <- function(msg, y_msg, n_msg, error = TRUE) {
   }
 
   prompt == "y"
-}
-
-
-
-clear_special_author <- function(author, projects_path, projects_table) {
-
-  if (nrow(projects_table) > 0L) {
-    is.na(projects_table[c("current_owner", "creator", "corresp_auth")]) <-
-      projects_table[c("current_owner", "creator", "corresp_auth")] == author
-  }
-
-  readr::write_rds(x = projects_table, path = projects_path)
-
-  projects_table
-}
-
-
-
-remove_archived <- function(projects_table) {
-  projects_table[
-    fs::path_file(fs::path_dir(projects_table$path)) != "archive",
-  ]
 }

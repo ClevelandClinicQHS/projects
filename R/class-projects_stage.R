@@ -1,7 +1,4 @@
 
-methods::setClass("projects_stage")
-
-
 #' \code{projects_stage} class and its methods
 #'
 #' Objects of this class are merely a character string containing a number and a
@@ -44,13 +41,13 @@ methods::setClass("projects_stage")
 #'
 #'   For \code{\link{match}()} and \code{\link{\%in\%}}, an integer, a character
 #'   string, or a \code{projects_author} object. See \code{\link{match}()} and
-#'   \strong{Equality and value matching methods} below.
+#'   \strong{Comparison and value matching methods} below.
 #'
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @param table An integer number, a character string, or a
 #'   \code{projects_author} object. See \code{\link{match}()} and
-#'   \strong{Equality and value matching methods} below.
+#'   \strong{Comparison and value matching methods} below.
 #'
 #' @param nomatch See \code{\link{match}()}.
 #'
@@ -82,7 +79,12 @@ methods::setClass("projects_stage")
 #' x <- structure("7: redacted", class = "dummyclass")
 #' class(c(x))     # Does not retain class
 #' class(c(stage, more_stages)) # Retains class
-#' @name projects_stage
+#' @rdname projects_stage
+#' @export
+methods::setClass("projects_stage")
+
+
+#' @rdname projects_stage
 #' @export
 new_projects_stage <- function(x = character()) {
   structure(x, class = "projects_stage")
@@ -188,9 +190,8 @@ Ops.projects_stage <- function(e1, e2) {
 
 
 
-# Generic methods for match() and `%in%`---------------------------------------
+# Generic methods for match() --------------------------------------------------
 
-#' @method match projects_stage
 #' @rdname projects_stage
 #' @export
 match.projects_stage <- function(x,
@@ -210,6 +211,8 @@ match.projects_stage <- function(x,
 }
 
 #' @include set_generics.R
+#' @rdname projects_stage
+#' @export
 methods::setMethod(
   "match",
   signature(x = "projects_stage"),
@@ -217,6 +220,8 @@ methods::setMethod(
 )
 
 #' @include set_generics.R
+#' @rdname projects_stage
+#' @export
 methods::setMethod(
   "match",
   signature(table = "projects_stage"),
@@ -225,7 +230,10 @@ methods::setMethod(
 
 
 
-#' @method %in% projects_stage
+
+
+# Generic methods for %in% -----------------------------------------------------
+
 #' @rdname projects_stage
 #' @export
 `%in%.projects_stage` <- function(x, table) {
@@ -233,6 +241,8 @@ methods::setMethod(
 }
 
 #' @include set_generics.R
+#' @rdname projects_stage
+#' @export
 methods::setMethod(
   "%in%",
   signature(x = "projects_stage"),
@@ -240,6 +250,8 @@ methods::setMethod(
 )
 
 #' @include set_generics.R
+#' @rdname projects_stage
+#' @export
 methods::setMethod(
   "%in%",
   signature(table = "projects_stage"),

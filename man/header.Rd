@@ -18,8 +18,9 @@ from the \code{\link{projects}()} table.}
   more information on the "archived" status of a project.}
 }
 \description{
-Prints a project's header to the console to be copied and pasted into a
-project protocol or manuscript.
+Prints a header to the console to be copied and pasted into the YAML of a
+project protocol or manuscript R Markdown file. These lines essentially
+produce a title page when the R Markdown file is knitted.
 }
 \details{
 The project header consists of:
@@ -35,17 +36,17 @@ The project header consists of:
 \item corresponding author information
 
 }
-
-The \code{header()} function is helpful when after editing details of the
-project (e.g., any of the above information) you want to update your R
-Markdown files. The displayed markdown can be pasted directly in place of the
-header within the R Markdown documents (specifically \emph{01_protocol.Rmd}
-and \emph{04_report.Rmd}).
 }
 \examples{
+#############################################################################
 # SETUP
-old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
-setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+old_home <- Sys.getenv("HOME")
+old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+temp_dir <- tempfile("dir")
+dir.create(temp_dir)
+Sys.unsetenv("PROJECTS_FOLDER_PATH")
+Sys.setenv(HOME = temp_dir)
+setup_projects(path = temp_dir)
 new_affiliation(department_name = "Math Dept.",
                 institution_name = "Springfield College",
                 address = "123 College St, Springfield, AB")
@@ -72,6 +73,5 @@ header(1)
 
 #############################################################################
 # CLEANUP
-Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
-fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
+Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
 }

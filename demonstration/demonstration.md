@@ -1,7 +1,8 @@
-'projects' R package demonstration
+‘projects’ R package demonstration
 ================
 
-The user can install the `projects` package from the Comprehensive R Archive Network (CRAN):
+The user can install the `projects` package from the Comprehensive R
+Archive Network (CRAN):
 
 ``` r
 install.packages("projects")
@@ -16,22 +17,32 @@ library(projects)
     ## projects_folder() location:
     ## projects folder not found. Please run setup_projects()
 
-As the startup message indicates, the user must run `setup_projects()` in order to initialize the */projects/* folder. The function accepts the path of the directory wherein the user would like for the */projects/* folder to dwell. Here, the user establishes the */projects/* folder in the home directory:
+As the startup message indicates, the user must run `setup_projects()`
+in order to initialize the */projects/* folder. The function accepts the
+path of the directory wherein the user would like for the */projects/*
+folder to dwell. Here, the user establishes the */projects/* folder in
+the home directory, whose name is “demonstration”:
 
 ``` r
 setup_projects("~")
 ```
 
     ## projects folder created at
-    ## ~/projects
+    ## /tmp/RtmpS3eJpa/demonstration/projects
     ## 
     ## Add affiliations with new_affiliation(),
     ## then add authors with new_author(),
     ## then create projects with new_project()
 
-This mock *~/projects/* folder has now been created in the user's home directory, and it is also available for viewing in the [demonstration](https://github.com/NikKrieger/projects/tree/master/demonstration) folder on the `projects` GitHub.
+This mock */projects* folder has now been created in the user’s home
+directory, and it is also available for viewing in the
+[demonstration](https://github.com/NikKrieger/projects/tree/master/demonstration)
+folder on the `projects` GitHub.
 
-The message suggests adding affiliations and authors before creating projects because it takes marginally more user effort to change an existing project's authorship than to specify authorship upon a project's creation.
+The message suggests adding affiliations and authors before creating
+projects because it takes marginally more user effort to change an
+existing project’s authorship than to specify authorship upon a
+project’s creation.
 
 ``` r
 new_affiliation(
@@ -106,16 +117,18 @@ affiliations()
 authors()
 ```
 
-    # A tibble: 5 x 7
-         id given_names     last_name title      degree email          phone   
-      <int> <chr>           <chr>     <chr>      <chr>  <chr>          <chr>   
-    1     1 Scott           Bug       Professor  PhD    scottbug@impo… 965-555…
-    2     2 Leonardo        da Vinci  Mathemati… <NA>   <NA>           <NA>    
-    3     3 Chien-Shiung    Wu        Physicist  PhD    wu@wu.wu       <NA>    
-    4    86 Marie           Curie     Chemist    <NA>   <NA>           553-867…
-    5  1337 George Washing… Carver    Botanist   MS     <NA>           <NA>    
+``` 
+# A tibble: 5 x 7
+     id given_names     last_name title      degree email          phone   
+  <int> <chr>           <chr>     <chr>      <chr>  <chr>          <chr>   
+1     1 Scott           Bug       Professor  PhD    scottbug@impo… 965-555…
+2     2 Leonardo        da Vinci  Mathemati… <NA>   <NA>           <NA>    
+3     3 Chien-Shiung    Wu        Physicist  PhD    wu@wu.wu       <NA>    
+4    86 Marie           Curie     Chemist    <NA>   <NA>           553-867…
+5  1337 George Washing… Carver    Botanist   MS     <NA>           <NA>    
+```
 
-We will now create a project called "Creating Cold Fusion":
+We will now create a project called “Creating Cold Fusion”:
 
 ``` r
 new_project(
@@ -128,22 +141,25 @@ new_project(
   stage = "1: design",
   deadline_type = "Pilot study",
   deadline = "2020-12-31",
-  use_bib = TRUE,
   id = 12
 )
 ```
 
+``` 
 
-    Project 12 has been created at
-    ~/projects/p0012
+Project 12 has been created at
+/tmp/RtmpS3eJpa/demonstration/projects/p0012
+```
 
     # A tibble: 1 x 6
-         id title        stage       status   deadline_type deadline           
-      <int> <chr>        <S3: proje> <chr>    <chr>         <dttm>             
-    1    12 Achieving C… 1: design   just cr… Pilot study   2020-12-31 00:00:00
+         id title          stage    status    deadline_type deadline           
+      <int> <chr>          <prjcts> <chr>     <chr>         <dttm>             
+    1    12 Achieving Col… 1: desi… just cre… Pilot study   2020-12-31 00:00:00
 
+``` 
 
-    New project's authors:
+New project's authors:
+```
 
     # A tibble: 5 x 7
       author_id given_names    last_name title     degree email        phone   
@@ -154,42 +170,33 @@ new_project(
     4      1337 George Washin… Carver    Botanist  MS     <NA>         <NA>    
     5        86 Marie          Curie     Chemist   <NA>   <NA>         553-867…
     # A tibble: 1 x 3
-      current_owner         corresp_auth          creator              
-      <S3: projects_author> <S3: projects_author> <S3: projects_author>
-    1 1337: Carver          1: Bug                86: Curie            
+      current_owner corresp_auth creator   
+      <prjcts_t>    <prjcts_t>   <prjcts_t>
+    1 1337: Carver  1: Bug       86: Curie 
 
-This creates the project folder at *~/projects/p0012/*. The */projects/* folder would be structured as follows:
+This creates the project folder at */demonstration/projects/p0012/*.
+Provided that the default project folder template was not altered, the
+*/projects* folder should be structured as follows:
 
-    ~/projects
-    ├── .metadata
-    │   ├── affiliations.rds
-    │   ├── author_affiliation_assoc.rds
-    │   ├── authors.rds
-    │   ├── project_author_assoc.rds
-    │   └── projects.rds
-    ├── .templates
-    │   ├── 01_protocol.Rmd
-    │   ├── 02_datawork.Rmd
-    │   ├── 03_analysis.Rmd
-    │   ├── 04_report.Rmd
-    │   ├── CONSORT_protocol.Rmd
-    │   ├── STROBE_protocol.Rmd
-    │   ├── pXXXX.Rproj
-    │   ├── style.css
-    │   └── styles.docx
-    └── p0012
-        ├── data
-        ├── data_raw
-        ├── figures
-        ├── manuscript
-        ├── p0012.Rproj
-        └── progs
-            ├── 01_protocol.Rmd
-            ├── 02_datawork.Rmd
-            ├── 03_analysis.Rmd
-            ├── 04_report.Rmd
-            ├── p0012.bib
-            ├── style.css
-            └── styles.docx
+    /tmp/RtmpS3eJpa/demonstration
+    └── projects
+        └── p0012
+            ├── data
+            ├── data_raw
+            ├── figures
+            ├── manuscript
+            ├── p0012.Rproj
+            └── progs
+                ├── 01_protocol.Rmd
+                ├── 02_datawork.Rmd
+                ├── 03_analysis.Rmd
+                ├── 04_report.Rmd
+                ├── citations.bib
+                ├── style.css
+                └── styles.docx
 
-The user may now begin work on this project. The [demonstration](https://github.com/NikKrieger/projects/tree/master/demonstration) folder on the `projects` GitHub contains this project folder, with a mock project completed in order to demonstrate workflow from 01\_protocol.Rmd to 04\_report.Rmd.
+The user may now begin work on this project. The
+[demonstration](https://github.com/NikKrieger/projects/tree/master/demonstration)
+folder on the `projects` GitHub contains this project folder, with a
+mock project completed in order to demonstrate workflow from
+01\_protocol.Rmd to 04\_report.Rmd.

@@ -17,14 +17,11 @@
 new_project(title = NA, current_owner = NA, stage = c("1: design",
   "2: data collection", "3: analysis", "4: manuscript", "5: under review",
   "6: accepted", "0: idea"), status = "just created", short_title = NA,
-  authors = NULL, deadline_type = NA, deadline = NA,
-  path = projects_folder(), make_directories = FALSE,
-  corresp_auth = NA, creator = NA, id = NA,
-  protocol = c("01_protocol.Rmd", "STROBE_protocol.Rmd",
-  "CONSORT_protocol.Rmd"), datawork = "02_datawork.Rmd",
-  analysis = "03_analysis.Rmd", report = "04_report.Rmd",
-  css = "style.css", docx = "styles.docx", Rproj = "pXXXX.Rproj",
-  use_bib = FALSE, stitle_as_folder = FALSE)
+  authors = NULL, corresp_auth = NA, creator = NA,
+  deadline_type = NA, deadline = NA, id = NA,
+  folder_name = paste0("p", stringr::str_pad(id, 4, pad = "0")),
+  parent_directory = projects_folder(), make_directories = FALSE,
+  template_folder = "default_folder")
 
 new_idea(title, status = "just an idea", ...)
 
@@ -63,14 +60,14 @@ delete_affiliation(affiliation)
 \item{current_owner, corresp_auth, creator}{An \code{id} or unambiguous
   \code{last_name}/\code{given_names} of one of the authors in the
   \code{\link{authors}()} table, which will be coerced into a
-  \link{projects_author} class object.
+  \link{projects_author-class} object.
 
-  If \code{corresp_auth} is specified, all of this author's contact
-  information will be especially included in the project's \link{header}.
+  If \code{corresp_auth} is specified, this author's contact information will
+  be especially included in the output of \code{\link{header}()}.
 
   If \code{creator} is left blank, the numeric portion of the resulting
-  \link{projects_author} class object will be \code{0}, followed by the value
-  of \code{Sys.info()["user"]} (e.g., \code{0: user_j_smith}).}
+  \link{projects_author-class} object will be \code{0:}, followed by the
+  value of \code{\link{Sys.info}()["user"]} (e.g., \code{0: user_j_smith}).}
 
 \item{stage}{A number or string that will partially match exactly one of
   \code{c("1: design", "2: data collection", "3: analysis", "4: manuscript",
@@ -80,12 +77,7 @@ delete_affiliation(affiliation)
 
   For \code{new_project()}, defaults to \code{"1: design"}.
 
-  If set to one of \code{c("3: analysis", "4: manuscript", "5: under review",
-  "6: accepted")}, \code{protocol} and \code{datawork} are ignored and the
-  \emph{01_protocol.Rmd} and \emph{02_datawork.Rmd} files will not be
-  written.
-
-  See \link{projects_stage}.}
+  See \link{projects_stage-class}.}
 
 \item{status}{A free text field, intended to communicate the most current
   condition the project is in.
@@ -94,9 +86,7 @@ delete_affiliation(affiliation)
   \code{new_idea()}, default is \code{"just an idea"}.}
 
 \item{short_title}{A nickname for the project. Can be used in other
-  \code{projects} package functions whenever needing to specify a project.
-
-  Additionally, see the parameter info for \code{stitle_as_folder} below.}
+\code{projects} package functions whenever needing to specify a project.}
 
 \item{authors, affiliations}{For \code{new_project()}/\code{new_author()}, a
   vector of \code{id}s or unambiguous \code{given_names}/\code{last_name} or
@@ -106,19 +96,28 @@ delete_affiliation(affiliation)
   For \code{edit_project()}/\code{edit_author()}, a formula specifying
   authors/affiliations to add or remove from the project/author. Formulas
   must have no left-hand side (i.e., begin with \code{\link{~}}) and use
-  \code{+} to add authors and \code{-} to remove authors (see
-  \link{formula}). Authors may be specified by \code{id} or name.
+  \code{+} to add and \code{-} to remove (see \link{formula}).
 
-  Each element must match an existing row in the
+  Authors and affiliations may be specified by \code{id} or name. Each
+  element must match an existing row in the
   \code{\link{authors}()}/\code{\link{affiliations}()} table.}
 
 \item{deadline_type}{A free text field, intended to communicate the meaning
 of the next field, \code{deadline}.}
 
-\item{deadline}{A \code{\link{POSIXct}} object or something coercible to one.}
+\item{deadline}{A \code{\link{POSIXct}} object or something coercible to one
+(via \code{lubridate::\link[lubridate]{as_datetime}()}).}
 
-\item{path}{A character string that can be read as a file path. Can be
-  either:
+\item{id}{An integer that will become the item's permanent identification
+number. Must be in the range 1-9999 or left blank. If left blank, the
+lowest available integer in the aforementioned range will be selected.}
+
+\item{folder_name}{A character string that can serve as a valid directory
+name. By default, it is "p" followed by the project \code{id} number
+left-filled with "0" until the number is four digits long.}
+
+\item{parent_directory}{A character string that can be read as a file path.
+  Can be either:
 
   \enumerate{
 
@@ -130,7 +129,7 @@ of the next field, \code{deadline}.}
   \link[=projects_folder]{projects folder}
 
   \item a \emph{relative} path (leading \code{"."} optional) that will be
-  appended onto the end of the \link[=projects_folder]{projects folder}.
+  appended onto the end of the value of \code{\link{projects_folder}()}.
 
   }
 
@@ -143,45 +142,11 @@ of the next field, \code{deadline}.}
 \code{path} argument that do not already exist. Ignored if \code{path} is
 left as the default or if all directories in \code{path} already exist.}
 
-\item{id}{An integer that will become the item's permanent identification
-  number. Must be in the range 1-9999 or left blank. If left blank, the
-  lowest available integer in the aforementioned range will be selected.
-
-  For \code{new_project}, this number will also determine the project
-  folder's and \emph{.Rproj} file's names. See \strong{Details}.}
-
-\item{protocol, datawork, analysis, report, css, docx, Rproj}{A character string
-  matching the name of a corresponding template file in the \emph{.templates}
-  subdirectory of the main \link[=projects_folder]{projects folder}. Default
-  templates are placed there when \code{\link{setup_projects}()} is run, and
-  the user can edit these if desired.
-
-  Multiple default \code{protocol} templates are available.
-
-  \emph{01_protocol.Rmd}, which by default is the same as
-  \emph{STROBE_protocol.Rmd}, will be selected if \code{protocol} is
-  unspecified. Users can edit these default templates.
-
-  If using an edited or custom template, make sure to match the case and file
-  extension exactly.
-
-  If the \code{stage} argument is set to one of \code{c("3: analysis", "4:
-  manuscript", "5: under review", "6: accepted")}, \code{protocol} and
-  \code{datawork} are ignored and the \emph{01_protocol.Rmd} and
-  \emph{02_datawork.Rmd} files will not be written.
-
-  The \code{css} template is used to style knitted html files, whereas the
-  \code{docx} template is used to style knitted Word documents.}
-
-\item{use_bib}{Logical. If \code{TRUE}, a blank \emph{.bib} file will be
-written into the \strong{progs} subdirectory of the newly created project
-folder. Its name will be of the form \emph{pXXXX.bib}, and the YAML header
-of \emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd} will include
-the line \code{bibliography: p}\emph{XXXX}\code{.bib}.}
-
-\item{stitle_as_folder}{Logical, indicating whether or not to use the
-\code{short_title} as the name of the new project's folder. Defaults to
-\code{FALSE}.}
+\item{template_folder}{A character string naming a folder in the
+\emph{.templates} folder that will be copied into the
+\link[=projects_folder]{projects folder} as the new project folder, renamed
+according to the value of the \code{folder_name} argument. See also
+\strong{Details} below.}
 
 \item{...}{Additional arguments to be passed to \code{new_project()}}
 
@@ -190,12 +155,13 @@ character string. Can be used whenever needing to specify a specific
 author/affiliation.}
 
 \item{degree}{A character string (preferably an abbreviation) denoting the
-author's academic degree(s). Will be written next to author names in the
-\link{header}.}
+author's academic degree(s). Will be written next to author names when
+\code{\link{header}()} is run.}
 
 \item{email, phone}{A character string denoting the email/phone of the author.
 Email will be coerced to lowercase. When a project is given a
-\code{corresp_auth}, these items will be included in the \link{header}.}
+\code{corresp_auth}, \code{email} will be included in "Corresponding
+author:" section written by \code{\link{header}()}.}
 
 \item{address}{A character string indicating the address of the affiliation.}
 
@@ -232,31 +198,36 @@ stored in the \emph{.metadata} subdirectory of the main
 \link[=projects_folder]{projects folder}.
 }
 \details{
-\code{new_project()} creates a new R project folder that is automatically
-filled with a \emph{.Rproj} file, helpful subdirectories, and \emph{.Rmd}
-files to get your project workflow started; \code{delete_project()} deletes
-them. The \code{edit_*()} functions and the other \code{new_*()} and
-\code{delete_*()} functions only create or edit rows in the \emph{.metadata}
-tables. \code{new_idea()} is a convenience function for quickly creating
-projects in the \code{"0: idea"} stage.
+\code{new_project()} copies the folder in the \emph{.templates} folder named
+by the \code{template_name} argument into the
+\link[=projects_folder]{projects folder}, giving it the name specified by the
+\code{folder_name} argument. It then creates a line in the
+\code{\link{projects}()} table for the newly created project, filling many of
+its fields with the contents of corresponding arguments of this function. See
+\code{\link{setup_projects}()} for more information on the \emph{.templates}
+folder.
 
-Unless the user sets \code{stitle_as_folder = TRUE}, the name of a newly
-created project folder (and the \emph{.Rproj} file it contains) will be of
-the form "p\emph{XXXX}", where "\emph{XXXX}" denotes the project \code{id}
-number, left-filled with 0s. The folder will be an immediate subdirectory of
-the main \link[=projects_folder]{projects folder} (see also
-\code{\link{setup_projects}()}) unless the argument \code{path} specifies a
-deeper subdirectory. The user may enter various metadata about the project
-that is stored and may be called forth using the \code{\link{projects}()}
-function. Some of this metadata will automatically be added to the
-\link{header} atop the automatically created \emph{.Rmd} files called
-\emph{progs/01_protocol.Rmd} and \emph{progs/04_report.Rmd}.
+\code{delete_project()} deletes project folders and removes their line from
+the \code{\link{projects}()} table.
+
+The \code{edit_*()} functions and the other \code{new_*()} and
+\code{delete_*()} functions only create or edit rows in the \emph{.metadata}
+tables.
+
+\code{new_idea()} is a convenience function for quickly creating projects in
+the \code{"0: idea"} stage.
 }
 \examples{
+#############################################################################
 # SETUP
-old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
-setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
-############################################################################
+old_home <- Sys.getenv("HOME")
+old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+temp_dir <- tempfile("dir")
+dir.create(temp_dir)
+Sys.unsetenv("PROJECTS_FOLDER_PATH")
+Sys.setenv(HOME = temp_dir)
+setup_projects(path = temp_dir)
+#############################################################################
 
 # Creating affiliations
 new_affiliation(department_name = "Math Dept.",
@@ -289,7 +260,7 @@ new_author(
 new_author(last_name = "Plato", id = 303)
 
 # Editing an author, showcasing the removal of a text element (last_name)
-edit_author(author = 303, given_names = "Plato", last_name = NULL)
+edit_author(author = 303, given_names = "Plato", last_name = NA)
 
 # Editing an author, showcasing the addition and removal of affiliations
 edit_author("Spiro", affiliations = ~ -"Art D" + Math)
@@ -302,11 +273,10 @@ new_project(
   stage = 4,
   deadline = "2055-02-28",
   deadline_type = "submission",
-  path = "famous_studied/philosophers/rocks",
+  parent_directory = "famous_studied/philosophers/rocks",
   corresp_auth = "Stone",
   current_owner = "agnew",
   make_directories = TRUE,
-  use_bib = TRUE,
   status = "waiting on IRB"
 )
 
@@ -329,6 +299,5 @@ if (interactive()) {
 
 #############################################################################
 # CLEANUP
-Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
-fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
+Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
 }

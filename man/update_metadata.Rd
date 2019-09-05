@@ -21,12 +21,13 @@ Prior to \code{\link[=projects-package]{projects}} 1.X.X, the \code{stage},
 
 The \code{stage} column was a \link{factor}, and users had to type stage
 names exactly, down to the integer, colon, and space. Now, this column is of
-class \code{\link{projects_stage}}.
+class \code{\link{projects_stage-class}}.
 
 The latter three columns were integers corresponding to \code{id}s in the
 \code{\link{authors}()} table, so users would have to query that table if
 they did not remember which author was denoted by the integer \code{id}.
 }
 \seealso{
-\code{\link{projects_stage}}; \code{\link{projects_author}}.
+\code{\link{projects_stage-class}};
+  \code{\link{projects_author-class}}.
 }

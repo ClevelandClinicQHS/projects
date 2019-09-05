@@ -6,6 +6,7 @@ output:
     css: style.css
   pdf_document:
     default
+bibliography: citations.bib
 ---
 
 Funding:
@@ -18,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r load_libraries, include=FALSE}
+library(projects)
 library(here)
 library(tidyverse)
 ```
@@ -125,3 +127,7 @@ Sources of funding and other support (such as supply of drugs), role of funders
 \pagebreak
 
 ## References
+
+```{r session_info, include=FALSE}
+save_session_info(here("progs", "session_info", "protocol"))
+```

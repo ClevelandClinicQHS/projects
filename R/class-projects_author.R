@@ -1,6 +1,4 @@
 
-methods::setClass("projects_author")
-
 #' \code{projects_author} class and its methods
 #'
 #' Objects of this class contain both the \code{id} and the \code{last_name} of
@@ -59,7 +57,22 @@ methods::setClass("projects_author")
 #'   \code{\link{[.data.frame}}.
 #'
 #' @examples
+#' #############################################################################
+#' # SETUP
+#' old_home <- Sys.getenv("HOME")
+#' old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+#' temp_dir <- tempfile("dir")
+#' dir.create(temp_dir)
+#' Sys.unsetenv("PROJECTS_FOLDER_PATH")
+#' Sys.setenv(HOME = temp_dir)
+#' setup_projects(path = temp_dir)
+#' new_author("jonesman", "chuck", id = 33)
+#' new_author("Hattie", "Hatsman", id = 45)
+#' #############################################################################
+#'
 #' jones <- new_projects_author("33: Jones")
+#'
+#' jones
 #'
 #' as.integer(jones) # 33
 #'
@@ -70,17 +83,24 @@ methods::setClass("projects_author")
 #' jones %in% c(20:40)     # TRUE
 #' match(jones, c(31:40))  # 3
 #'
-#' \dontrun{
-#' # Not run because no authors() table is created within this example code.
-#' jones == "jOnES"
-#' # TRUE, assuming that the authors() table contains an author with an id of 3
-#' # and a last_name beginning with "jones" (not case sensitive).
-#' }
+#' # Comparing a projects_author object to a character vector results in the
+#' # character strings being validated against the authors() table. Then, the id
+#' # numbers are compared.
+#' jones == c("jOnES", "hat")   # TRUE FALSE
 #'
 #' x <- structure("32: Clinton", class = "dummyclass")
 #' class(c(x))     # Does not retain class
 #' class(c(jones)) # Retains class
-#' @name projects_author
+#'
+#' #############################################################################
+#' # Cleanup (or just restart R)
+#' Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
+#' @rdname projects_author
+#' @export
+methods::setClass("projects_author")
+
+
+#' @rdname projects_author
 #' @export
 new_projects_author <- function(x = character()) {
   structure(x, class = "projects_author")
@@ -101,7 +121,7 @@ validate_projects_author <- function(x,
       zero.ok = TRUE
     )
 
-  if (nrow(x_valid) == 0) {
+  if (nrow(x_valid) == 0L) {
     new_projects_author(NA)
   } else {
     new_projects_author(paste0(x_valid$id, ": ", x_valid$last_name))
@@ -154,35 +174,32 @@ Ops.projects_author <- function(e1, e2) {
     stop(gettextf("%s not meaningful for projects_authors", sQuote(.Generic)))
   }
 
+
   if (rlang::is_integerish(e1) || rlang::is_integerish(e2)) {
     e1 <- as.integer(e1)
     e2 <- as.integer(e2)
-  } else {
-    if (inherits(e1, "projects_author")) {
-      e1 <- unclass(e1)
-      if (inherits(e2, "projects_author")) {
-        e2 <- unclass(e2)
-      } else {
-        e2 <-
-          as.character(
-            lapply(
-              e2,
-              validate_projects_author,
-              authors_table = authors_internal()
-            )
-          )
-      }
+  } else if (inherits(e1, "projects_author")) {
+    e1 <- as.integer(e1)
+    if (inherits(e2, "projects_author")) {
+      e2 <- as.integer(e2)
     } else {
-      e2 <- unclass(e2)
-      e1 <-
-        as.character(
-          lapply(
-            e1,
-            validate_projects_author,
-            authors_table = authors_internal()
-          )
+      e2 <-
+        vapply(
+          e2,
+          function(x) as.integer(validate_projects_author(x)),
+          integer(1L),
+          USE.NAMES = FALSE
         )
     }
+  } else {
+    e1 <-
+      vapply(
+        e1,
+        function(x) as.integer(validate_projects_author(x)),
+        integer(1L),
+        USE.NAMES = FALSE
+      )
+    e2 <- as.integer(e2)
   }
 
   get(.Generic)(e1, e2)
@@ -190,9 +207,8 @@ Ops.projects_author <- function(e1, e2) {
 
 
 
+# Generic methods for match() --------------------------------------------------
 
-# Generic methods for match() and `%in%`---------------------------------------
-#' @method match projects_author
 #' @rdname projects_author
 #' @export
 match.projects_author <- function(x,
@@ -226,6 +242,8 @@ match.projects_author <- function(x,
 }
 
 #' @include set_generics.R
+#' @rdname projects_author
+#' @export
 methods::setMethod(
   "match",
   methods::signature(x = "projects_author"),
@@ -233,6 +251,8 @@ methods::setMethod(
 )
 
 #' @include set_generics.R
+#' @rdname projects_author
+#' @export
 methods::setMethod(
   "match",
   methods::signature(table = "projects_author"),
@@ -241,7 +261,9 @@ methods::setMethod(
 
 
 
-#' @method %in% projects_author
+
+# Generic methods for %in% -----------------------------------------------------
+
 #' @rdname projects_author
 #' @export
 `%in%.projects_author` <- function(x, table) {
@@ -249,6 +271,8 @@ methods::setMethod(
 }
 
 #' @include set_generics.R
+#' @rdname projects_author
+#' @export
 methods::setMethod(
   "%in%",
   methods::signature(x = "projects_author"),
@@ -256,6 +280,8 @@ methods::setMethod(
 )
 
 #' @include set_generics.R
+#' @rdname projects_author
+#' @export
 methods::setMethod(
   "%in%",
   methods::signature(table = "projects_author"),

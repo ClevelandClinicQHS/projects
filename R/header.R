@@ -1,8 +1,9 @@
 
 #' Print project header to console
 #'
-#' Prints a project's header to the console to be copied and pasted into a
-#' project protocol or manuscript.
+#' Prints a header to the console to be copied and pasted into the YAML of a
+#' project protocol or manuscript R Markdown file. These lines essentially
+#' produce a title page when the R Markdown file is knitted.
 #'
 #' The project header consists of:
 #'
@@ -18,12 +19,6 @@
 #'
 #' }
 #'
-#' The \code{header()} function is helpful when after editing details of the
-#' project (e.g., any of the above information) you want to update your R
-#' Markdown files. The displayed markdown can be pasted directly in place of the
-#' header within the R Markdown documents (specifically \emph{01_protocol.Rmd}
-#' and \emph{04_report.Rmd}).
-#'
 #' @param project Project \code{id} or unambiguous substring of the project name
 #'   from the \code{\link{projects}()} table.
 #' @param archived Logical, indicating whether or not the function should
@@ -34,9 +29,15 @@
 #'   more information on the "archived" status of a project.
 #'
 #' @examples
+#' #############################################################################
 #' # SETUP
-#' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
-#' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+#' old_home <- Sys.getenv("HOME")
+#' old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+#' temp_dir <- tempfile("dir")
+#' dir.create(temp_dir)
+#' Sys.unsetenv("PROJECTS_FOLDER_PATH")
+#' Sys.setenv(HOME = temp_dir)
+#' setup_projects(path = temp_dir)
 #' new_affiliation(department_name = "Math Dept.",
 #'                 institution_name = "Springfield College",
 #'                 address = "123 College St, Springfield, AB")
@@ -63,11 +64,16 @@
 #'
 #' #############################################################################
 #' # CLEANUP
-#' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
-#' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
+#' Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
 #' @name header
 #' @export
-header <- function(project, archived = FALSE) {
+header <- function(project,
+                   archived = FALSE
+                   # degree = TRUE,
+                   # corresp_address = TRUE,
+                   # corresp_phone = FALSE,
+                   # corresp_email = TRUE
+                   ) {
 
   p_path  <- get_p_path()
 
@@ -80,6 +86,10 @@ header <- function(project, archived = FALSE) {
     project_id  = project_row$id,
     p_path      = p_path,
     project_row = project_row
+    # degree = degree,
+    # corresp_address = corresp_address,
+    # corresp_phone = corresp_phone,
+    # corresp_email = corresp_email
   )
 }
 
@@ -87,6 +97,7 @@ header <- function(project, archived = FALSE) {
 
 #' @importFrom rlang .data
 print_header_internal <- function(
+
   project_id,
   p_path                   = get_p_path(),
   project_row              = dplyr::filter(projects_internal(p_path, TRUE),
@@ -94,8 +105,12 @@ print_header_internal <- function(
   authors_table            = authors_internal(p_path),
   affiliations_table       = affiliations_internal(p_path),
   project_author_assoc     = pa_assoc_internal(p_path),
-  author_affiliation_assoc = aa_assoc_internal(p_path))
-{
+  author_affiliation_assoc = aa_assoc_internal(p_path)
+  # degree,
+  # corresp_address,
+  # corresp_phone,
+  # corresp_email
+  ) {
 
   project_authors <-
     project_author_assoc$id2[project_author_assoc$id1 == project_id]
@@ -113,6 +128,10 @@ print_header_internal <- function(
         affiliations_table       = affiliations_table,
         project_authors          = project_authors,
         author_affiliation_assoc = author_affiliation_assoc
+        # degree = degree,
+        # corresp_address = corresp_address,
+        # corresp_phone = corresp_phone,
+        # corresp_email = corresp_email
       )
   )
 }
@@ -126,43 +145,18 @@ taa_to_console <- function(title, header) {
 
 
 
-insert_aa <- function(vector,
-                      project_id,
-                      yaml_bounds,
-                      corresp_auth_row,
-                      authors_table,
-                      affiliations_table,
-                      project_authors,
-                      author_affiliation_assoc) {
-
-  if (is.null(project_authors)) {
-    aa_header <- character()
-  } else {
-    aa_header <-
-      aa_header(
-        project_id               = project_id,
-        corresp_auth_row         = corresp_auth_row,
-        authors_table            = authors_table,
-        affiliations_table       = affiliations_table,
-        project_authors          = project_authors,
-        author_affiliation_assoc = author_affiliation_assoc
-      )
-  }
-
-  vector <- vector %>% append(aa_header, after = yaml_bounds[1L])
-
-  vector
-}
-
-
-
 #' @importFrom rlang .data
 aa_header <- function(project_id,
                       corresp_auth_row,
                       authors_table,
                       affiliations_table,
                       project_authors,
-                      author_affiliation_assoc) {
+                      author_affiliation_assoc
+                      # degree,
+                      # corresp_address,
+                      # corresp_phone,
+                      # corresp_email
+                      ) {
 
   # The left_join/select/rename combo was used instead of semi_join so that the
   # order in project_author_assoc would be preserved
@@ -186,11 +180,11 @@ aa_header <- function(project_id,
     dplyr::left_join(affiliations_table, by = c("id2" = "id"))
 
 
-  if (nrow(project_authors) > 0) {
+  if (nrow(project_authors) > 0L) {
     ############################################################
     # Construction of affiliations line to go in 01_protocol.Rmd
 
-    if (nrow(aa_assoc_complete) > 0) {
+    if (nrow(aa_assoc_complete) > 0L) {
 
       # A tibble of the unique affiliations associated with the project, with a
       # superscript assigned to each
@@ -209,7 +203,7 @@ aa_header <- function(project_id,
 
 
       affiliations_lines <- character()
-      for (a in 1:nrow(unique_affiliations)) {
+      for (a in seq_len(nrow(unique_affiliations))) {
 
         affiliation_line <- paste0("  - ^", a, "^ ",
                                    unique_affiliations$department_name[a])
@@ -236,7 +230,7 @@ aa_header <- function(project_id,
 
     author_line         <- "  - "
 
-    for (x in 1:nrow(project_authors)) {
+    for (x in seq_len(nrow(project_authors))) {
 
       if (x != 1) {
         author_line <- paste0(author_line, " ")
@@ -261,23 +255,27 @@ aa_header <- function(project_id,
         author_line <- paste0(author_line, project_authors$last_name[x])
       }
 
-      if (!is.na(project_authors$degree[x])) {
+      if (
+        # degree &&
+        !is.na(project_authors$degree[x])) {
         author_line <- paste0(author_line, ", ", project_authors$degree[x])
       }
 
-      if (x != nrow(project_authors) && nrow(project_authors) > 2) {
+      if (x != nrow(project_authors) && nrow(project_authors) > 2L) {
         author_line <- paste0(author_line, ";")
       }
 
-      x_affiliations <- dplyr::filter(aa_assoc_complete,
-                                      .data$id1 == project_authors$id[x])
+      x_affiliations <-
+        dplyr::filter(aa_assoc_complete, .data$id1 == project_authors$id[x])
 
-      if (nrow(x_affiliations) > 0) {
+      if (nrow(x_affiliations) > 0L) {
         author_line <-
-          paste0(author_line,
-                 "^",
-                 paste(sort(x_affiliations$superscript), collapse = ","),
-                 "^")
+          paste0(
+            author_line,
+            "^",
+            paste(sort(x_affiliations$superscript), collapse = ","),
+            "^"
+          )
       }
 
       if (isTRUE(project_authors$id[x] == corresp_auth_row$id)) {
@@ -287,14 +285,15 @@ aa_header <- function(project_id,
 
     if (is.null(corresp_auth_row)) {
       corresp_lines <- character()
-    }
-    else {
+    } else {
       corresp_affils   <-
         aa_assoc_complete[match(corresp_auth_row$id, aa_assoc_complete$id1), ]
 
       corresp_lines    <- "  - \\* Corresponding author"
 
-      if (nrow(corresp_affils) > 0L &&
+      if (
+        # corresp_address &&
+          nrow(corresp_affils) > 0L &&
           length(stats::na.omit(corresp_affils$address)) > 0L) {
         corresp_lines <-
           append(
@@ -306,12 +305,16 @@ aa_header <- function(project_id,
           )
       }
 
-      if (!is.na(corresp_auth_row$phone)) {
+      if (
+        # corresp_phone &&
+        !is.na(corresp_auth_row$phone)) {
         corresp_lines <-
           append(corresp_lines, paste0("  - ", corresp_auth_row$phone))
       }
 
-      if (!is.na(corresp_auth_row$email)) {
+      if (
+        # corresp_email &&
+          !is.na(corresp_auth_row$email)) {
         corresp_lines <-
           append(corresp_lines, paste0("  - ", corresp_auth_row$email))
       }

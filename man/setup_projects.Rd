@@ -30,8 +30,7 @@ would like to store the \code{\link{projects_folder}()} path. Default is
 the home .Renviron file. If the file doesn't exist it will be created.}
 }
 \value{
-The project folder's path, invisibly. It will be \code{""} if it
-  doesn't exist.
+The project folder's path, invisibly.
 }
 \description{
 Creates or restores the projects folder at the user-specified path.
@@ -48,15 +47,22 @@ file that R will not notice or use. See \link{Startup} for more details.
 \section{Default contents}{
  The \link[=projects_folder]{projects folder}
   automatically contains the subdirectories \emph{.metadata} and
-  \emph{.template}, which are hidden by default on some operating systems.
+  \emph{.templates}, which are hidden by default on some operating systems.
 
   The \emph{.metadata} folder and its contents should \strong{never} be
   manually moved or modified.
 
-  The \emph{.templates} will contain several templates that
-  \code{\link{new_project}()} reads when creating a new project. Advanced
-  users may edit these templates or add their own. See
-  \code{\link{new_project}()} for details.
+  The \emph{.templates} folder is where template project files and folders
+  should be stored. When this function is successfully run, the default
+  projects folder template is created (as "default_folder") alongside a few
+  other template files. When a new project is created,
+  \code{\link{new_project}()} looks here for the folder named by its
+  \code{template_folder} argument (\code{"default_folder"} by default), and
+  this folder is copied into the \link[=projects_folder]{projects folder}
+  (with name specified by the \code{folder_name} argument) as the new project
+  folder. Users are able and encouraged to customize the
+  \code{default_folder} to suit their research needs, and may even create
+  multiple project folder templates for different situations.
 }
 
 \section{Behavior when projects folder already exists}{
@@ -75,18 +81,53 @@ file that R will not notice or use. See \link{Startup} for more details.
 }
 
 \examples{
-# This sequence is used in all other examples in this package.
+#############################################################################
+# Setup
+# Any existing "projects" folder is left totally untouched,
+# and the user's home directory and .Renviron file are also left untouched.
+old_home  <- Sys.getenv("HOME")
+old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+temp_dir <- tempfile("dir")
+dir.create(temp_dir)
+Sys.setenv(HOME = temp_dir)
+Sys.unsetenv("PROJECTS_FOLDER_PATH")
+#############################################################################
 
-# Back up old projects_folder()
-old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
+# Creating the projects folder
+setup_projects(path = temp_dir)
 
-# This sets up an example projects_folder() in a temporary directory.
-# It will not edit any of the user's .Renviron files.
-setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+# Viewing the projects folder path:
+path1 <- projects_folder()
 
+# Viewing the contents of the projects folder:
+list.files(path1, full.names = TRUE, recursive = TRUE,  all.files = TRUE)
+
+# Create an arbitrary subfolder in temp_dir:
+subfolder_path <- file.path(temp_dir, "test")
+dir.create(subfolder_path)
+
+
+# Wrapped in if (interactive()) because it requires user input
+if (interactive()) {
+  # The function won't let the user abandon the old projects folder...
+  setup_projects(path = subfolder_path)
+
+  # ...unless overwrite = TRUE
+  setup_projects(path = file.path(temp_dir, "test"), overwrite = TRUE)
+
+  # Even then, only the stored location of the projects folder is overwritten.
+  # The old projects folder still exists:
+  list.files(path1, full.names = TRUE, recursive = TRUE,  all.files = TRUE)
+
+  # Giving the "projects" folder a different name:
+  setup_projects(path = temp_dir, folder_name = "studies", overwrite = TRUE)
+}
+
+#############################################################################
 # Cleanup
-Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
-fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
+# (or, the user can just restart R)
+Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
+#############################################################################
 }
 \seealso{
 \code{\link{new_project}()} for information on templates

@@ -70,7 +70,7 @@ save_session_info <- function(path_dir = here::here("progs", "session_info")) {
 }
 
 
-#' Compressed a project folder
+#' Compress a project folder
 #'
 #' Creates a compressed file out of a user-specified project folder for sharing.
 #'

@@ -16,7 +16,7 @@ output:
     reference_docx: styles.docx
   pdf_document:
     default
-bibliography: p0012.bib
+bibliography: citations.bib
 ---
 
 ```{r setup, include=FALSE}

@@ -8,16 +8,11 @@ make_rds_path <- function(rds_name, p_path = get_p_path()) {
 get_rds <- function(rds_path, check = TRUE) {
 
   if (!fs::file_exists(rds_path)) {
-    stop(fs::path_file(rds_path), " file not found at ", rds_path,
-         ". Please restore the file or [re]run setup_projects()")
+    stop(
+      fs::path_file(rds_path), " file not found at ", rds_path,
+      ". Please restore the file or [re]run setup_projects()"
+    )
   }
-
-  # rds <- readRDS(rds_path)
-  #
-  # if (check && !up_to_date(rds)) {
-  #   update_notice()
-  #   rds <- readRDS(rds_path)
-  # }
 
   readRDS(rds_path)
 }
@@ -72,7 +67,9 @@ edit_metadata <- function(table, row_id, ..., table_path) {
   purrr::iwalk(
     changes,
     function(change, name) {
-      if (!is.null(change)) table[row_number, name] <<- change
+      if (!is.null(change)) {
+        table[row_number, name] <<- change
+      }
     }
   )
 
@@ -115,4 +112,29 @@ delete_assoc <- function(assoc_table, ..., assoc_path) {
   readr::write_rds(x = assoc_table, path = assoc_path)
 
   assoc_table
+}
+
+
+
+change_special_author <- function(author_id,
+                                  new_value,
+                                  projects_path,
+                                  projects_table) {
+  if (nrow(projects_table) > 0L) {
+    special_author_cols <- c("current_owner", "creator", "corresp_auth")
+    change_matrix <- projects_table[special_author_cols] == author_id
+    if (isTRUE(any(change_matrix))) {
+      projects_table[special_author_cols][change_matrix] <- new_value
+      readr::write_rds(x = projects_table, path = projects_path)
+    }
+  }
+}
+
+
+#' @importFrom rlang .data
+remove_archived <- function(projects_table) {
+  dplyr::filter(
+    projects_table,
+    fs::path_file(fs::path_dir(.data$path)) != "archive"
+  )
 }

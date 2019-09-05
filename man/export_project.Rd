@@ -2,7 +2,7 @@
 % Please edit documentation in R/reproducibility.R
 \name{export_project}
 \alias{export_project}
-\title{Compressed a project folder}
+\title{Compress a project folder}
 \usage{
 export_project(project, zipfile, include_hidden = FALSE,
   exclude = NULL)

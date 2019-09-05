@@ -224,7 +224,7 @@ validate_special_authors <- function(current_owner,
                                      corresp_auth,
                                      creator,
                                      authors_table) {
-  sapply(
+  lapply(
     list(
       "current_owner" = current_owner,
       "corresp_auth"  = corresp_auth,
@@ -232,8 +232,7 @@ validate_special_authors <- function(current_owner,
     ),
     validate_projects_author,
     authors_table = authors_table,
-    na.ok         = TRUE,
-    simplify      = FALSE
+    na.ok         = TRUE
   )
 }
 
@@ -275,8 +274,11 @@ validate_assoc <- function(x, what, rds_table, what2, rds_table2) {
 
 
 
-
-validate_single_string <- function(x, null.ok = FALSE, tolower = FALSE) {
+validate_single_string <- function(x,
+                                   null.ok = FALSE,
+                                   na.ok   = TRUE,
+                                   zero.chars.ok = TRUE,
+                                   tolower = FALSE) {
 
   user_input <- rlang::as_label(rlang::enexpr(x))
 
@@ -285,11 +287,17 @@ validate_single_string <- function(x, null.ok = FALSE, tolower = FALSE) {
   }
 
   x    <- as.character(x)
+
   if (!rlang::is_scalar_character(x)) {
-    stop(
-      user_input,
-      " must be coercible to a single character string"
-    )
+      stop(user_input, " must be coercible to a single character string")
+  }
+
+  if (is.na(x) && !na.ok) {
+    stop(user_input, " must not be missing")
+  }
+
+  if (nchar(x) == 0L && !zero.chars.ok) {
+    stop(user_input, " must be at least one character long")
   }
 
   if (tolower) {
@@ -308,9 +316,12 @@ validate_deadline <- function(x, null.ok = FALSE) {
     return(NULL)
   }
 
-  x <- as.POSIXct(x)
-  if (length(x) != 1) {
-    stop("deadline must be coercible to a POSIXct object of length 1")
+  x <- lubridate::as_datetime(x)
+  if (length(x) != 1L) {
+    stop(
+      "deadline must be coercible to a POSIXct object of length 1",
+      "\n(via lubridate::as_datetime())"
+    )
   }
   x
 }
@@ -321,7 +332,7 @@ validate_directory <- function(path,
                                p_path = get_p_path(),
                                make_directories = FALSE) {
 
-  path <- fs::path_tidy(path)
+  path <- path %>% fs::path_tidy() %>% fs::path_expand()
 
   # setup_projects() is the only place where p_path is NULL
   if (!is.null(p_path)) {
@@ -338,223 +349,3 @@ validate_directory <- function(path,
 
   unclass(path)
 }
-
-
-
-validate_protocol <- function(protocol, choices) {
-
-  protocol_match <- try(match.arg(protocol, choices), silent = TRUE)
-
-  if (inherits(protocol_match, "try-error")) {
-    protocol
-  } else {
-    protocol_match
-  }
-}
-
-
-
-
-validate_template <- function(file_name,
-                              what,
-                              default_name,
-                              default_template,
-                              p_path) {
-
-  path <- fs::path(p_path, ".templates", file_name)
-
-  if (fs::file_exists(path)) {
-    return(readr::read_lines(path))
-  } else {
-
-    if (any(default_name == file_name)) {
-      return(
-        restore_default_template(
-          file_name,
-          what,
-          default_name,
-          default_template,
-          p_path
-        )
-      )
-    } else {
-
-      default_path <- fs::path(p_path, ".templates", default_name[1])
-
-      user_prompt(
-        msg   =
-          paste0(
-            "Custom template not found at:\n",
-            path,
-            "\n\nUse the default at:\n",
-            default_path,
-            "\n\n? (y/n)"
-          ),
-        n_msg =
-          paste0(
-            "\nChoose an existing ",
-            what,
-            " template in\n",
-            fs::path(p_path, ".templates")
-          )
-      )
-
-      if (fs::file_exists(default_path)) {
-        message("\n\nUsing default template.")
-        return(readr::read_lines(default_path))
-      } else {
-        return(
-          restore_default_template(
-            file_name,
-            what,
-            default_name,
-            default_template,
-            p_path
-          )
-        )
-      }
-    }
-  }
-}
-
-restore_default_template <- function(file_name,
-                                     what,
-                                     default_name,
-                                     default_template,
-                                     p_path) {
-  user_prompt(
-    msg   =
-      paste0(
-        "\n\nDefault template was not found at:\n",
-        fs::path(p_path, ".templates", file_name),
-        "\n\nRestore it and use for this project? (y/n)"
-      ),
-    y_msg =
-      paste0(
-        "\nDefault restored at:\n",
-        fs::path(p_path, ".templates", file_name),
-        "\n\nUsing it as the ",
-        what,
-        " template for this project"
-      ),
-    n_msg =
-      paste0(
-        "Choose an existing ",
-        what,
-        " template in\n",
-        fs::path(p_path, ".templates"),
-        "\n\nor respond ",
-        '"y" to restoring the default next time.'
-      )
-  )
-
-  readr::write_lines(
-    x    = default_template[[which(default_name == file_name)]],
-    path = fs::path(p_path, ".templates", file_name)
-  )
-}
-
-
-
-validate_docx <- function(docx, p_path) {
-  if (
-    docx != "styles.docx" &&
-    !fs::file_exists(fs::path(p_path, ".templates", docx))
-  ) {
-    user_prompt(
-      msg =
-        paste0(
-          "docx template not found at\n", fs::path(p_path, ".templates", docx),
-          "\n\nUse the default template?"
-        ),
-      n_msg =
-        paste0(
-          "\nChoose an existing docx template in\n",
-          fs::path(p_path, ".templates")
-        )
-    )
-    docx <- "styles.docx"
-  }
-
-  if (
-    docx == "styles.docx" &&
-    !fs::file_exists(fs::path(p_path, ".templates", "styles.docx"))
-  ) {
-    user_prompt(
-      msg   =
-        paste0(
-          "\n\nDefault template was not found at:\n",
-          fs::path(p_path, ".templates", "styles.docx"),
-          "\n\nRestore it and use for this project? (y/n)"
-        ),
-      y_msg =
-        paste0(
-          "\nDefault restored at:\n",
-          fs::path(p_path, ".templates", "styles.docx"),
-          "\n\nUsing it as the .docx template for this project."
-        ),
-      n_msg =
-        paste0(
-          "Choose an existing .docx template in\n",
-          fs::path(p_path, ".templates"),
-          "\n\nor respond ",
-          '"y" to restoring the default next time.'
-        )
-    )
-
-    fs::file_copy(
-      system.file("templates", "styles.docx", package = "projects"),
-      fs::path(p_path, ".templates", "styles.docx")
-    )
-  }
-
-  docx
-}
-
-restore_default_docx_template <- function(p_path) {
-  user_prompt(
-    msg   =
-      paste0(
-        "\n\nDefault template was not found at:\n",
-        fs::path(p_path, ".templates", "styles.docx"),
-        "\n\nRestore it and use for this project? (y/n)"
-      ),
-    y_msg =
-      paste0(
-        "\nDefault restored at:\n",
-        fs::path(p_path, ".templates", "styles.docx"),
-        "\n\nUsing it as the .docx template for this project."
-      ),
-    n_msg =
-      paste0(
-        "Choose an existing .docx template in\n",
-        fs::path(p_path, ".templates"),
-        "\n\nor respond ",
-        '"y" to restoring the default next time.'
-      )
-  )
-
-  fs::file_copy(
-    system.file("templates", "styles.docx", package = "projects"),
-    fs::path(p_path, ".templates", "styles.docx")
-  )
-}
-
-
-
-
-yaml_bounds <- function(vector, what) {
-
-  yaml_bounds <- grep("^---$", vector)
-
-  if (length(yaml_bounds) < 2) {
-    stop(
-      what, " template must have a yaml header even if it's empty, as in:",
-      "\n\n---\n---",
-      "\n\nCheck that there are no spaces before or after each ---"
-    )
-  }
-
-  yaml_bounds
-}
-

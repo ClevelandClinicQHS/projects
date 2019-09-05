@@ -1,0 +1,24 @@
+---
+---
+
+```{r setup}
+library(projects)
+library(here)
+library(tidyverse)
+```
+
+
+```{r load_02_datawork_data}
+load(file = here("/data/02_datawork_objects.RData"))
+```
+
+
+```{r analysis}
+
+```
+
+
+```{r saver}
+save(..., file = here("/data/03_analysis_objects.RData"))
+save_session_info(here("progs", "session_info", "analysis"))
+```

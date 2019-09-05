@@ -69,7 +69,7 @@ only projects of stage \code{0: idea}).
 review}).
 
 If one or more of the \code{projects}, \code{authors}, or \code{affiliations}
-arguments to set to \code{TRUE}, a \code{dplyr::\link[dplyr]{left_join}()} is
+arguments is set to \code{TRUE}, a \code{dplyr::\link[dplyr]{left_join}()} is
 performed, with the "left" table being the one sharing the name of the
 function being used. As such, rows that don't have matches in any other
 tables will still show up in the output, and rows that have multiple matches
@@ -77,9 +77,15 @@ in other tables will yield multiple rows in the output. The "right" table's
 \code{id} column will be renamed.
 }
 \examples{
+#############################################################################
 # SETUP
-old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
-setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+old_home <- Sys.getenv("HOME")
+old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+temp_dir <- tempfile("dir")
+dir.create(temp_dir)
+Sys.unsetenv("PROJECTS_FOLDER_PATH")
+Sys.setenv(HOME = temp_dir)
+setup_projects(path = temp_dir)
 new_affiliation(department_name = "Math Dept.",
                 institution_name = "Springfield College",
                 address = "123 College St, Springfield, AB")
@@ -138,6 +144,6 @@ if (interactive()) {
 
 #############################################################################
 # CLEANUP
-Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
-fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
+# (or, the user can just restart R)
+Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
 }

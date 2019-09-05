@@ -1,0 +1,24 @@
+---
+---
+
+```{r setup}
+library(projects)
+library(here)
+library(tidyverse)
+```
+
+
+```{r read_raw_data}
+read_csv(file = )
+```
+
+
+```{r data_wrangling}
+
+```
+
+
+```{r saver}
+save(..., file = here("/data/02_datawork_objects.RData"))
+save_session_info(here("progs", "session_info", "datawork"))
+```

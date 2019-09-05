@@ -202,6 +202,7 @@ edit_project <- function(project,
 ################################################################################
 #' @include new.R
 #' @rdname new_edit_delete
+#' @importFrom rlang .data
 #' @export
 edit_author <- function(author,
                         given_names   = NULL,
@@ -218,12 +219,13 @@ edit_author <- function(author,
 
   authors_table      <- get_rds(authors_path)
 
-  author             <-
+  author_id             <-
     validate_unique_entry(
       x      = author,
       table  = authors_table,
       what   = "author"
-    )$id
+    ) %>%
+    dplyr::pull("id")
 
   affiliations_table <- affiliations_internal(p_path)
 
@@ -237,46 +239,58 @@ edit_author <- function(author,
   email       <- validate_single_string(email, null.ok = TRUE, tolower = TRUE)
   phone       <- validate_single_string(phone, null.ok = TRUE)
 
-  if (is.null(affiliations)) {
-    affiliations <- list(add = list(), remove = list())
-  } else {
-    affiliations <-
+  affiliations <-
+    if (is.null(affiliations)) {
+      list(add = list(), remove = list())
+    } else {
       parse_formula(
         formula     = affiliations,
         what        = "affiliation",
         what2       = "author",
         main_table  = affiliations_table,
-        assoc_table = assoc_table[assoc_table$id1 == author, ]
+        assoc_table = dplyr::filter(assoc_table, .data$id1 == author_id)
       )
+    }
+
+  if (!is.null(last_name)) {
+    projects_path  <- make_rds_path("projects", p_path = p_path)
+    projects_table <- get_rds(projects_path)
+
+    change_special_author(
+      author_id      = author_id,
+      new_value      = new_projects_author(paste0(author_id, ": ", last_name)),
+      projects_path  = projects_path,
+      projects_table = projects_table
+    )
   }
 
   new_author_row <-
     edit_metadata(
-      table = authors_table,
-      row_id = author,
+      table       = authors_table,
+      row_id      = author_id,
       given_names = given_names,
       last_name   = last_name,
       title       = title,
       degree      = degree,
       email       = email,
       phone       = phone,
-      table_path = authors_path
+      table_path  = authors_path
     )
 
-  if (length(affiliations$remove) > 0) {
+  if (length(affiliations$remove) > 0L) {
     assoc_table <-
       delete_assoc(
         assoc_table = assoc_table,
-        id1         = author,
+        id1         = author_id,
         id2         = affiliations$remove,
         assoc_path  = assoc_path
       )
   }
 
-  if (length(affiliations$add) > 0) {
+  if (length(affiliations$add) > 0L) {
     add_assoc(
       assoc_table = assoc_table,
-      new_rows = tibble::tibble(id1 = author, id2 = affiliations$add),
+      new_rows = tibble::tibble(id1 = author_id, id2 = affiliations$add),
       assoc_path  = assoc_path
     )
   }
@@ -410,33 +424,37 @@ delete_project <- function(project, archived = FALSE) {
 #' @export
 delete_author <- function(author) {
 
-  p_path          <- get_p_path()
+  p_path         <- get_p_path()
 
-  projects_path   <- make_rds_path("projects", p_path)
-  projects_table <- get_rds(projects_path)
-
-  authors_path    <- make_rds_path("authors", p_path)
+  authors_path   <- make_rds_path("authors", p_path)
   authors_table  <- get_rds(authors_path)
 
-  author_row          <-
+  author_row     <-
     validate_unique_entry(
       x     = author,
       table = authors_table,
       what  = "author"
     )
 
-  pa_assoc_path   <- make_rds_path("project_author_assoc", p_path)
+  pa_assoc_path  <- make_rds_path("project_author_assoc", p_path)
   pa_assoc_table <- get_rds(pa_assoc_path)
 
-  aa_assoc_path   <- make_rds_path("author_affiliation_assoc", p_path)
+  aa_assoc_path  <- make_rds_path("author_affiliation_assoc", p_path)
   aa_assoc_table <- get_rds(aa_assoc_path)
+
+  projects_path  <- make_rds_path("projects", p_path)
+  projects_table <- get_rds(projects_path)
 
   print(author_row)
 
   user_prompt(
     msg   = "\nAre you sure you want to delete the above author? (y/n)",
-    n_msg = paste0('\nDeletion not completed. If deletion is desired, ',
-                   'input "y" next time.'))
+    n_msg =
+      paste0(
+        '\nDeletion not completed. If deletion is desired, ',
+        'input "y" next time.'
+      )
+  )
 
   delete_metadata(
     table = authors_table,
@@ -444,9 +462,12 @@ delete_author <- function(author) {
     table_path = authors_path
   )
 
-  clear_special_author(author          = author_row$id,
-                       projects_path   = projects_path,
-                       projects_table = projects_table)
+  change_special_author(
+    author_id = author_row$id,
+    new_value = NA,
+    projects_path = projects_path,
+    projects_table = projects_table
+  )
 
   delete_assoc(
     assoc_table  = pa_assoc_table,
@@ -648,7 +669,7 @@ recursive_number_namer <- function(formula) {
 #' affiliations.
 #'
 #' The order of authors and affiliations affects the order in which these items
-#' appear in project \link{header}s.
+#' appear in the output of \code{\link{header}()}.
 #'
 #' When specifying explicit ranks, enter \code{...} as name-value pairs (e.g.,
 #' Johnson = 2, "Baron Cohen" = 4). You can even enumerate authors/affiliations
@@ -671,7 +692,8 @@ recursive_number_namer <- function(formula) {
 #'   \strong{Details}.
 #' @param after If not specifying explicit ranks in \code{...}, the position you
 #'   want the elements to come after. Works like the \code{after} argument in
-#'   \code{\link[base]{append}} or \code{forcats::fct_relevel}.
+#'   \code{\link[base]{append}} or
+#'   \code{forcats::\link[forcats]{fct_relevel}()}.
 #'
 #'   Ignored if ranks are explicitly provided in \code{...}.
 #' @param archived Logical indicating whether or not the function should
@@ -682,9 +704,15 @@ recursive_number_namer <- function(formula) {
 #'   more information on the "archived" status of a project.
 #'
 #' @examples
+#' #############################################################################
 #' # SETUP
-#' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
-#' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+#' old_home <- Sys.getenv("HOME")
+#' old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+#' temp_dir <- tempfile("dir")
+#' dir.create(temp_dir)
+#' Sys.unsetenv("PROJECTS_FOLDER_PATH")
+#' Sys.setenv(HOME = temp_dir)
+#' setup_projects(path = temp_dir)
 #' new_affiliation(department_name = "Math Dept.",
 #'                 institution_name = "Springfield College",
 #'                 address = "123 College St, Springfield, AB")
@@ -712,20 +740,25 @@ recursive_number_namer <- function(formula) {
 #'             short_title = "USA",
 #'             authors = c(13, "Stone", "zz", "303", "Jane Goodall"),
 #'             stage = 4, deadline = "2055-02-28", deadline_type = "submission",
-#'             path = "famous_studied/philosophers/rocks",
+#'             parent_directory = "famous_studied/philosophers/rocks",
 #'             corresp_auth = "Stone", current_owner = "agnew",
-#'             make_directories = TRUE, use_bib = TRUE,
+#'             make_directories = TRUE,
 #'             status = "waiting on IRB")
 #' #############################################################################
 #'
-#' # Reordering with unnamed arguments
+#' # Rice's affiliations before reordering:
+#' authors("rice", affiliations = TRUE)
+#'
+#' # Reordering (with unnamed arguments)
 #' reorder_affiliations(author = "RICE", "ACME", 42, after = 1)
 #'
+#' # Rice's affiliations after reordering:
+#' authors("rice", affiliations = TRUE)
 #'
 #' # Project 1 header before reordering authors:
 #' header(1)
 #'
-#' # Reordering with named arguments
+#' # Reordering (with named arguments)
 #' reorder_authors(project = 1, "Rosetta" = 99, `303` = 2, "5" = 1)
 #'
 #' # Project 1 header after reordering authors:
@@ -733,8 +766,7 @@ recursive_number_namer <- function(formula) {
 #'
 #' #############################################################################
 #' # CLEANUP
-#' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
-#' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
+#' Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
 #' @name reordering
 #' @export
 reorder_authors <- function(project, ..., after = 0L, archived = FALSE) {

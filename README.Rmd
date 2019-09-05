@@ -13,7 +13,8 @@ knitr::opts_chunk$set(
 )
 library(fs)
 library(tidyverse)
-if(fs::dir_exists("C:/projects")) fs::dir_delete("C:/projects")
+Sys.setenv(HOME = tempdir())
+Sys.unsetenv("PROJECTS_FOLDER_PATH")
 ```
 
 # projects
@@ -63,7 +64,7 @@ At its outset, the `projects` package creates a folder called */projects* in a u
 
 Reproducibility in research is the focus of the much debated replication crisis and is therefore an increasingly central goal of the contemporary scientific process. In addition to a final report of study results, reproducible research processes include the entire workflow that the researchers used to generate those results. Actively maintaining and archiving this workflow is important to the evaluation and validation of the research. If other researchers can follow the same workflow to achieve the same results, it corroborates the results as scientific knowledge. When results are not produced by the same workflow, however, scientific knowledge is still advanced, as the workflow is shown not to yield generalizable results. [@baker20161]
 
-There exist today widely available tools that aid with reproducible research, such as R and other statistical programming languages, that allow for precise documentation of some of the most detail-oriented portions of a project workflow. Researchers can distribute their code scripts alongside their results in order to communicate the integrity of their data processing and analysis. Unfortunately, statistical programming languages per se only contribute to research reproducibility insofar as individual statistical programmers are able (1) to use these tools effectively and (2) to integrate their own use of these tools with their collaborators' work—which may not necessarily be oriented towards reproducibility.
+There exist today widely available tools that aid with reproducible research, such as R and other statistical programming languages, that allow for precise documentation of some of the most detail-oriented portions of a project workflow. Researchers can distribute their code scripts alongside their results in order to communicate the integrity of their data processing and analysis. Unfortunately, statistical programming languages per se only contribute to research reproducibility insofar as individual statistical programmers are able (1) to use these tools effectively and (2) to integrate their own use of these tools with their collaborators' work---which may not necessarily be oriented towards reproducibility.
 
 ![](man/README/README-workflow.png)
 
@@ -77,7 +78,7 @@ The middle stage of the assumed study workflow can be performed with near perfec
 
 ### Initial Setup 
 
-All projects that the user creates with the `projects` package—as well as its infrastructure—reside in a main folder called */projects*. Users need not manually create this directory, and in fact they are encouraged not to manually manipulate any folders that the `projects` package involves. Instead, users run the function `setup_projects()`, providing the full file path of the directory in which the user wants the */projects* folder to reside.
+All projects that the user creates with the `projects` package---as well as its infrastructure---reside in a main folder called */projects*. Users need not manually create this directory, and in fact they are encouraged not to manually manipulate any folders that the `projects` package involves. Instead, users run the function `setup_projects()`, providing the full file path of the directory in which the user wants the */projects* folder to reside.
 
 ### Metadata
 
@@ -88,7 +89,7 @@ The main metadata tables accessible to the user are `projects()`, `authors()` an
 #### Projects Table Columns
 
 * `id` – an identification number, specifically an integer, unique among the other projects. This number can be used whenever needing to identify this project within `projects` package functions.
-* `title` – the title of the project. A nonambiguous substring of `title` (i.e., a substring that does not match any other project) can be used whenever needing to identify this project within `projects` package functions. This value is also printed in the YAML header of the "protocol" and "report" *.Rmd* templates that are automatically generated upon project creation.
+* `title` – the title of the project. A nonambiguous substring of `title` (i.e., a substring that does not match any other project) can be used whenever needing to identify this project within `projects` package functions.
 * `short_title` – an optional unique nickname for the project. A nonambiguous substring of `short_title` (i.e., a substring that does not match any other project) can be used whenever needing to identify this project within `projects` package functions. This is useful if users cannot remember the long, formal project `title` nor the project `id`.
 * `current_owner` – the `id` of the author who is responsible for taking action in order that work on the project may proceed further.
 * `status` – a short description of the status of the project. For example, it may elaborate on the value of `current_owner` and/or `stage`.
@@ -122,7 +123,9 @@ In keeping with relational database theory, there are two *.rds* files that keep
 
 ### Project File Structure
 
-Users create individual project folders with the function `new_project()`. The name of each project folder is of the form p*XXXX*, where *XXXX* is the project's `id` padded with 0s on the left side. When a project folder is created, it is automatically populated with folders and files as shown below:
+Users create individual project folders with the function `new_project()`. By default, the name of each project folder is of the form p*XXXX*, where *XXXX* is the project's `id` padded with 0s on the left side. Its contents are copied from a template project folder within the *.templates* directory in the main */projects* folder.
+
+The default project folder template is strutured as follows:
 
 - */p*XXXX
     + */data*
@@ -134,19 +137,16 @@ Users create individual project folders with the function `new_project()`. The n
         - *02\_datawork.Rmd*
         - *03\_analysis.Rmd*
         - *04\_report.Rmd*
-    + *p*XXXX*.Rproj*
+        - *style.css*
+        - *styles.docx*
+        - *citations.bib*
+    + *p*XXXX.*Rproj*
   
-The included subfolders serve to organize the project, while the *.Rmd* files are templates that facilitate the user's workflow.
+The included subfolders serve to organize the project, while the *.Rmd* files are templates that facilitate the user's workflow. The *style.css* and *styles.docx* files are a cascading style sheets (CSS) file and a Word style template, which allow for custom styling of knitted HTML files and Word documents, respectively. The *citations.bib* file is an empty BibTeX file. The default *01\_protocol.Rmd* and *04\_report.Rmd* files already reference the *.bib* and style files, easing the implementation of these features for the user.
 
 ### File Management
 
-The goal of the `projects` package is to provide a comprehensive set of tools managing project files in a way that is self-contained in R and independent of the underlying operating system. On a daily basis, researchers make, move, copy, delete and archive files. Through the `projects` package, researchers can perform all these actions in an organized manner with an automated file structure. In fact, users are advised not to manipulate the */projects* folder and its content with their operating system, so that the package does not lose track of these files. Multiuser application of `projects` requires a server or an otherwise shared directory where multiple users can access the */projects* folder. File-managing functions—along with all functions—are demonstrated below in the **Demonstration** section.
-
-### Other Features
-
-The `projects` package supports style customization of manuscripts through cascading style sheets (CSS). When a project is created, a file called *style.css* is created alongside the *.Rmd* files in the */progs* folder; users can customize their protocol and report by editing this file. Users can also create their own template files for the datawork, analysis, and manuscript *.Rmd* files. Lastly, the user is given the option to make these *.Rmd* files BibTeX-ready for streamlined bibliography creation.
-
-There will be a future vignette on these supplemental topics.
+The goal of the `projects` package is to provide a comprehensive set of tools managing project files in a way that is self-contained in R and independent of the underlying operating system. On a daily basis, researchers make, move, copy, delete and archive files. Through the `projects` package, researchers can perform all these actions in an organized manner with an automated file structure. In fact, users are advised not to manipulate the */projects* folder and its content with their operating system, so that the package does not lose track of these files. Multiuser application of `projects` requires a server or an otherwise shared directory where multiple users can access the */projects* folder. File-managing functions---along with all functions---are demonstrated below in the **Demonstration** section.
 
 # Demonstration
 
@@ -157,26 +157,34 @@ library(projects)
 ```
 
 ```{r setup_projects}
-setup_projects("C:/")
+setup_projects("~")
 ```
 
 As the message suggests, it is in the user's best interest to add affiliations, followed by authors and projects.
 
 ```{r affiliation1}
-new_affiliation(department_name  = "Department of Physics",
-                institution_name = "University of North Science",
-                address = "314 Newton Blvd, Springfield CT 06003")
+new_affiliation(
+  department_name  = "Department of Physics",
+  institution_name = "University of North Science",
+  address = "314 Newton Blvd, Springfield CT 06003"
+)
 ```
 
-This affiliation has been successfully added to the "affiliations" table in the `projects` relational database. The next code chunk creates a few more affiliations (output not included).
+This affiliation has been successfully added to the "affiliations" table in the `projects` relational database. Now to create a few more affiliations:
 
-```{r affiliation2, echo = TRUE, results = 'hide', message=FALSE}
-new_affiliation(department_name  = "Impossibles Investigation Team",
-                institution_name = "Creekshirebrook Academy of Thinks",
-                address = "Let Gade 27182, 1566 Copenhagen, Denmark")
-new_affiliation(department_name  = "Statistical Consulting Unit",
-                institution_name = "Creekshirebrook Academy of Thinks",
-                address = "196 Normal Ave, Columbus, OH ", id = 50)
+```{r affiliation2, echo = TRUE}
+new_affiliation(
+  department_name  = "Impossibles Investigation Team",
+  institution_name = "Creekshirebrook Academy of Thinks",
+  address = "Let Gade 27182, 1566 Copenhagen, Denmark"
+)
+
+new_affiliation(
+  department_name  = "Statistical Consulting Unit",
+  institution_name = "Creekshirebrook Academy of Thinks",
+  address = "196 Normal Ave, Columbus, OH ",
+  id = 50
+)
 ```
 
 Note that we chose a specific `id` number (50) for the affiliation called the "Impossibles Investigation Team."
@@ -184,25 +192,50 @@ Note that we chose a specific `id` number (50) for the affiliation called the "I
 Now we are ready to add authors to the "authors" table of the `projects` database.
 
 ```{r authors1}
-new_author(given_names = "Scott", last_name = "Bug", title = "Professor",
-           affiliations = c(2, "Physics"), degree = "PhD",
-           email = "scottbug@imPOSSible.net", phone = "965-555-5556")
+new_author(
+  given_names = "Scott",
+  last_name = "Bug",
+  title = "Professor",
+  affiliations = c(2, "Physics"),
+  degree = "PhD",
+  email = "scottbug@imPOSSible.net",
+  phone = "965-555-5556"
+)
 ```
 
 Notice that in creating associations between Scott Bug and his affiliations, we were able to enter both the `id` number of one of them (2) and a substring of the `department_name` of the other ("Physics"). Also notice that the email address was coerced to be lowercase.
 
-Now we'll add more authors (output not included).
+Now we'll add more authors.
 
-```{r authors2, echo = TRUE, results = 'hide', message=FALSE}
-new_author(given_names = "Marie", last_name = "Curie", title = "Chemist",
-           affiliations = "Unit", phone = "553-867-5309", id = 86)
-new_author(given_names = "George Washington", last_name = "Carver",
-           title = "Astrophysicist", degree = "MA, MPhil, PhD",
-           affiliations = c(1, 2, 50), id = 1337)
+```{r authors2, echo = TRUE}
+new_author(
+  given_names = "Marie",
+  last_name = "Curie",
+  title = "Chemist",
+  affiliations = "Unit",
+  phone = "553-867-5309",
+  id = 86
+)
+
+new_author(
+  given_names = "George Washington",
+  last_name = "Carver",
+  title = "Astrophysicist",
+  degree = "MA, MPhil, PhD",
+  affiliations = c(1, 2, 50),
+  id = 1337
+)
+
 new_author(last_name = "Archimedes", title = "Mathematician")
-new_author(last_name = "Wu", given_names = "Chien-Shiung", title = "Physicist",
-           affiliations = c("of North", "Statistical Consulting"),
-           degree = "PhD", email = "wu@WU.wU")
+
+new_author(
+  last_name = "Wu",
+  given_names = "Chien-Shiung",
+  title = "Physicist",
+  affiliations = c("of North", "Statistical Consulting"),
+  degree = "PhD",
+  email = "wu@WU.wU"
+)
 ```
 
 Now that some authors and affiliations have been created, we can view these tables:
@@ -215,44 +248,59 @@ affiliations()
 Now we will showcase project creation:
 
 ```{r new_project1}
-new_project(title = "Achieving Cold Fusion", short_title = "ACF",
-            authors = c("Bug", "Chien-Shiung", 86, 1337),
-            current_owner = "Carver", corresp_auth = "Bug", stage = "1: design",
-            deadline_type = "Pilot study", deadline = "2020-12-31",
-            use_bib = TRUE)
+new_project(
+  title = "Achieving Cold Fusion",
+  short_title = "ACF",
+  authors = c("Bug", "Chien-Shiung", 86, 1337),
+  current_owner = "Carver",
+  corresp_auth = "Bug",
+  stage = "1: design",
+  deadline_type = "Pilot study",
+  deadline = "2020-12-31"
+)
 ```
 
 Notice that since a `creator` was not specified, this field was populated with the value of `Sys.info()["user"]`.
 
-Among other files and folders, this line of code created the files *01\_protocol.Rmd* and *04\_report.Rmd*, which both include code to create a title page exhibiting a preformatted list of authors and their affiliations.
-
-Here is what the top of these files look like:
-
-```{r print_header, echo = FALSE, comment = NA}
-fs::path(projects("Cold Fusion")$path, "progs/01_protocol.Rmd") %>% 
-  readr::read_lines() %>% 
-  `[`(1:grep("\\pagebreak", x = .)[1]) %>% 
-  cat(sep = "\n")
-```
-
-Notice that the author order given to the `authors` argument in `new_project()` command has been preserved. Also notice that Scott Bug has been marked as the corresponding author, and his contact information has been included. When knitted, this will be a proper title page.
+Notice also that the author order given to the `authors` argument in `new_project()` command has been preserved. Also notice that Scott Bug has been marked as the corresponding author, and his contact information has been included. When knitted, this will be a proper title page.
 
 Now a few more projects will be created:
 
-```{r new_project2, echo = TRUE, results = 'hide', message = FALSE}
-new_project(title = "Weighing the Crown", short_title = "Eureka!", 
-            authors = "Archimedes", current_owner = "Archimedes", 
-            corresp_auth = "Archimedes", stage = 6)
-new_project(title = "How I Learned to Stop Worrying and Love the Bomb",
-            short_title = "Dr. Strangelove", authors = c("wu", 1), 
-            creator = "wu", current_owner = "George", corresp_auth = "George",
-            stage = "under review", deadline_type = "2nd revision",
-            deadline = "2030-10-8", id = 1945,
-            status = "debating leadership changes", path = "top_secret",
-            make_directories = TRUE)
-new_project(title = "Understanding Radon", short_title = "Rn86",
-            authors = 86, creator = 86, corresp_auth = 86, stage = "3",
-            status = "Safety procedures", protocol = "CONSORT", use_bib = TRUE)
+```{r new_project2, echo = TRUE}
+new_project(
+  title = "Weighing the Crown",
+  short_title = "Eureka!", 
+  authors = "Archimedes", 
+  current_owner = "Archimedes", 
+  corresp_auth = "Archimedes", 
+  stage = 4
+)
+
+new_project(
+  title = "How I Learned to Stop Worrying and Love the Bomb",
+  short_title = "Dr. Strangelove",
+  authors = c("wu", 1),
+  creator = "wu",
+  current_owner = "George",
+  corresp_auth = "George",
+  stage = "under review",
+  deadline_type = "2nd revision",
+  deadline = "2030-10-8",
+  id = 1945,
+  status = "debating leadership changes",
+  parent_directory = "top_secret",
+  make_directories = TRUE
+)
+
+new_project(
+  title = "Understanding Radon",
+  short_title = "Rn86",
+  authors = 86,
+  creator = 86,
+  corresp_auth = 86,
+  stage = "3",
+  status = "Safety procedures"
+)
 ```
 
 Here is the list of all projects that have been created:
@@ -272,35 +320,43 @@ When adding or removing affiliations/authors from an author/project, a one-sided
 A formula is also used in the `authors` argument in `edit_project()`:
 
 ```{r edit_project}
-edit_project("Cold", title = "Cold Fusion Is Actually Impossible",
-             authors = ~ "archi", stage = "accepted")
+edit_project(
+  "Cold",
+  title = "Cold Fusion Is Actually Impossible",
+  authors = ~ "archi",
+  stage = "accepted"
+)
 ```
 
-Here, the `title` and `stage` of the project have also been edited. Notice that the default behavior of `edit_project()` is to reprint the project `title` as well as the other elements of the title page. The user can then copy and paste this header into the *01\_protocol.Rmd* and *04\_report.Rmd* files.
+Here, the `title` and `stage` of the project have also been edited.
 
-Also notice that the default behavior when adding elements is to place them before the last author (unless there was only one author). This occurs **after** elements are removed, as specified by any minus signs (`-`) in the `formula`.
+Note that the default behavior when adding elements is to place them before the last author (unless there was only one author). This occurs **after** elements are removed, as specified by any minus signs (`-`) in the `formula`.
 
-Another function that affects author order and whose default behavior reprints project title page information is `reorder_authors()`:
+The `reorder_authors()` function allows for the user to change author order:
 
 ```{r reorder_authors}
 reorder_authors(project = "Cold Fusion", "George", "Bug", 86)
 ```
 
-Importantly, `edit_author()`, `edit_affiliation()`, and `reorder_affiliations()` do **not** reprint the title pages of all affected projects. Fortunately, the user can reprint updated title pages with the `header()` function:
+Author order matters when obtaining title page YAML text to paste into a protocol or manuscript *.Rmd* file. Best practice is to do so late in the writing process, if, for example, the name of an affiliation changes in the middle of a research project:
 
-```{r edit_affil, echo = TRUE, results = 'hide', message=FALSE}
-edit_affiliation(affiliation     = "Impossibles",
-                 department_name = "Pseudoscience Debunking Unit")
+```{r edit_affil, echo = TRUE}
+edit_affiliation(
+  affiliation     = "Impossibles",
+  department_name = "Pseudoscience Debunking Unit"
+)
 ```
+
+The text to be pasted in the YAML can be obtained for any given project using `header()`:
 
 ```{r reprint_header, comment=NA}
 header(project = "Cold")
 ```
 
-In order to organize projects, users can create subdirectories within the main */projects* folder where individual project folders can dwell. Among the examples above, this has already occurred with the project with the nickname (i.e., `short_title`) "Dr. Strangelove" because on its creation the arguments `path = top_secret` and `make_directories = TRUE` were included. The latter argument must be `TRUE` if the desired path does not already exist. Observe the `path` column among the existing projects:
+In order to organize projects, users can create subdirectories within the main */projects* folder where individual project folders can dwell. Among the examples above, this has already occurred with the project with the nickname (i.e., `short_title`) "Dr. Strangelove" because on its creation the arguments `path = top_secret` and `make_directories = TRUE` were included. The latter argument must be `TRUE` if the desired path does not already exist. Observe the `path` column among the existing projects (including the `path` column in `projects()` output requires the argument `verbose = TRUE`):
 
 ```{r projects_path_demo}
-projects() %>% select(id, short_title, path)
+projects(verbose = TRUE) %>% select(id, short_title, path)
 ```
 
 Users can also create subdirectories with the function `new_project_group()`:
@@ -311,15 +367,18 @@ new_project_group("Greek_studies/ancient_studies")
 
 If a project has already been created, it can be moved **not** with `edit_project()` but `move_project()`. Users can also copy projects using `copy_project()`; everything in the copy will be the same except its `id`, folder name (which, again, is based on its `id`), `path` (which, again, is based on its folder name), and the name of its *.Rproj* file (which has the same name as the folder name).
 
-```{r move_proj, echo=TRUE, results='hide', message=FALSE}
+```{r move_proj, echo=TRUE}
 move_project("Crown", path = "Greek_studies/ancient_studies")
-copy_project(project_to_copy = "Radon",
-             path = "dangerous_studies/radioactive_studies/radon_studies", 
-             make_directories = TRUE)
+
+copy_project(
+  project_to_copy = "Radon",
+  path = "dangerous_studies/radioactive_studies/radon_studies", 
+  make_directories = TRUE
+)
 ```
 
 ```{r view_crown_radon}
-projects(c("Crown", "Radon")) %>% select(id, title, path)
+projects(c("Crown", "Radon"), verbose = TRUE) %>% select(id, title, path)
 ```
 
 Projects can also be archived; they are moved into a subdirectory called */archive* that is at the same level as the project folder (*/p*XXXX) before it was run. If this */archive* folder does not exist, it will be created.
@@ -331,8 +390,9 @@ archive_project("Strangelove")
 When a project is archived, it is no longer included in `projects()` output unless the user sets `archived = TRUE`.
 
 ```{r show_no_archived_projects}
-projects() %>% select(id, short_title, path)
-projects(archived = TRUE) %>% select(id, short_title, path)
+projects(verbose = TRUE) %>% select(id, short_title, path)
+
+projects(verbose = TRUE, archived = TRUE) %>% select(id, short_title, path)
 ```
 
 Lastly, affiliations, authors and projects can be deleted with the `delete_*()` functions. Deleting an author is complete: doing so removes the author from the `creator`, `current_owner` and `corresp_auth` fields of all projects. Furthermore, deleting a project also deletes the entire project folder. Use the `delete_*()` functions with caution.

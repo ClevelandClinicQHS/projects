@@ -16,7 +16,7 @@ output:
     css: style.css
   pdf_document:
     default
-bibliography: p0012.bib
+bibliography: citations.bib
 ---
 
 Funding: 

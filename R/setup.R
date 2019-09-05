@@ -15,15 +15,22 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c(".", ":="))
 #'
 #' @section Default contents: The \link[=projects_folder]{projects folder}
 #'   automatically contains the subdirectories \emph{.metadata} and
-#'   \emph{.template}, which are hidden by default on some operating systems.
+#'   \emph{.templates}, which are hidden by default on some operating systems.
 #'
 #'   The \emph{.metadata} folder and its contents should \strong{never} be
 #'   manually moved or modified.
 #'
-#'   The \emph{.templates} will contain several templates that
-#'   \code{\link{new_project}()} reads when creating a new project. Advanced
-#'   users may edit these templates or add their own. See
-#'   \code{\link{new_project}()} for details.
+#'   The \emph{.templates} folder is where template project files and folders
+#'   should be stored. When this function is successfully run, the default
+#'   projects folder template is created (as "default_folder") alongside a few
+#'   other template files. When a new project is created,
+#'   \code{\link{new_project}()} looks here for the folder named by its
+#'   \code{template_folder} argument (\code{"default_folder"} by default), and
+#'   this folder is copied into the \link[=projects_folder]{projects folder}
+#'   (with name specified by the \code{folder_name} argument) as the new project
+#'   folder. Users are able and encouraged to customize the
+#'   \code{default_folder} to suit their research needs, and may even create
+#'   multiple project folder templates for different situations.
 #'
 #' @section Behavior when projects folder already exists: If \code{overwrite =
 #'   TRUE}, the function will run no matter what. Use with caution.
@@ -55,20 +62,54 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c(".", ":="))
 #'   the home .Renviron file. If the file doesn't exist it will be created.
 #'
 #' @examples
-#' # This sequence is used in all other examples in this package.
+#' #############################################################################
+#' # Setup
+#' # Any existing "projects" folder is left totally untouched,
+#' # and the user's home directory and .Renviron file are also left untouched.
+#' old_home  <- Sys.getenv("HOME")
+#' old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
+#' temp_dir <- tempfile("dir")
+#' dir.create(temp_dir)
+#' Sys.setenv(HOME = temp_dir)
+#' Sys.unsetenv("PROJECTS_FOLDER_PATH")
+#' #############################################################################
 #'
-#' # Back up old projects_folder()
-#' old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
+#' # Creating the projects folder
+#' setup_projects(path = temp_dir)
 #'
-#' # This sets up an example projects_folder() in a temporary directory.
-#' # It will not edit any of the user's .Renviron files.
-#' setup_projects(path = tempdir(), .Renviron_path = fs::path_temp(".Renviron"))
+#' # Viewing the projects folder path:
+#' path1 <- projects_folder()
 #'
+#' # Viewing the contents of the projects folder:
+#' list.files(path1, full.names = TRUE, recursive = TRUE,  all.files = TRUE)
+#'
+#' # Create an arbitrary subfolder in temp_dir:
+#' subfolder_path <- file.path(temp_dir, "test")
+#' dir.create(subfolder_path)
+#'
+#'
+#' # Wrapped in if (interactive()) because it requires user input
+#' if (interactive()) {
+#'   # The function won't let the user abandon the old projects folder...
+#'   setup_projects(path = subfolder_path)
+#'
+#'   # ...unless overwrite = TRUE
+#'   setup_projects(path = file.path(temp_dir, "test"), overwrite = TRUE)
+#'
+#'   # Even then, only the stored location of the projects folder is overwritten.
+#'   # The old projects folder still exists:
+#'   list.files(path1, full.names = TRUE, recursive = TRUE,  all.files = TRUE)
+#'
+#'   # Giving the "projects" folder a different name:
+#'   setup_projects(path = temp_dir, folder_name = "studies", overwrite = TRUE)
+#' }
+#'
+#' #############################################################################
 #' # Cleanup
-#' Sys.setenv(PROJECTS_FOLDER_PATH = old_path)
-#' fs::file_delete(c(fs::path_temp("projects"), fs::path_temp(".Renviron")))
-#' @return The project folder's path, invisibly. It will be \code{""} if it
-#'   doesn't exist.
+#' # (or, the user can just restart R)
+#' Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
+#' #############################################################################
+#' @return The project folder's path, invisibly.
 #'
 #' @seealso \code{\link{new_project}()} for information on templates
 #'
@@ -80,8 +121,8 @@ setup_projects <- function(path,
                            overwrite        = FALSE,
                            make_directories = FALSE,
                            .Renviron_path   = fs::path_home_r(".Renviron")) {
-
-  folder_name <- validate_single_string(folder_name)
+  folder_name <-
+    validate_single_string(folder_name, na.ok = FALSE, zero.chars.ok = FALSE)
 
   if (folder_name != fs::path_file(folder_name)) {
     stop("folder_name must be a single string, not a file path")
@@ -125,9 +166,9 @@ setup_projects <- function(path,
 
 
 
-p_path_from_explicit_renviron <- function(path) {
-  if (fs::file_exists(path)) {
-    readRenviron(path)
+p_path_from_explicit_renviron <- function(.Renviron_path) {
+  if (fs::file_exists(.Renviron_path)) {
+    readRenviron(.Renviron_path)
     Sys.getenv("PROJECTS_FOLDER_PATH")
   } else {
     ""
@@ -136,37 +177,47 @@ p_path_from_explicit_renviron <- function(path) {
 
 
 
-set_Renviron <- function(path, old_path, .Renviron_path) {
+set_Renviron <- function(projects_folder_path, old_path, .Renviron_path) {
 
-  if (!any(c("", path) == old_path)) {
+  if (old_path != projects_folder_path && old_path != "") {
     user_prompt(
-      msg   = paste0("\nAre you sure you want to abandon the old projects ",
-                     "folder at\n", old_path, "\n\nand create a new one at\n",
-                     path, "\n?\n\nThis will change the .Renviron file at\n",
-                     .Renviron_path, "\nso that its PROJECTS_FOLDER_PATH ",
-                     "line will be:\nPROJECTS_FOLDER_PATH='", path, "'",
-                     "\n\nContinue? (y/n)"),
-      n_msg = paste0("\nProjects folder remains at\n", old_path))
+      msg   =
+        paste0(
+          "\nAre you sure you want to abandon the old projects ",
+          "folder at\n", old_path, "\n\nand create a new one at\n",
+          projects_folder_path,
+          "\n?\n\nThis will change the .Renviron file at\n",
+          .Renviron_path,
+          "\nso that its PROJECTS_FOLDER_PATH ",
+          "line will be:\nPROJECTS_FOLDER_PATH='", projects_folder_path, "'",
+          "\n\nContinue? (y/n)"
+        ),
+      n_msg = paste0("\nProjects folder remains at\n", old_path)
+    )
   }
-
-  Renviron_entries <- paste0("PROJECTS_FOLDER_PATH='", path, "'")
 
   # If a home .Renviron file already exists, it is overwritten with its original
   # contents, minus any old values of PROJECTS_FOLDER_PATH, plus the new value
   # of PROJECTS_FOLDER_PATH (i.e., the user-specified path, which could
   # actually be the same as the old value).
-  if (fs::file_exists(.Renviron_path)) {
+  Renviron_entries <-
+    if (fs::file_exists(.Renviron_path)) {
 
-    Renviron_entries <-
-      c(grep(pattern = "^PROJECTS_FOLDER_PATH",
-             x       = readr::read_lines(.Renviron_path),
-             value   = TRUE,
-             invert  = TRUE),
+      c(
         # Existing home .Renviron file minus any old entries of
         # PROJECTS_FOLDER_PATH
+        grep(
+          pattern = "^PROJECTS_FOLDER_PATH",
+          x       = readr::read_lines(.Renviron_path),
+          value   = TRUE,
+          invert  = TRUE
+        ),
 
-        Renviron_entries)
-  }
+        paste0("PROJECTS_FOLDER_PATH='", projects_folder_path, "'")
+      )
+    } else {
+      paste0("PROJECTS_FOLDER_PATH='", projects_folder_path, "'")
+    }
 
   readr::write_lines(Renviron_entries, path = .Renviron_path)
   readRenviron(.Renviron_path)
@@ -174,71 +225,83 @@ set_Renviron <- function(path, old_path, .Renviron_path) {
 
 
 
-create_projects_folder <- function(path) {
-  fs::dir_create(fs::path(path, c(".metadata", ".templates")))
-  restore_templates(path)
-  restore_metadata(path)
+create_projects_folder <- function(projects_folder_path) {
+  fs::dir_create(fs::path(projects_folder_path, ".metadata"))
+  fs::dir_create(
+    fs::path(
+      projects_folder_path,
+      ".templates/default_folder",
+      c("data", "data_raw", "progs", "figures", "manuscript")
+    )
+  )
+  restore_templates(projects_folder_path)
+  restore_metadata(projects_folder_path)
 }
 
 
-restore_templates <- function(path) {
+restore_templates <- function(projects_folder_path) {
   purrr::pwalk(
     .l =
       list(
         template_name =
           c(
-            "01_protocol.Rmd",
-            "STROBE_protocol.Rmd",
             "CONSORT_protocol.Rmd",
+            "STROBE_protocol.Rmd",
+            "pXXXX.Rproj",
+            "01_protocol.Rmd",
             "02_datawork.Rmd",
             "03_analysis.Rmd",
             "04_report.Rmd",
             "style.css",
-            "pXXXX.Rproj",
-            "styles.docx"
+            "styles.docx",
+            "citations.bib"
           ),
-        fn =
+        template_source =
           c(
-            replicate(8L, write_template_from_char, simplify = FALSE),
-            list(copy_template_from_file)
+            "CONSORT_protocol.Rmd",
+            "STROBE_protocol.Rmd",
+            "pXXXX.Rproj",
+            "STROBE_protocol.Rmd",
+            "02_datawork.Rmd",
+            "03_analysis.Rmd",
+            "04_report.Rmd",
+            "style.css",
+            "styles.docx",
+            "citations.bib"
           ),
-        source =
-          list(
-            STROBE_template,
-            STROBE_template,
-            CONSORT_template,
-            datawork_template,
-            analysis_template,
-            report_template,
-            css_template,
-            Rproj_template,
-            "styles.docx"
+        subfolder =
+          c(
+            "",
+            "",
+            "default_folder",
+            "default_folder/progs",
+            "default_folder/progs",
+            "default_folder/progs",
+            "default_folder/progs",
+            "default_folder/progs",
+            "default_folder/progs",
+            "default_folder/progs"
           )
       ),
     .f =
-      function(template_name, fn, source) {
-        if (!fs::file_exists(fs::path(path, ".templates", template_name))) {
-          do.call(fn, list(template_name, source, path))
+      function(template_name, template_source, subfolder) {
+
+        template_path <-
+          fs::path(projects_folder_path, ".templates", subfolder, template_name)
+
+        if (!fs::file_exists(template_path)) {
+
+          template_source <-
+            system.file(
+              "templates",
+              template_source,
+              package = "projects",
+              mustWork = TRUE
+            )
+
+          fs::file_copy(template_source, template_path)
         }
       }
-  )
-}
-
-
-
-write_template_from_char <- function(template_name, template_vector, path) {
-  readr::write_lines(
-    template_vector,
-    fs::path(path, ".templates", template_name)
-  )
-}
-
-
-
-copy_template_from_file <- function(template_name, internal_name, path) {
-  fs::file_copy(
-    system.file("templates", internal_name, package = "projects"),
-    fs::path(path, ".templates", template_name)
   )
 }
 
@@ -257,7 +320,7 @@ restore_metadata <- function(path) {
         current_owner = new_projects_author(),
         status        = character(),
         deadline_type = character(),
-        deadline      = as.POSIXct(character()),
+        deadline      = lubridate::as_datetime(character()),
         stage         = new_projects_stage(),
         path          = character(),
         corresp_auth  = new_projects_author(),
@@ -295,20 +358,22 @@ restore_metadata <- function(path) {
 }
 
 
-setup_messages <- function(path, old_path) {
+setup_messages <- function(projects_folder_path, old_path) {
   if (old_path == "") {
     message(
-      'projects folder created at\n', path,
+      'projects folder created at\n', projects_folder_path,
       '\n\nAdd affiliations with new_affiliation(),',
       '\nthen add authors with new_author(),',
       '\nthen create projects with new_project()'
     )
   }
-  else if (old_path == path) {
-    message('projects folder restored at\n', path)
+  else if (old_path == projects_folder_path) {
+    message('projects folder restored at\n', projects_folder_path)
   }
   else {
-    message('projects folder is now at\n', path,
-            '\n\nThe projects folder at\n', old_path, '\nhas been abandoned.')
+    message(
+      'projects folder is now at\n', projects_folder_path,
+      '\n\nThe projects folder at\n', old_path, '\nhas been abandoned.'
+    )
   }
 }
