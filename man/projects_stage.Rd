@@ -5,7 +5,9 @@
 \alias{projects_stage-class}
 \alias{projects_stage}
 \alias{match.projects_stage}
-\alias{match,projects_stage-method}
+\alias{match,projects_stage,ANY-method}
+\alias{match,ANY,projects_stage-method}
+\alias{match,projects_stage,projects_stage-method}
 \alias{\%in\%.projects_stage}
 \alias{\%in\%,projects_stage-method}
 \title{\code{projects_stage} class and its methods}
@@ -14,7 +16,11 @@ projects_stage(x = character())
 
 match.projects_stage(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-\S4method{match}{projects_stage}(x, table, nomatch = NA_integer_, incomparables = NULL)
+\S4method{match}{projects_stage,ANY}(x, table, nomatch = NA_integer_, incomparables = NULL)
+
+\S4method{match}{ANY,projects_stage}(x, table, nomatch = NA_integer_, incomparables = NULL)
+
+\S4method{match}{projects_stage,projects_stage}(x, table, nomatch = NA_integer_, incomparables = NULL)
 
 `\%in\%.projects_stage`(x, table)
 
@@ -56,8 +62,7 @@ of:
 analysis}\cr \code{4: manuscript}\cr \code{5: under review}\cr \code{6:
 accepted}
 
-\code{projects_stage()} merely coerces the object's class attribute to
-\code{projects_stage}.
+\code{projects_stage()} validates and coerces a vector of the above integers or strings to a \code{projects_stage} S3 vector.
 }
 \section{Numeric coercion methods}{
  \code{\link{as.integer}()},
@@ -79,11 +84,6 @@ accepted}
   to an integer with the \code{as.integer()} method described above. When
   testing or value matching against a character vector, the character vector
   is validated against the list of project stages enumerated above.
-}
-
-\section{\code{c()} method}{
- A method for \code{\link{c}()} was also written
-  so that the class attribute is not lost.
 }
 
 \examples{

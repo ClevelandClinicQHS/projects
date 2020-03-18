@@ -5,7 +5,9 @@
 \alias{projects_author-class}
 \alias{projects_author}
 \alias{match.projects_author}
-\alias{match,projects_author-method}
+\alias{match,projects_author,ANY-method}
+\alias{match,ANY,projects_author-method}
+\alias{match,projects_author,projects_author-method}
 \alias{\%in\%.projects_author}
 \alias{\%in\%,projects_author-method}
 \title{\code{projects_author} class and its methods}
@@ -14,7 +16,11 @@ projects_author(x = character())
 
 match.projects_author(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-\S4method{match}{projects_author}(x, table, nomatch = NA_integer_, incomparables = NULL)
+\S4method{match}{projects_author,ANY}(x, table, nomatch = NA_integer_, incomparables = NULL)
+
+\S4method{match}{ANY,projects_author}(x, table, nomatch = NA_integer_, incomparables = NULL)
+
+\S4method{match}{projects_author,projects_author}(x, table, nomatch = NA_integer_, incomparables = NULL)
 
 `\%in\%.projects_author`(x, table)
 
@@ -50,8 +56,9 @@ Essentially, this is a character string of the form:
 
 \code{id: last_name}
 
-\code{projects_author()} merely coerces the object's class attribute to
-\code{projects_author}.
+\code{projects_author()} coerces an integer or character vector to a
+\code{projects_author} object, validating each element against the existing
+\code{\link{authors}()} table.
 }
 \section{Numeric coercion methods}{
  \code{\link{as.integer}()},
@@ -73,11 +80,6 @@ Essentially, this is a character string of the form:
   \code{as.integer()} method described above. When testing or matching
   against a character vector, the character vector is validated against the
   \code{\link{authors}()} table.
-}
-
-\section{\code{c()} method}{
- A method for \code{\link{c}()} was also written
-  so that the class attribute is not lost.
 }
 
 \examples{

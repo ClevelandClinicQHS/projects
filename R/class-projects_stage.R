@@ -11,8 +11,7 @@
 #' analysis}\cr \code{4: manuscript}\cr \code{5: under review}\cr \code{6:
 #' accepted}
 #'
-#' \code{projects_stage()} merely coerces the object's class attribute to
-#' \code{projects_stage}.
+#' \code{projects_stage()} validates and coerces a vector of the above integers or strings to a \code{projects_stage} S3 vector.
 #'
 #' @section Numeric coercion methods: \code{\link{as.integer}()},
 #'   \code{\link{as.double}()}, and \code{\link{as.numeric}()} return the stage
@@ -31,9 +30,6 @@
 #'   to an integer with the \code{as.integer()} method described above. When
 #'   testing or value matching against a character vector, the character vector
 #'   is validated against the list of project stages enumerated above.
-#'
-#' @section \code{c()} method: A method for \code{\link{c}()} was also written
-#'   so that the class attribute is not lost.
 #'
 #' @param x For \code{projects_stage()}, an integer or character vector. For
 #'
@@ -149,7 +145,8 @@ validate_stage <- function(stage, na.ok = TRUE, null.ok = FALSE, n = NULL) {
           stage <- choices[match_attempt]
         }
       },
-      character(1L)
+      FUN.VALUE = character(1L),
+      USE.NAMES = FALSE
     )
 
   new_projects_stage(stage)
@@ -260,7 +257,25 @@ match.projects_stage <- function(x,
 #' @export
 methods::setMethod(
   "match",
-  methods::signature("projects_stage"),
+  methods::signature(x = "projects_stage"),
+  match.projects_stage
+)
+
+#' @include set_generics.R
+#' @rdname projects_stage
+#' @export
+methods::setMethod(
+  "match",
+  methods::signature(table = "projects_stage"),
+  match.projects_stage
+)
+
+#' @include set_generics.R
+#' @rdname projects_stage
+#' @export
+methods::setMethod(
+  "match",
+  methods::signature(x = "projects_stage", table = "projects_stage"),
   match.projects_stage
 )
 

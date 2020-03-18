@@ -9,8 +9,9 @@
 #'
 #' \code{id: last_name}
 #'
-#' \code{projects_author()} merely coerces the object's class attribute to
-#' \code{projects_author}.
+#' \code{projects_author()} coerces an integer or character vector to a
+#' \code{projects_author} object, validating each element against the existing
+#' \code{\link{authors}()} table.
 #'
 #' @section Numeric coercion methods: \code{\link{as.integer}()},
 #'   \code{\link{as.double}()}, and \code{\link{as.numeric}()} return the
@@ -29,9 +30,6 @@
 #'   \code{as.integer()} method described above. When testing or matching
 #'   against a character vector, the character vector is validated against the
 #'   \code{\link{authors}()} table.
-#'
-#' @section \code{c()} method: A method for \code{\link{c}()} was also written
-#'   so that the class attribute is not lost.
 #'
 #' @param x For \code{projects_author()}, an integer or character vector. For
 #'
@@ -284,7 +282,25 @@ match.projects_author <- function(x,
 #' @export
 methods::setMethod(
   "match",
-  methods::signature("projects_author"),
+  methods::signature(x = "projects_author"),
+  match.projects_author
+)
+
+#' @include set_generics.R
+#' @rdname projects_author
+#' @export
+methods::setMethod(
+  "match",
+  methods::signature(table = "projects_author"),
+  match.projects_author
+)
+
+#' @include set_generics.R
+#' @rdname projects_author
+#' @export
+methods::setMethod(
+  "match",
+  methods::signature(x = "projects_author", table = "projects_author"),
   match.projects_author
 )
 
