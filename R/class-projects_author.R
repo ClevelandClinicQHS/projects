@@ -284,16 +284,7 @@ match.projects_author <- function(x,
 #' @export
 methods::setMethod(
   "match",
-  methods::signature(x = "projects_author"),
-  match.projects_author
-)
-
-#' @include set_generics.R
-#' @rdname projects_author
-#' @export
-methods::setMethod(
-  "match",
-  methods::signature(table = "projects_author"),
+  methods::signature("projects_author"),
   match.projects_author
 )
 
@@ -313,16 +304,7 @@ methods::setMethod(
 #' @export
 methods::setMethod(
   "%in%",
-  methods::signature(x = "projects_author"),
-  `%in%.projects_author`
-)
-
-#' @include set_generics.R
-#' @rdname projects_author
-#' @export
-methods::setMethod(
-  "%in%",
-  methods::signature(table = "projects_author"),
+  methods::signature("projects_author"),
   `%in%.projects_author`
 )
 

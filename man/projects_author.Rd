@@ -5,26 +5,20 @@
 \alias{projects_author-class}
 \alias{projects_author}
 \alias{match.projects_author}
-\alias{match,projects_author,ANY-method}
-\alias{match,ANY,projects_author-method}
+\alias{match,projects_author-method}
 \alias{\%in\%.projects_author}
-\alias{\%in\%,projects_author,ANY-method}
-\alias{\%in\%,ANY,projects_author-method}
+\alias{\%in\%,projects_author-method}
 \title{\code{projects_author} class and its methods}
 \usage{
 projects_author(x = character())
 
 match.projects_author(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-\S4method{match}{projects_author,ANY}(x, table, nomatch = NA_integer_, incomparables = NULL)
-
-\S4method{match}{ANY,projects_author}(x, table, nomatch = NA_integer_, incomparables = NULL)
+\S4method{match}{projects_author}(x, table, nomatch = NA_integer_, incomparables = NULL)
 
 `\%in\%.projects_author`(x, table)
 
-\S4method{\%in\%}{projects_author,ANY}(x, table)
-
-\S4method{\%in\%}{ANY,projects_author}(x, table)
+\S4method{\%in\%}{projects_author}(x, table)
 }
 \arguments{
 \item{x}{For \code{projects_author()}, an integer or character vector. For

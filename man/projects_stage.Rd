@@ -5,26 +5,20 @@
 \alias{projects_stage-class}
 \alias{projects_stage}
 \alias{match.projects_stage}
-\alias{match,projects_stage,ANY-method}
-\alias{match,ANY,projects_stage-method}
+\alias{match,projects_stage-method}
 \alias{\%in\%.projects_stage}
-\alias{\%in\%,projects_stage,ANY-method}
-\alias{\%in\%,ANY,projects_stage-method}
+\alias{\%in\%,projects_stage-method}
 \title{\code{projects_stage} class and its methods}
 \usage{
 projects_stage(x = character())
 
 match.projects_stage(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-\S4method{match}{projects_stage,ANY}(x, table, nomatch = NA_integer_, incomparables = NULL)
-
-\S4method{match}{ANY,projects_stage}(x, table, nomatch = NA_integer_, incomparables = NULL)
+\S4method{match}{projects_stage}(x, table, nomatch = NA_integer_, incomparables = NULL)
 
 `\%in\%.projects_stage`(x, table)
 
-\S4method{\%in\%}{projects_stage,ANY}(x, table)
-
-\S4method{\%in\%}{ANY,projects_stage}(x, table)
+\S4method{\%in\%}{projects_stage}(x, table)
 }
 \arguments{
 \item{x}{For \code{projects_stage()}, an integer or character vector. For

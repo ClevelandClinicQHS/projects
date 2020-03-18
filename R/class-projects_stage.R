@@ -260,16 +260,7 @@ match.projects_stage <- function(x,
 #' @export
 methods::setMethod(
   "match",
-  signature(x = "projects_stage"),
-  match.projects_stage
-)
-
-#' @include set_generics.R
-#' @rdname projects_stage
-#' @export
-methods::setMethod(
-  "match",
-  signature(table = "projects_stage"),
+  methods::signature("projects_stage"),
   match.projects_stage
 )
 
@@ -290,16 +281,7 @@ methods::setMethod(
 #' @export
 methods::setMethod(
   "%in%",
-  signature(x = "projects_stage"),
-  `%in%.projects_stage`
-)
-
-#' @include set_generics.R
-#' @rdname projects_stage
-#' @export
-methods::setMethod(
-  "%in%",
-  signature(table = "projects_stage"),
+  methods::signature("projects_stage"),
   `%in%.projects_stage`
 )
 
