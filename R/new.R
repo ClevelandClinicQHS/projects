@@ -271,8 +271,9 @@ new_project <- function(title            = NA,
   folder_name   <-
     validate_single_string(folder_name, na.ok = FALSE, zero.chars.ok = FALSE)
 
-  deadline      <- validate_deadline(deadline)
-  stage         <- validate_stage(stage)
+  deadline <- validate_deadline(deadline)
+  stage <-
+    if (missing(stage)) projects_stage(1L) else validate_stage(stage, n = 1)
 
   all_authors   <-
     validate_authors(
@@ -353,7 +354,7 @@ new_project <- function(title            = NA,
 
   message("\nNew project's authors:")
   if (length(all_authors$general_authors) == 0L) {
-    cat("None.")
+    cat("None.\n")
   } else {
     print(
       new_pa_assoc %>%

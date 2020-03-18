@@ -4,8 +4,11 @@
 \alias{email_authors}
 \title{Write an email to project authors}
 \usage{
-email_authors(project = NULL, browser = getOption("browser"),
-  encodeIfNeeded = FALSE)
+email_authors(
+  project = NULL,
+  browser = getOption("browser"),
+  encodeIfNeeded = FALSE
+)
 }
 \arguments{
 \item{project}{Project \code{id} or unambiguous substring of the project name

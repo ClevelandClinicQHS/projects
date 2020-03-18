@@ -50,7 +50,7 @@ aa_assoc_internal <- function(p_path = get_p_path()) {
 
 add_metadata <- function(table, new_row, table_path) {
 
-  table <- rbind(table, new_row)
+  table <- vec_rbind(table, new_row)
 
   readr::write_rds(x = table, path = table_path)
 

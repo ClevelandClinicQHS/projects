@@ -3,10 +3,7 @@
 \docType{class}
 \name{projects_stage-class}
 \alias{projects_stage-class}
-\alias{new_projects_stage}
-\alias{as.integer.projects_stage}
-\alias{as.double.projects_stage}
-\alias{as.numeric.projects_stage}
+\alias{projects_stage}
 \alias{match.projects_stage}
 \alias{match,projects_stage,ANY-method}
 \alias{match,ANY,projects_stage-method}
@@ -15,48 +12,43 @@
 \alias{\%in\%,ANY,projects_stage-method}
 \title{\code{projects_stage} class and its methods}
 \usage{
-new_projects_stage(x = character())
+projects_stage(x = character())
 
-\method{as.integer}{projects_stage}(x, ...)
+match.projects_stage(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-\method{as.double}{projects_stage}(x, ...)
+\S4method{match}{projects_stage,ANY}(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-\method{as.numeric}{projects_stage}(x, ...)
+\S4method{match}{ANY,projects_stage}(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-match.projects_stage(x, table, nomatch = NA_integer_,
-  incomparables = NULL)
-
-\S4method{match}{projects_stage,ANY}(x, table, nomatch = NA_integer_,
-  incomparables = NULL)
-
-\S4method{match}{ANY,projects_stage}(x, table, nomatch = NA_integer_,
-  incomparables = NULL)
-
-"\%in\%.projects_stage"(x, table)
+`\%in\%.projects_stage`(x, table)
 
 \S4method{\%in\%}{projects_stage,ANY}(x, table)
 
 \S4method{\%in\%}{ANY,projects_stage}(x, table)
 }
 \arguments{
-\item{x}{For \code{new_projects_stage()}, any object. For
+\item{x}{For \code{projects_stage()}, an integer or character vector. For
 
   For the \code{as.*()} methods, a \code{projects_stage} object.
 
   For \code{\link{match}()} and \code{\link{\%in\%}}, an integer, a character
-  string, or a \code{projects_author} object. See \code{\link{match}()} and
+  string, or a \code{projects_stage} object. See \code{\link{match}()} and
   \strong{Comparison and value matching methods} below.}
 
-\item{...}{further arguments passed to or from other methods.}
-
 \item{table}{An integer number, a character string, or a
-\code{projects_author} object. See \code{\link{match}()} and
+\code{projects_stage} object. See \code{\link{match}()} and
 \strong{Comparison and value matching methods} below.}
 
 \item{nomatch}{See \code{\link{match}()}.}
 
 \item{incomparables}{An integer number, a character string, or a
-\code{projects_author} object. See \code{\link{match}()}.}
+\code{projects_stage} object. See \code{\link{match}()}.}
+
+\item{...}{further arguments passed to or from other methods.}
+}
+\value{
+For \code{projects_stage()}, an S3 vector of class
+  \code{projects_stage}.
 }
 \description{
 Objects of this class are merely a character string containing a number and a
@@ -70,13 +62,13 @@ of:
 analysis}\cr \code{4: manuscript}\cr \code{5: under review}\cr \code{6:
 accepted}
 
-\code{new_projects_stage()} merely coerces the object's class attribute to
+\code{projects_stage()} merely coerces the object's class attribute to
 \code{projects_stage}.
 }
 \section{Numeric coercion methods}{
  \code{\link{as.integer}()},
   \code{\link{as.double}()}, and \code{\link{as.numeric}()} return the stage
-  number of the \code{projects_author} object as an integer/double. The
+  number of the \code{projects_stage} object as an integer/double. The
   methods for the comparison and value matching functions described below
   make use of these numeric coercion methods. Users desiring to apply value
   matching functions other than the ones described below may similarly take
@@ -101,7 +93,7 @@ accepted}
 }
 
 \examples{
-stage <- new_projects_stage("4: manuscript")
+stage <- projects_stage("4: manuscript")
 
 as.integer(stage) # 4
 
@@ -114,7 +106,7 @@ match(stage, 0:4)  # 5
 
 stage \%in\% c("design", "manusc", "idea")  # TRUE
 
-more_stages <- new_projects_stage(c("0: idea", "4: manuscript", "1: design"))
+more_stages <- projects_stage(c("0: idea", "4: manuscript", "1: design"))
 
 match("MAnuscRIPT", more_stages)      # 2
 

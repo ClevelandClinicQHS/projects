@@ -14,13 +14,19 @@ affiliations(affiliation, authors = FALSE)
 
 authors(author, affiliations = FALSE, projects = FALSE)
 
-projects(project, all_stages = FALSE, exclude = c(0L, 6L),
-  archived = FALSE, verbose = FALSE, authors = FALSE)
+projects(
+  project,
+  all_stages = FALSE,
+  exclude = c(0L, 6L),
+  path = NULL,
+  archived = FALSE,
+  verbose = FALSE,
+  authors = FALSE
+)
 
 ideas(project, archived = FALSE, verbose = FALSE, authors = FALSE)
 
-manuscripts(project, archived = FALSE, verbose = FALSE,
-  authors = FALSE)
+manuscripts(project, archived = FALSE, verbose = FALSE, authors = FALSE)
 }
 \arguments{
 \item{projects, authors, affiliations}{Logical values indicating whether or not
@@ -43,6 +49,9 @@ all stages, \strong{overriding the} \code{exclude} \strong{argument}.}
   accepted}
 
   \emph{Ignored if} \code{all_stages = TRUE}}
+
+\item{path}{A single file path of a directory within the main projects
+folder; only projects whose folder is in this directory will be returned.}
 
 \item{archived}{Logical, indicating whether or not to include projects that
 have been archived using \code{\link{archive_project}()}. \code{FALSE} by

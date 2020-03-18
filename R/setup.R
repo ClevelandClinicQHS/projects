@@ -32,6 +32,9 @@ if (getRversion() >= "2.15.1") utils::globalVariables(c(".", ":="))
 #'   \code{default_folder} to suit their research needs, and may even create
 #'   multiple project folder templates for different situations.
 #'
+#'   The default templates are in the folder located at the path produced by
+#'   running: \code{\link{system.file}("templates", package = "projects")}
+#'
 #' @section Behavior when projects folder already exists: If \code{overwrite =
 #'   TRUE}, the function will run no matter what. Use with caution.
 #'
@@ -122,21 +125,22 @@ setup_projects <- function(path,
                            make_directories = FALSE,
                            .Renviron_path   =
                              file.path(Sys.getenv("HOME"), ".Renviron")) {
-  folder_name <-
-    validate_single_string(folder_name, na.ok = FALSE, zero.chars.ok = FALSE)
+  folder_name <- folder_name %>%
+    validate_single_string(na.ok = FALSE, zero.chars.ok = FALSE)
 
-  if (folder_name != fs::path_file(folder_name)) {
-    stop("folder_name must be a single string, not a file path")
+  if (folder_name != fs::path_sanitize(folder_name)) {
+    stop(
+      "\nThe folder_name:\n",
+      folder_name,
+      "\ncontains invalid characters for a folder name."
+    )
   }
 
-  path     <- path %>%
-    validate_directory(
-      p_path           = NULL,
-      make_directories = make_directories
-    ) %>%
+  path <- path %>%
+    validate_directory(p_path = NULL, make_directories = make_directories) %>%
     fs::path(folder_name)
 
-  old_path <- p_path_from_explicit_renviron(.Renviron_path)
+  old_path <- Sys.getenv("PROJECTS_FOLDER_PATH")
 
   # If overwite = TRUE, function will run no matter what, overwriting any
   # pre-existing value of PROJECTS_FOLDER_PATH in the home .Renviron file.
@@ -144,19 +148,53 @@ setup_projects <- function(path,
   # If overwrite = FALSE, function will still run UNLESS a
   # PROJECTS_FOLDER_PATH value already exists and does not match up with the
   # user-specified path.
-
   if (old_path != "" && old_path != path && !overwrite) {
     message(
-      "\nThe .Renviron file at\n",
-      .Renviron_path,
-      "\nindicates that a 'projects' folder already exists at\n",
+      "\nThe environment variable PROJECTS_FOLDER_PATH indicates",
+      '\nthat a "projects" folder already exists at:\n',
       old_path,
       '\n\nRerun with that path OR set overwrite = TRUE'
     )
     return(invisible(old_path))
   }
 
-  set_Renviron(path, old_path, .Renviron_path)
+  if (validate_Renviron(.Renviron_path)) {
+
+    if (old_path != "" && old_path != path) {
+      user_prompt(
+        msg   =
+          paste0(
+            "\nThe environment variable PROJECTS_FOLDER_PATH indicates",
+            "\nthat a projects folder already exists at:\n",
+            old_path,
+            "\n\nAre you sure you want to create a new one at:\n",
+            path,
+            "\n\nand put the line:\nPROJECTS_FOLDER_PATH='",
+            path,
+            "'\n\nin the .Renviron file at:\n",
+            .Renviron_path,
+            "\n\n? (y/n)"
+          ),
+        n_msg = paste0("\nProjects folder remains at\n", old_path)
+      )
+    }
+
+    set_Renviron(path, .Renviron_path)
+
+  } else if (old_path != path && old_path != "") {
+    user_prompt(
+      msg   =
+        paste0(
+          "\nThe environment variable PROJECTS_FOLDER_PATH indicates",
+          "\nthat a projects folder already exists at:\n",
+          old_path,
+          "\n\nAre you sure you want to create a new one at:\n",
+          path,
+          "\n\n? (y/n)"
+        ),
+      n_msg = paste0("\nProjects folder remains at\n", old_path)
+    )
+  }
 
   create_projects_folder(path)
 
@@ -167,61 +205,30 @@ setup_projects <- function(path,
 
 
 
-p_path_from_explicit_renviron <- function(.Renviron_path) {
-  if (fs::file_exists(.Renviron_path)) {
-    readRenviron(.Renviron_path)
-    Sys.getenv("PROJECTS_FOLDER_PATH")
-  } else {
-    ""
-  }
-}
-
-
-
-set_Renviron <- function(projects_folder_path, old_path, .Renviron_path) {
-
-  if (old_path != projects_folder_path && old_path != "") {
-    user_prompt(
-      msg   =
-        paste0(
-          "\nAre you sure you want to abandon the old projects ",
-          "folder at\n", old_path, "\n\nand create a new one at\n",
-          projects_folder_path,
-          "\n?\n\nThis will change the .Renviron file at\n",
-          .Renviron_path,
-          "\nso that its PROJECTS_FOLDER_PATH ",
-          "line will be:\nPROJECTS_FOLDER_PATH='", projects_folder_path, "'",
-          "\n\nContinue? (y/n)"
-        ),
-      n_msg = paste0("\nProjects folder remains at\n", old_path)
-    )
-  }
+set_Renviron <- function(projects_folder_path, .Renviron_path) {
 
   # If a home .Renviron file already exists, it is overwritten with its original
   # contents, minus any old values of PROJECTS_FOLDER_PATH, plus the new value
-  # of PROJECTS_FOLDER_PATH (i.e., the user-specified path, which could
-  # actually be the same as the old value).
+  # of PROJECTS_FOLDER_PATH.
   Renviron_entries <-
-    if (fs::file_exists(.Renviron_path)) {
-
-      c(
-        # Existing home .Renviron file minus any old entries of
-        # PROJECTS_FOLDER_PATH
+    c(
+      if (fs::file_exists(.Renviron_path)) {
         grep(
           pattern = "^PROJECTS_FOLDER_PATH",
           x       = readr::read_lines(.Renviron_path),
           value   = TRUE,
           invert  = TRUE
-        ),
-
-        paste0("PROJECTS_FOLDER_PATH='", projects_folder_path, "'")
+        )
+      },
+      paste0(
+        "PROJECTS_FOLDER_PATH='",
+        gsub(projects_folder_path, pattern = "'", replacement = "\\\\'"),
+        "'"
       )
-    } else {
-      paste0("PROJECTS_FOLDER_PATH='", projects_folder_path, "'")
-    }
+    )
 
   readr::write_lines(Renviron_entries, path = .Renviron_path)
-  readRenviron(.Renviron_path)
+  Sys.setenv(PROJECTS_FOLDER_PATH = projects_folder_path)
 }
 
 
@@ -351,7 +358,7 @@ restore_metadata <- function(path) {
       function(rds_name, tibble) {
         rds_path <- make_rds_path(rds_name, path)
         if (fs::file_exists(rds_path)) {
-          tibble <- rbind(readRDS(rds_path), tibble)
+          tibble <- vec_rbind(readRDS(rds_path), tibble)
         }
         readr::write_rds(x = tibble, path = rds_path)
       }

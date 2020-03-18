@@ -8,22 +8,40 @@
 \alias{copy_project}
 \alias{archive_project}
 \alias{open_project}
+\alias{move_projects_folder}
+\alias{rename_projects_folder}
 \title{file management}
 \usage{
 new_project_group(path)
 
-rename_folder(project, new_folder_name, change_short_title = TRUE,
-  archived = FALSE)
+rename_folder(project, new_folder_name, archived = FALSE)
 
 move_project(project, path, make_directories = FALSE, archived = FALSE)
 
-copy_project(project_to_copy, path, new_id = NA,
+copy_project(
+  project_to_copy,
+  path,
+  new_id = NA,
   new_folder_name = paste0("p", stringr::str_pad(new_id, 4, pad = "0")),
-  new_short_title = NA, make_directories = FALSE, archived = FALSE)
+  new_short_title = NA,
+  make_directories = FALSE,
+  archived = FALSE
+)
 
 archive_project(project)
 
 open_project(project, new_session = FALSE, archived = FALSE)
+
+move_projects_folder(
+  new_path,
+  make_directories = FALSE,
+  .Renviron_path = file.path(Sys.getenv("HOME"), ".Renviron")
+)
+
+rename_projects_folder(
+  new_name,
+  .Renviron_path = file.path(Sys.getenv("HOME"), ".Renviron")
+)
 }
 \arguments{
 \item{path}{A valid path string.
@@ -39,10 +57,6 @@ from the \code{\link{projects}()} table}
 
 \item{new_folder_name}{Character string of new name for project folder.
 Always processed with \code{fs::\link[fs]{path_sanitize}()}.}
-
-\item{change_short_title}{Logical indicating whether or not the project's
-\code{short_title} should be changed to the value of
-\code{new_folder_name}. Defaults to \code{TRUE}.}
 
 \item{archived}{Logical indicating whether or not the function should
 consider archived projects when determining which project the user is
@@ -66,6 +80,17 @@ folder name under normal circumstances (see \strong{Details}).}
 
 \item{new_session}{Same as the \code{newSession} argument in
 \code{rstudioapi::\link[rstudioapi]{openProject}()}.}
+
+\item{new_path}{A valid string indicating a path where the projects folder
+should be moved. The projects folder will have the same name, but it will
+be moved into this directory.}
+
+\item{.Renviron_path}{The full file path of the .Renviron file where the user
+would like to store the updated \code{\link{projects_folder}()} path.
+Default is the home .Renviron file. If the file doesn't exist it will be
+created. See also \code{\link{setup_projects}()}.}
+
+\item{new_name}{A valid directory name for the projects folder.}
 }
 \description{
 Tools for Organizing and Managing Project Files
@@ -94,6 +119,10 @@ of the file path of the project's \emph{.Rproj} file. If there is no
 \emph{.Rproj} file in the project's folder, the user has the option to
 restore a default \emph{.Rproj} file. If there are multiple \emph{.Rproj}
 files, an error is thrown.
+
+\code{move_projects_folder()} allows the user to move the entire projects
+folder created by \code{\link{setup_projects}()} into a different directory,
+and \code{rename_projects_folder()} changes its name.
 }
 \examples{
 #############################################################################
@@ -130,6 +159,14 @@ if (interactive()){
 
   # Archiving the copy of the project
   archive_project(2)
+
+  # Moving and renaming the entire projects folder
+  temp_dir2 <- tempfile("dir")
+  dir.create(temp_dir2)
+  move_projects_folder(temp_dir2)
+  projects_folder()
+  rename_projects_folder("foobar")
+  projects_folder()
 
   # Opens the project in same session
   open_project("Sample")

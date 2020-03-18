@@ -11,12 +11,12 @@
 #' analysis}\cr \code{4: manuscript}\cr \code{5: under review}\cr \code{6:
 #' accepted}
 #'
-#' \code{new_projects_stage()} merely coerces the object's class attribute to
+#' \code{projects_stage()} merely coerces the object's class attribute to
 #' \code{projects_stage}.
 #'
 #' @section Numeric coercion methods: \code{\link{as.integer}()},
 #'   \code{\link{as.double}()}, and \code{\link{as.numeric}()} return the stage
-#'   number of the \code{projects_author} object as an integer/double. The
+#'   number of the \code{projects_stage} object as an integer/double. The
 #'   methods for the comparison and value matching functions described below
 #'   make use of these numeric coercion methods. Users desiring to apply value
 #'   matching functions other than the ones described below may similarly take
@@ -35,31 +35,34 @@
 #' @section \code{c()} method: A method for \code{\link{c}()} was also written
 #'   so that the class attribute is not lost.
 #'
-#' @param x For \code{new_projects_stage()}, any object. For
+#' @param x For \code{projects_stage()}, an integer or character vector. For
 #'
 #'   For the \code{as.*()} methods, a \code{projects_stage} object.
 #'
 #'   For \code{\link{match}()} and \code{\link{\%in\%}}, an integer, a character
-#'   string, or a \code{projects_author} object. See \code{\link{match}()} and
+#'   string, or a \code{projects_stage} object. See \code{\link{match}()} and
 #'   \strong{Comparison and value matching methods} below.
 #'
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @param table An integer number, a character string, or a
-#'   \code{projects_author} object. See \code{\link{match}()} and
+#'   \code{projects_stage} object. See \code{\link{match}()} and
 #'   \strong{Comparison and value matching methods} below.
 #'
 #' @param nomatch See \code{\link{match}()}.
 #'
 #' @param incomparables An integer number, a character string, or a
-#'   \code{projects_author} object. See \code{\link{match}()}.
+#'   \code{projects_stage} object. See \code{\link{match}()}.
+#'
+#' @return For \code{projects_stage()}, an S3 vector of class
+#'   \code{projects_stage}.
 #'
 #' @seealso \code{\link{Ops}}; \code{\link[methods]{Methods_for_Nongenerics}}.
 #'   For other S3 class-retention strategies, see \code{\link{Extract}} and
 #'   \code{\link{[.data.frame}}.
 #'
 #' @examples
-#' stage <- new_projects_stage("4: manuscript")
+#' stage <- projects_stage("4: manuscript")
 #'
 #' as.integer(stage) # 4
 #'
@@ -72,7 +75,7 @@
 #'
 #' stage %in% c("design", "manusc", "idea")  # TRUE
 #'
-#' more_stages <- new_projects_stage(c("0: idea", "4: manuscript", "1: design"))
+#' more_stages <- projects_stage(c("0: idea", "4: manuscript", "1: design"))
 #'
 #' match("MAnuscRIPT", more_stages)      # 2
 #'
@@ -84,15 +87,24 @@
 methods::setClass("projects_stage")
 
 
-#' @rdname projects_stage
-#' @export
 new_projects_stage <- function(x = character()) {
-  structure(x, class = "projects_stage")
+  vec_assert(x, character())
+  new_vctr(x, class = "projects_stage")
 }
 
 
+#' @rdname projects_stage
+#' @export
+projects_stage <- function(x = character()) {
+  x <- vec_cast(x, character())
+  validate_stage(x)
+}
 
-validate_stage <- function(stage, na.ok = TRUE, null.ok = FALSE) {
+#' @export
+vec_ptype_abbr.projects_stage <- function(x, ...) "prjstg"
+
+
+validate_stage <- function(stage, na.ok = TRUE, null.ok = FALSE, n = NULL) {
 
   if (is.null(stage) && null.ok) {
     return(NULL)
@@ -100,91 +112,126 @@ validate_stage <- function(stage, na.ok = TRUE, null.ok = FALSE) {
 
   choices <- eval(formals(new_project)$stage)
 
-  if (identical(stage, choices)) {
-    stage <- stage[1L]
-  } else {
+  stage <- trimws(tolower(as.character(stage)))
 
-    stage <- trimws(tolower(as.character(stage)))
-
-    if (!rlang::is_scalar_character(stage)) {
-      stop("stage must be a single integer or character string")
-    }
-
-    if (is.na(stage)) {
-      if (!na.ok) {
-        stop("stage must not be missing (NA)")
-      }
-    } else {
-
-      match_attempt <- pmatch(stage, choices)
-
-      if (is.na(match_attempt)) {
-
-        match_attempt <- pmatch(stage, substr(choices, 4, nchar(choices)))
-
-        if (is.na(match_attempt)) {
-          stop(
-            "\nTo match a stage, user input must either:\n\n",
-            "- exactly match the integer\n",
-            "- partially match the text\n\n",
-            "of one of:\n",
-            paste(choices, collapse = "\n"),
-            "\n\n'", stage, "' did not match."
-          )
-        }
-      }
-
-      stage <- choices[match_attempt]
-    }
+  if (!rlang::is_atomic(stage) || !is.null(n) && length(stage) != n) {
+    stop("\nstage must be coercible to a character vector of length ", n)
   }
+
+  stage <-
+    vapply(
+      stage,
+      function(stage) {
+        if (is.na(stage)) {
+          if (!na.ok) {
+            stop("stage must not be missing (NA)")
+          }
+        } else {
+
+          match_attempt <- pmatch(stage, choices)
+
+          if (is.na(match_attempt)) {
+
+            match_attempt <- pmatch(stage, substr(choices, 4L, nchar(choices)))
+
+            if (is.na(match_attempt)) {
+              stop(
+                "\nTo match a stage, user input must either:\n\n",
+                "- exactly match the integer\n",
+                "- partially match the text\n\n",
+                "of one of:\n",
+                paste(choices, collapse = "\n"),
+                "\n\n'", stage, "' did not match."
+              )
+            }
+          }
+
+          stage <- choices[match_attempt]
+        }
+      },
+      character(1L)
+    )
 
   new_projects_stage(stage)
 }
 
 
 
-
-# Numeric coercion-------------------------------------------------------------
-#' @rdname projects_stage
+#' @rdname projects_stage-vctrs
+#' @method vec_ptype2 projects_stage
 #' @export
-as.integer.projects_stage <- function(x, ...) {
-  as.integer(substr(unclass(x), 1L, 1L), ...)
-}
+#' @export vec_ptype2.projects_stage
+vec_ptype2.projects_stage <- function(x, y, ...)
+  UseMethod("vec_ptype2.projects_stage", y)
 
-#' @rdname projects_stage
+#' @method vec_ptype2.projects_stage default
 #' @export
-as.double.projects_stage  <- function(x, ...) {
-  as.double(substr(unclass(x), 1L, 1L), ...)
-}
+vec_ptype2.projects_stage.default <- function(x, y, ...,
+                                              x_arg = "x", y_arg = "y")
+  vec_default_ptype2(x, y, x_arg = x_arg, y_arg = y_arg)
 
-#' @rdname projects_stage
+#' @method vec_ptype2.projects_stage projects_stage
 #' @export
-as.numeric.projects_stage <- as.double.projects_stage
+vec_ptype2.projects_stage.projects_stage <- function(x, y, ...)
+  new_projects_stage()
 
-
-
-# Subsetting methods, per ?`[.data.frame` -------------------------------------
-
+#' @method vec_ptype2.projects_stage character
 #' @export
-as.data.frame.projects_stage <- as.data.frame.vector
+vec_ptype2.projects_stage.character <- function(x, y, ...) character()
 
+#' @method vec_ptype2.character projects_stage
 #' @export
-`[.projects_stage` <- function(x, i, ...) {
-  r <- NextMethod("[")
-  mostattributes(r) <- attributes(x)
-  r
-}
+vec_ptype2.character.projects_stage <- function(x, y, ...) character()
 
-
+#' @method vec_cast projects_stage
+#' @export vec_cast.projects_stage
 #' @export
-c.projects_stage <- function(...) {
-  new_projects_stage(c(unlist(lapply(list(...), unclass))))
-}
+#' @rdname projects_stage-vctrs
+vec_cast.projects_stage <- function(x, to, ...)
+  UseMethod("vec_cast.projects_stage")
+
+#' @method vec_cast.projects_stage default
+#' @export
+vec_cast.projects_stage.default <- function(x, to, ...)
+  vec_default_cast(x, to)
+
+#' @method vec_cast.projects_stage projects_stage
+#' @export
+vec_cast.projects_stage.projects_stage <- function(x, to, ...) x
+
+#' @method vec_cast.projects_stage character
+#' @export
+vec_cast.projects_stage.character <- function(x, to, ...) validate_stage(x)
+
+#' @method vec_cast.character projects_stage
+#' @export
+vec_cast.character.projects_stage <- function(x, to, ...) vec_data(x)
+
+#' @method vec_cast.projects_stage integer
+#' @export
+vec_cast.projects_stage.integer <- function(x, ...) validate_stage(x)
+
+#' @method vec_cast.integer projects_stage
+#' @export
+vec_cast.integer.projects_stage <- function(x, ...)
+  as.integer(substr(vec_data(x), 1L, 1L))
+
+#' @method vec_cast.double projects_stage
+#' @export
+vec_cast.double.projects_stage <- function(x, ...)
+  as.double(substr(vec_data(x), 1L, 1L))
+
+#' @method vec_cast.projects_stage double
+#' @export
+vec_cast.projects_stage.double <- function(x, ...) validate_stage(x)
 
 
 #' @export
 Ops.projects_stage <- function(e1, e2) {
-  get(.Generic)(as.integer(validate_stage(e1)), as.integer(validate_stage(e2)))
+  get(.Generic)(
+    vapply(validate_stage(e1), as.integer, 0L),
+    vapply(validate_stage(e2), as.integer, 0L)
+  )
 }
 
 
@@ -199,12 +246,10 @@ match.projects_stage <- function(x,
                                  nomatch       = NA_integer_,
                                  incomparables = NULL) {
 
-  x     <- lapply(x, validate_stage)
-
-  table <- lapply(table, validate_stage)
-
+  x <- validate_stage(x)
+  table <- validate_stage(table)
   if (!is.null(incomparables)) {
-    incomparables <- lapply(incomparables, validate_stage)
+    incomparables <- validate_stage(incomparables)
   }
 
   base::match(x, table, nomatch, incomparables)
@@ -257,3 +302,10 @@ methods::setMethod(
   signature(table = "projects_stage"),
   `%in%.projects_stage`
 )
+
+#' Internal vctrs methods
+#'
+#' @import vctrs
+#' @keywords internal
+#' @name projects_stage-vctrs
+NULL

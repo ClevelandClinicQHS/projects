@@ -44,7 +44,7 @@ edit_project <- function(project,
   status        <- validate_single_string(status, null.ok = TRUE)
   deadline_type <- validate_single_string(deadline_type, null.ok = TRUE)
 
-  stage           <- validate_stage(stage, null.ok = TRUE)
+  stage           <- validate_stage(stage, null.ok = TRUE, n = 1L)
 
   deadline        <- validate_deadline(deadline, null.ok = TRUE)
 
@@ -71,7 +71,7 @@ edit_project <- function(project,
       !is.na(project$current_owner) &&
       any(authors$remove == project$current_owner)
     ) {
-      current_owner <- new_projects_author(NA)
+      current_owner <- new_projects_author(NA_character_)
     }
   } else if (!is.na(current_owner)) {
     current_owner <-
@@ -106,7 +106,7 @@ edit_project <- function(project,
       !is.na(project$corresp_auth) &&
       any(authors$remove == project$corresp_auth)
     ) {
-      corresp_auth <- new_projects_author(NA)
+      corresp_auth <- new_projects_author(NA_character_)
     }
   } else if (!is.na(corresp_auth)) {
     corresp_auth <-
@@ -137,7 +137,7 @@ edit_project <- function(project,
 
   if (is.null(creator)) {
     if (!is.na(project$creator) && any(authors$remove == project$creator)) {
-      creator <- new_projects_author(NA)
+      creator <- new_projects_author(NA_character_)
     }
   } else if (!is.na(creator)) {
     creator <-
@@ -374,19 +374,13 @@ delete_project <- function(project, archived = FALSE) {
 
   print(project_row)
 
-  if (!fs::dir_exists(project_row$path)) {
-    user_prompt(
-      msg   = paste0("Project folder not found at\n", project_row$path,
-                     "\nDelete only its metadata? (y/n)"),
-      n_msg = paste0("Deletion not completed. Restore folder to ",
-                     project_row$path, ' or rerun this command, inputting "y" ',
-                     'instead of "n" when asked whether or not to continue.'))
-  } else {
+  if (fs::dir_exists(project_row$path)) {
+
     user_prompt(
       msg   =
         paste0(
-          "\nAre you sure you want to delete the above project ",
-          "and its entire folder, which is located at\n\n",
+          "\nAre you sure you want to delete the above project",
+          "\nand its entire folder, which is located at\n\n",
           project_row$path,
           "\n\n? (y/n)"
         ),
@@ -396,7 +390,17 @@ delete_project <- function(project, archived = FALSE) {
           'again and enter "y".'
         )
     )
+
     fs::dir_delete(path = project_row$path)
+
+  } else {
+    user_prompt(
+      msg   = paste0("Project folder not found at\n", project_row$path,
+                     "\nDelete only its metadata? (y/n)"),
+      n_msg = paste0("Deletion not completed. Restore folder to ",
+                     project_row$path, ' or rerun this command, inputting "y" ',
+                     'instead of "n" when asked whether or not to continue.')
+    )
   }
 
 

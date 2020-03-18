@@ -26,6 +26,10 @@
 #' restore a default \emph{.Rproj} file. If there are multiple \emph{.Rproj}
 #' files, an error is thrown.
 #'
+#' \code{move_projects_folder()} allows the user to move the entire projects
+#' folder created by \code{\link{setup_projects}()} into a different directory,
+#' and \code{rename_projects_folder()} changes its name.
+#'
 #' @param path A valid path string.
 #'
 #'   For \code{copy_project()} only, if left blank, the preexisting project's
@@ -48,15 +52,20 @@
 #'   folder name under normal circumstances (see \strong{Details}).
 #' @param new_folder_name Character string of new name for project folder.
 #'   Always processed with \code{fs::\link[fs]{path_sanitize}()}.
-#' @param change_short_title Logical indicating whether or not the project's
-#'   \code{short_title} should be changed to the value of
-#'   \code{new_folder_name}. Defaults to \code{TRUE}.
 #' @param new_session Same as the \code{newSession} argument in
 #'   \code{rstudioapi::\link[rstudioapi]{openProject}()}.
 #' @param archived Logical indicating whether or not the function should
 #'   consider archived projects when determining which project the user is
 #'   referring to in the \code{project}/\code{project_to_copy} argument.
 #'   \code{FALSE} by default. See \strong{Details}.
+#' @param new_path A valid string indicating a path where the projects folder
+#'   should be moved. The projects folder will have the same name, but it will
+#'   be moved into this directory.
+#' @param new_name A valid directory name for the projects folder.
+#' @param .Renviron_path The full file path of the .Renviron file where the user
+#'   would like to store the updated \code{\link{projects_folder}()} path.
+#'   Default is the home .Renviron file. If the file doesn't exist it will be
+#'   created. See also \code{\link{setup_projects}()}.
 #'
 #' @name file_management
 #' @seealso \code{\link{new_project}()} and \code{\link{delete_project}()} for
@@ -98,6 +107,14 @@
 #'   # Archiving the copy of the project
 #'   archive_project(2)
 #'
+#'   # Moving and renaming the entire projects folder
+#'   temp_dir2 <- tempfile("dir")
+#'   dir.create(temp_dir2)
+#'   move_projects_folder(temp_dir2)
+#'   projects_folder()
+#'   rename_projects_folder("foobar")
+#'   projects_folder()
+#'
 #'   # Opens the project in same session
 #'   open_project("Sample")
 #'
@@ -107,7 +124,6 @@
 #' #############################################################################
 #' # CLEANUP
 #' Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
-#' @importFrom rlang .data
 #' @export
 new_project_group <- function(path) {
 
@@ -131,12 +147,8 @@ new_project_group <- function(path) {
 
 
 #' @rdname file_management
-#' @importFrom rlang .data
 #' @export
-rename_folder <- function(project,
-                          new_folder_name,
-                          change_short_title = TRUE,
-                          archived           = FALSE) {
+rename_folder <- function(project, new_folder_name, archived = FALSE) {
 
   p_path         <- get_p_path()
 
@@ -177,10 +189,6 @@ rename_folder <- function(project,
 
   project_row$path <- unclass(new_path)
 
-  if (change_short_title) {
-    project_row$short_title <- new_folder_name
-  }
-
   edit_metadata(
     table = projects_table,
     row_id = project_row$id,
@@ -200,7 +208,6 @@ rename_folder <- function(project,
 
 
 #' @rdname file_management
-#' @importFrom rlang .data
 #' @export
 move_project <- function(project,
                          path,
@@ -468,17 +475,31 @@ archive_project <- function(project) {
 
 #' @rdname file_management
 #' @export
-#' @importFrom rlang .data
 open_project <- function(project, new_session = FALSE, archived = FALSE) {
+
+  p_path <- get_p_path()
 
   project_row    <-
     validate_unique_entry(
       x     = project,
-      table = projects_internal(archived = archived),
+      table = projects_internal(p_path = p_path, archived = archived),
       what  = "project"
     )
 
-  Rproj_path <- fs::dir_ls(project_row$path, glob = "*.Rproj")
+  if (fs::path_has_parent(project_row$path, p_path)) {
+    Rproj_path <- fs::dir_ls(project_row$path, glob = "*.Rproj")
+  } else {
+    path_split <- fs::path_split(project_row$path)[[1L]]
+    len <- length(path_split)
+    Rproj_path <- NULL
+    for (i in seq_len(len)[-1L]) {
+      candidate <- fs::path_join(c(p_path, path_split[i:len]))
+      if (fs::file_exists(candidate)) {
+        Rproj_path <- fs::dir_ls(candidate, glob = "*.Rproj")
+        break
+      }
+    }
+  }
 
   if (length(Rproj_path) != 1L) {
 
@@ -536,4 +557,149 @@ open_project <- function(project, new_session = FALSE, archived = FALSE) {
   }
 
   rstudioapi::openProject(Rproj_path, new_session)
+}
+
+
+
+
+#' @rdname file_management
+#' @export
+move_projects_folder <- function(new_path,
+                                 make_directories = FALSE,
+                                 .Renviron_path   =
+                                   file.path(Sys.getenv("HOME"), ".Renviron")) {
+
+  p_path <- get_p_path()
+
+  projects_path <- make_rds_path("projects", p_path = p_path)
+
+  projects_table <- get_rds(projects_path)
+
+  new_path <-
+    validate_directory(
+      new_path,
+      p_path = NULL,
+      make_directories = make_directories
+    )
+
+  new_path2 <- fs::path(new_path, fs::path_file(p_path))
+
+  if (fs::dir_exists(new_path)) {
+
+    if (fs::dir_exists(new_path2)) {
+      stop(
+        "\nCannot move the projects folder currently at:\n",
+        p_path,
+        "\ninto the folder:\n",
+        new_path,
+        "\nbecause this folder:\n",
+        new_path2,
+        "\nalready exists."
+      )
+    }
+
+    user_prompt(
+      msg   = paste0("Are you sure you want to move the projects folder",
+                     "\nso that its new path is\n",
+                     new_path2,
+                     "\n? (y/n)"),
+      n_msg = paste0('Move not completed. To move the projects folder, ',
+                     'try again and enter "y".')
+    )
+  } else {
+    user_prompt(
+      msg   = paste0("\nDirectory not found:\n", new_path,
+                     "\n\nWould you like to create it and move the projects ",
+                     "folder there, so that its new path will be\n",
+                     new_path2,
+                     "\n\n? (y/n)"),
+      n_msg = paste0("\nMove not completed. To move this project, try again ",
+                     'and enter "y"')
+    )
+
+    fs::dir_create(new_path)
+  }
+
+  fs::file_move(path = p_path, new_path = new_path)
+
+  set_Renviron(new_path2, .Renviron_path = .Renviron_path)
+
+  coll_p_path <- stringr::coll(fs::path_dir(p_path))
+
+  projects_table$path <-
+    stringr::str_replace(
+      string = projects_table$path,
+      pattern = coll_p_path,
+      replacement = new_path
+    )
+
+  projects_path <-
+    stringr::str_replace(
+      string = projects_path,
+      pattern = coll_p_path,
+      replacement = new_path
+    )
+
+  readr::write_rds(projects_table, path = projects_path)
+
+  message("\nProjects folder moved so that its new path is\n", new_path2)
+}
+
+
+#' @rdname file_management
+#' @export
+rename_projects_folder <- function(new_name,
+                                   .Renviron_path   =
+                                     file.path(Sys.getenv("HOME"), ".Renviron")
+                                   ) {
+  p_path <- get_p_path()
+  projects_path <- make_rds_path("projects", p_path = p_path)
+  projects_table <- get_rds(projects_path)
+
+  if (!identical(new_name, fs::path_sanitize(new_name))) {
+    stop(new_name, " is not a valid folder name")
+  }
+
+  new_path <- fs::path(fs::path_dir(p_path), new_name)
+
+  if (fs::dir_exists(new_path)) {
+    stop(
+      "\nThe directory:\n",
+      new_path,
+      "\nalready exists. Move or delete it or choose a different name."
+    )
+  }
+
+  user_prompt(
+    msg   = paste0("Are you sure you want to rename the projects folder",
+                   "\nso that its new path is\n",
+                   new_path,
+                   "\n? (y/n)"),
+    n_msg = paste0('Renaming not completed. To rename the projects folder, ',
+                   'try again and enter "y".')
+  )
+
+  fs::file_move(path = p_path, new_path = new_path)
+
+  set_Renviron(new_path, .Renviron_path = .Renviron_path)
+
+  coll_p_path <- stringr::coll(p_path)
+
+  projects_table$path <-
+    stringr::str_replace(
+      string = projects_table$path,
+      pattern = coll_p_path,
+      replacement = new_path
+    )
+
+  projects_path <-
+    stringr::str_replace(
+      string = projects_path,
+      pattern = coll_p_path,
+      replacement = new_path
+    )
+
+  readr::write_rds(projects_table, path = projects_path)
+
+  message("\nProjects folder renamed so that its new path is:\n", new_path)
 }

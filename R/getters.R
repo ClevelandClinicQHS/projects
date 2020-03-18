@@ -31,15 +31,10 @@ get_p_path <- function(error = TRUE) {
 
   if (fs::dir_exists(path)) {
     path
-  }
-  else {
-    notice <- 'projects folder not found. Please run setup_projects()'
-    if (error) {
-      stop(notice)
-    }
-    else {
-      notice
-    }
+  } else if (error) {
+    stop("projects folder not found. Please run setup_projects()")
+  } else {
+    "projects folder not found. Please run setup_projects()"
   }
 }
 
@@ -74,7 +69,10 @@ affiliations <- function(affiliation, authors = FALSE) {
 
   affiliations_table <- dplyr::arrange(affiliations_table, .data$id)
 
-  print_rds(affiliations_table)
+  class(affiliations_table) <-
+    c("projects_metadata_tbl", class(affiliations_table))
+
+  affiliations_table
 }
 
 
@@ -88,7 +86,7 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 
   authors_table <-
     authors_internal(p_path)
-    # %>% dplyr::arrange(.data$last_name, .data$given_names)
+  # %>% dplyr::arrange(.data$last_name, .data$given_names)
 
   if (!missing(author)) {
     authors_table <- authors_table %>%
@@ -117,7 +115,9 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 
   authors_table <- dplyr::arrange(authors_table, .data$id)
 
-  print_rds(authors_table)
+  class(authors_table) <- c("projects_metadata_tbl", class(authors_table))
+
+  authors_table
 }
 
 
@@ -164,6 +164,8 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #'   accepted}
 #'
 #'   \emph{Ignored if} \code{all_stages = TRUE}
+#' @param path A single file path of a directory within the main projects
+#'   folder; only projects whose folder is in this directory will be returned.
 #' @param archived Logical, indicating whether or not to include projects that
 #'   have been archived using \code{\link{archive_project}()}. \code{FALSE} by
 #'   default.
@@ -250,6 +252,7 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 projects <- function(project,
                      all_stages  = FALSE,
                      exclude     = c(0L, 6L),
+                     path        = NULL,
                      archived    = FALSE,
                      verbose     = FALSE,
                      authors     = FALSE) {
@@ -258,17 +261,34 @@ projects <- function(project,
   projects_path   <- make_rds_path("projects", p_path)
   projects_table  <- get_rds(projects_path)
 
-  if (!all_stages && rlang::is_vector(exclude) && length(exclude) > 0L) {
+  path <- path %>%
+    validate_single_string(null.ok = TRUE, na.ok = FALSE, zero.chars.ok = FALSE)
 
-    if (!rlang::is_integerish(exclude)) {
-      exclude <- vapply(exclude, validate_stage, FUN.VALUE = character(1L))
-    }
+  if (!all_stages && rlang::is_vector(exclude) && length(exclude)) {
+
+    exclude <- validate_stage(exclude, null.ok = FALSE, na.ok = TRUE)
 
     if (anyDuplicated(exclude)) {
       stop("Duplicate stages detected in \"exclude\" argument.")
     }
 
     projects_table <- projects_table[!(projects_table$stage %in% exclude), ]
+  }
+
+  if (!is.null(path)) {
+
+    if (!fs::path_has_parent(path, p_path)) {
+      path <- fs::path(p_path, path)
+    }
+
+    if (!fs::dir_exists(path)) {
+      warning("\nThe directory:\n", path, "\ndoes not exist.")
+    }
+
+    projects_table <- projects_table %>%
+      dplyr::filter(
+        vapply(.data$path, fs::path_has_parent, logical(1L), parent = !!path)
+      )
   }
 
   if (!archived) {
@@ -309,14 +329,16 @@ projects <- function(project,
       )
   }
 
-  print_rds(projects_table)
+  class(projects_table) <- c("projects_metadata_tbl", class(projects_table))
+
+  projects_table
 }
 
-
-print_rds <- function(x) {
+#' @export
+print.projects_metadata_tbl <- function(x, ...) {
   old_ops <- options(tibble.print_max = 100L, tibble.print_min = 100L)
-  on.exit(options(old_ops))
-  x
+  on.exit(options(old_ops), add = TRUE)
+  NextMethod()
 }
 
 

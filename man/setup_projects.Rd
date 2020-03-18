@@ -4,9 +4,13 @@
 \alias{setup_projects}
 \title{Set up the projects folder}
 \usage{
-setup_projects(path, folder_name = "projects", overwrite = FALSE,
+setup_projects(
+  path,
+  folder_name = "projects",
+  overwrite = FALSE,
   make_directories = FALSE,
-  .Renviron_path = file.path(Sys.getenv("HOME"), ".Renviron"))
+  .Renviron_path = file.path(Sys.getenv("HOME"), ".Renviron")
+)
 }
 \arguments{
 \item{path}{The file path of the \strong{directory inside of which} the user
@@ -63,6 +67,9 @@ file that R will not notice or use. See \link{Startup} for more details.
   folder. Users are able and encouraged to customize the
   \code{default_folder} to suit their research needs, and may even create
   multiple project folder templates for different situations.
+
+  The default templates are in the folder located at the path produced by
+  running: \code{\link{system.file}("templates", package = "projects")}
 }
 
 \section{Behavior when projects folder already exists}{

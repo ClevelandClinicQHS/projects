@@ -14,35 +14,77 @@
 \alias{delete_affiliation}
 \title{Create, edit or delete projects, authors and affiliations}
 \usage{
-new_project(title = NA, current_owner = NA, stage = c("1: design",
-  "2: data collection", "3: analysis", "4: manuscript", "5: under review",
-  "6: accepted", "0: idea"), status = "just created", short_title = NA,
-  authors = NULL, corresp_auth = NA, creator = NA,
-  deadline_type = NA, deadline = NA, id = NA,
+new_project(
+  title = NA,
+  current_owner = NA,
+  stage = c("1: design", "2: data collection", "3: analysis", "4: manuscript",
+    "5: under review", "6: accepted", "0: idea"),
+  status = "just created",
+  short_title = NA,
+  authors = NULL,
+  corresp_auth = NA,
+  creator = NA,
+  deadline_type = NA,
+  deadline = NA,
+  id = NA,
   folder_name = paste0("p", stringr::str_pad(id, 4, pad = "0")),
-  parent_directory = projects_folder(), make_directories = FALSE,
-  template_folder = "default_folder")
+  parent_directory = projects_folder(),
+  make_directories = FALSE,
+  template_folder = "default_folder"
+)
 
 new_idea(title, status = "just an idea", ...)
 
-new_author(given_names = NA, last_name = NA, title = NA,
-  affiliations = NULL, degree = NA, email = NA, phone = NA,
-  id = NA)
+new_author(
+  given_names = NA,
+  last_name = NA,
+  title = NA,
+  affiliations = NULL,
+  degree = NA,
+  email = NA,
+  phone = NA,
+  id = NA
+)
 
-new_affiliation(department_name = NA, institution_name = NA,
-  address = NA, id = NA)
+new_affiliation(
+  department_name = NA,
+  institution_name = NA,
+  address = NA,
+  id = NA
+)
 
-edit_project(project, title = NULL, short_title = NULL,
-  authors = NULL, current_owner = NULL, status = NULL,
-  deadline_type = NULL, deadline = NULL, stage = NULL,
-  corresp_auth = NULL, creator = NULL, archived = FALSE)
+edit_project(
+  project,
+  title = NULL,
+  short_title = NULL,
+  authors = NULL,
+  current_owner = NULL,
+  status = NULL,
+  deadline_type = NULL,
+  deadline = NULL,
+  stage = NULL,
+  corresp_auth = NULL,
+  creator = NULL,
+  archived = FALSE
+)
 
-edit_author(author, given_names = NULL, last_name = NULL,
-  affiliations = NULL, title = NULL, degree = NULL, email = NULL,
-  phone = NULL)
+edit_author(
+  author,
+  given_names = NULL,
+  last_name = NULL,
+  affiliations = NULL,
+  title = NULL,
+  degree = NULL,
+  email = NULL,
+  phone = NULL
+)
 
-edit_affiliation(affiliation, department_name = NULL,
-  institution_name = NULL, address = NULL)
+edit_affiliation(
+  affiliation,
+  department_name = NULL,
+  institution_name = NULL,
+  address = NULL
+)
 
 delete_project(project, archived = FALSE)
 

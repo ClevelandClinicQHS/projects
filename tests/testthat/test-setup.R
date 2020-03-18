@@ -16,7 +16,7 @@ test_that("Setup works", {
 
   expect_message(
     setup_projects(temp_dir, folder_name = "projects2"),
-    "The .Renviron file at"
+    "\nThe environment variable PROJECTS_FOLDER_PATH indicates"
   )
 
   expect_equal(
@@ -165,7 +165,7 @@ test_that("Setup works", {
       ~id, ~department_name,         ~institution_name,     ~address,
       1L,  "Mathematics Department", "Springfield College", "123 College St, Springfield, AB",
       42L, "Art Department",         "Springfield College", "321 University Boulevard, Springfield, AB"
-    )
+    ) %>% structure(class = c("projects_metadata_tbl", class(.)))
   )
 
 
@@ -173,20 +173,31 @@ test_that("Setup works", {
   expect_identical(
     authors(),
     tibble::tribble(
-      ~id,   ~given_names, ~last_name, ~title, ~degree, ~email,          ~phone,
-      13L,   "Spiro",      "Agnew",    NA,     "LLB",   NA,              NA,
-      303L,  NA,           "Plato",    "Nut",  NA,      NA,              NA,
-      8888L, "Rosetta",    "Stone",    NA,     "PhD",   "slab@rock.net", "867-555-5309"
-    )
+      ~id,   ~last_name, ~given_names, ~title, ~degree, ~email,          ~phone,
+      13L,   "Agnew",    "Spiro",      NA,     "LLB",   NA,              NA,
+      303L,  "Plato",    NA,           "Nut",  NA,      NA,              NA,
+      8888L, "Stone",    "Rosetta",    NA,     "PhD",   "slab@rock.net", "867-555-5309"
+    ) %>% structure(class = c("projects_metadata_tbl", class(.)))
   )
 
   expect_identical(
     projects(verbose = TRUE, all_stages = TRUE),
-    tibble::tribble(
-      ~id, ~title,                                                ~short_title, ~current_owner,                                    ~status,          ~deadline_type, ~deadline,                             ~stage,                                               ~path,                                                                              ~corresp_auth,                                      ~creator,
-      1L,  "Understanding the Construction of the United States", "usa1",       structure("13: Agnew", class = "projects_author"), "waiting on IRB", "submission",   lubridate::as_datetime("2055-02-28"),  structure("4: manuscript", class = "projects_stage"), unclass(fs::path(projects_folder(), "famous_studied/philosophers/rocks", "p0001")), structure("303: Plato", class = "projects_author"), structure(paste0("0: ", Sys.info()["user"]), class = "projects_author"),
-      2L,  "Boiling the Ocean",                                   NA,           structure(NA, class = "projects_author"),          "just an idea",   NA,             lubridate::as_datetime(NA_character_), structure("0: idea",       class = "projects_stage"), unclass(fs::path(projects_folder(), "p0002")),                                      structure(NA, class = "projects_author"),           structure(paste0("0: ", Sys.info()["user"]), class = "projects_author")
-    )
+    tibble::tibble(
+      id = 1L:2L,
+      title = c("Understanding the Construction of the United States",
+                "Boiling the Ocean"),
+      short_title = c("usa1", NA),
+      current_owner = new_projects_author(c("13: Agnew", NA)),
+      status = c("waiting on IRB", "just an idea"),
+      deadline_type = c("submission", NA),
+      deadline = lubridate::as_datetime(c("2055-02-28", NA)),
+      stage = new_projects_stage(c("4: manuscript", "0: idea")),
+      path = unclass(c(fs::path(projects_folder(),
+                                "famous_studied/philosophers/rocks/p0001"),
+                       fs::path(projects_folder(), "p0002"))),
+      corresp_auth = new_projects_author(c("303: Plato", NA)),
+      creator = new_projects_author(rep(paste0("0: ", Sys.info()["user"]), 2L))
+    ) %>% structure(class = c("projects_metadata_tbl", class(.)))
   )
 
   expect_identical(

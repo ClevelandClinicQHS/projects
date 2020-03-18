@@ -3,10 +3,7 @@
 \docType{class}
 \name{projects_author-class}
 \alias{projects_author-class}
-\alias{new_projects_author}
-\alias{as.integer.projects_author}
-\alias{as.double.projects_author}
-\alias{as.numeric.projects_author}
+\alias{projects_author}
 \alias{match.projects_author}
 \alias{match,projects_author,ANY-method}
 \alias{match,ANY,projects_author-method}
@@ -15,39 +12,28 @@
 \alias{\%in\%,ANY,projects_author-method}
 \title{\code{projects_author} class and its methods}
 \usage{
-new_projects_author(x = character())
+projects_author(x = character())
 
-\method{as.integer}{projects_author}(x, ...)
+match.projects_author(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-\method{as.double}{projects_author}(x, ...)
+\S4method{match}{projects_author,ANY}(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-\method{as.numeric}{projects_author}(x, ...)
+\S4method{match}{ANY,projects_author}(x, table, nomatch = NA_integer_, incomparables = NULL)
 
-match.projects_author(x, table, nomatch = NA_integer_,
-  incomparables = NULL)
-
-\S4method{match}{projects_author,ANY}(x, table, nomatch = NA_integer_,
-  incomparables = NULL)
-
-\S4method{match}{ANY,projects_author}(x, table, nomatch = NA_integer_,
-  incomparables = NULL)
-
-"\%in\%.projects_author"(x, table)
+`\%in\%.projects_author`(x, table)
 
 \S4method{\%in\%}{projects_author,ANY}(x, table)
 
 \S4method{\%in\%}{ANY,projects_author}(x, table)
 }
 \arguments{
-\item{x}{For \code{new_projects_author()}, any object. For
+\item{x}{For \code{projects_author()}, an integer or character vector. For
 
   For the \code{as.*()} methods, a \code{projects_author} object.
 
   For \code{\link{match}()} and \code{\link{\%in\%}}, an integer, a character
   string, or a \code{projects_author} object. See \code{\link{match}()} and
   \strong{Equality and value matching methods} below.}
-
-\item{...}{further arguments passed to or from other methods.}
 
 \item{table}{An integer number, a character string, or a
 \code{projects_author} object. See \code{\link{match}()}  and
@@ -57,6 +43,8 @@ match.projects_author(x, table, nomatch = NA_integer_,
 
 \item{incomparables}{An integer number, a character string, or a
 \code{projects_author} object. See \code{\link{match}()}.}
+
+\item{...}{further arguments passed to or from other methods.}
 }
 \description{
 Objects of this class contain both the \code{id} and the \code{last_name} of
@@ -68,7 +56,7 @@ Essentially, this is a character string of the form:
 
 \code{id: last_name}
 
-\code{new_projects_author()} merely coerces the object's class attribute to
+\code{projects_author()} merely coerces the object's class attribute to
 \code{projects_author}.
 }
 \section{Numeric coercion methods}{
@@ -112,7 +100,7 @@ new_author("jonesman", "chuck", id = 33)
 new_author("Hattie", "Hatsman", id = 45)
 #############################################################################
 
-jones <- new_projects_author("33: Jones")
+jones <- projects_author("33: Jones")
 
 jones
 

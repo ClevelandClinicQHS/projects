@@ -4,8 +4,7 @@
 \alias{export_project}
 \title{Compress a project folder}
 \usage{
-export_project(project, zipfile, include_hidden = FALSE,
-  exclude = NULL)
+export_project(project, zipfile, include_hidden = FALSE, exclude = NULL)
 }
 \arguments{
 \item{project}{Project \code{id} or unambiguous substring of the project name

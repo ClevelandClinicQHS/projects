@@ -22,7 +22,7 @@ validate_entry <- function(x,
   if (is.na(x_int)) {
 
     matches <-
-      table[grep(x, paste(table[[2]], table[[3]]), ignore.case = TRUE), ]
+      table[grep(x, paste(table[[3]], table[[2]]), ignore.case = TRUE), ]
 
   } else if (x_int == 0 && is_creator(x) && zero.ok) {
 
@@ -97,7 +97,7 @@ validate_entry_list <- function(x,
       na.ok = na.ok,
       zero.ok = zero.ok
     ) %>%
-    do.call(rbind, .) %>%
+    do.call(vec_rbind, .) %>%
     dplyr::distinct()
 }
 
@@ -118,7 +118,7 @@ validate_unique_entry_list <- function(x,
       na.ok = na.ok,
       zero.ok = zero.ok
     ) %>%
-    do.call(rbind, .)
+    do.call(vec_rbind, .)
 
   if (anyDuplicated(x_valid)) {
     dup_vector <- duplicated(x_valid) | duplicated(x_valid, fromLast = TRUE)
@@ -334,7 +334,8 @@ validate_directory <- function(path,
 
   path <- path %>% fs::path_tidy() %>% fs::path_expand()
 
-  # setup_projects() is the only place where p_path is NULL
+  # setup_projects() and
+  # move_projects_folder() is the only place where p_path is NULL
   if (!is.null(p_path)) {
     path <- fs::path_abs(path = path, start = p_path)
     if (!fs::path_has_parent(path, p_path)) {
@@ -348,4 +349,61 @@ validate_directory <- function(path,
   }
 
   unclass(path)
+}
+
+
+
+validate_Renviron <- function(.Renviron_path,
+                              action = c("setting up", "moving", "renaming")) {
+  action <- match.arg(action)
+
+  pt_action <- switch(action, moving = "moved", renaming = "renamed", "created")
+
+  if (is.null(.Renviron_path)) {
+    FALSE
+  } else if (fs::path_file(.Renviron_path) != ".Renviron") {
+    user_prompt(
+      msg =
+        paste0(
+          "\nThe provided .Renviron_path:\n",
+          .Renviron_path,
+          "\n\nis not a .Renviron file. Continue ", action, " projects folder",
+          "\nwithout saving its path? (y/n)"
+        ),
+      n_msg = paste0("\nProjects folder not ", pt_action, ".")
+    )
+    FALSE
+  } else if (fs::file_exists(.Renviron_path)) {
+
+    if (fs::file_access(.Renviron_path, "write")) {
+      TRUE
+    } else {
+      user_prompt(
+        msg =
+          paste0(
+            "\nPermission to edit the .Renviron file at:\n",
+            .Renviron_path,
+            "\n\nwas denied. Continue ", action, " projects folder",
+            "\nwithout saving its path? (y/n)"
+          ),
+        n_msg = paste0("\nProjects folder not ", pt_action, ".")
+      )
+      FALSE
+    }
+
+  } else if (fs::file_access(fs::path_dir(.Renviron_path), "write")) {
+    TRUE
+  } else {
+    user_prompt(
+      msg =
+        paste0(
+          "\nPermission to create a .Renviron file at:\n",
+          .Renviron_path,
+          "\n\nwas denied. Continue ", action, " projects folder",
+          "\nwithout saving its path? (y/n)"
+        ),
+      n_msg = paste0("\nProjects folder not ", pt_action, ".")
+    )
+    FALSE
+  }
 }

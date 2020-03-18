@@ -372,7 +372,7 @@ library(projects)
 ``` r
 setup_projects("~")
 #> projects folder created at
-#> /tmp/RtmpKQK7IQ/projects
+#> /tmp/Rtmp1bvSML/projects
 #> 
 #> Add affiliations with new_affiliation(),
 #> then add authors with new_author(),
@@ -390,9 +390,9 @@ new_affiliation(
 )
 #> New affiliation:
 #> # A tibble: 1 x 4
-#>      id department_name     institution_name       address                 
-#>   <int> <chr>               <chr>                  <chr>                   
-#> 1     1 Department of Phys… University of North S… 314 Newton Blvd, Spring…
+#>      id department_name      institution_name        address                    
+#>   <int> <chr>                <chr>                   <chr>                      
+#> 1     1 Department of Physi… University of North Sc… 314 Newton Blvd, Springfie…
 ```
 
 This affiliation has been successfully added to the “affiliations” table
@@ -407,9 +407,9 @@ new_affiliation(
 )
 #> New affiliation:
 #> # A tibble: 1 x 4
-#>      id department_name        institution_name        address             
-#>   <int> <chr>                  <chr>                   <chr>               
-#> 1     2 Impossibles Investiga… Creekshirebrook Academ… Let Gade 27182, 156…
+#>      id department_name         institution_name         address                
+#>   <int> <chr>                   <chr>                    <chr>                  
+#> 1     2 Impossibles Investigat… Creekshirebrook Academy… Let Gade 27182, 1566 C…
 
 new_affiliation(
   department_name  = "Statistical Consulting Unit",
@@ -419,9 +419,9 @@ new_affiliation(
 )
 #> New affiliation:
 #> # A tibble: 1 x 4
-#>      id department_name        institution_name         address            
-#>   <int> <chr>                  <chr>                    <chr>              
-#> 1    50 Statistical Consultin… Creekshirebrook Academy… "196 Normal Ave, C…
+#>      id department_name         institution_name           address              
+#>   <int> <chr>                   <chr>                      <chr>                
+#> 1    50 Statistical Consulting… Creekshirebrook Academy o… "196 Normal Ave, Col…
 ```
 
 Note that we chose a specific `id` number (50) for the affiliation
@@ -442,16 +442,16 @@ new_author(
 )
 #> New author:
 #> # A tibble: 1 x 7
-#>      id given_names last_name title    degree email              phone     
-#>   <int> <chr>       <chr>     <chr>    <chr>  <chr>              <chr>     
-#> 1     1 Scott       Bug       Profess… PhD    scottbug@impossib… 965-555-5…
+#>      id last_name given_names title     degree email                 phone      
+#>   <int> <chr>     <chr>       <chr>     <chr>  <chr>                 <chr>      
+#> 1     1 Bug       Scott       Professor PhD    scottbug@impossible.… 965-555-55…
 #> 
 #> New author's affiliations:
 #> # A tibble: 2 x 4
-#>   affiliation_id department_name      institution_name     address         
-#>            <int> <chr>                <chr>                <chr>           
-#> 1              2 Impossibles Investi… Creekshirebrook Aca… Let Gade 27182,…
-#> 2              1 Department of Physi… University of North… 314 Newton Blvd…
+#>   affiliation_id department_name       institution_name       address           
+#>            <int> <chr>                 <chr>                  <chr>             
+#> 1              2 Impossibles Investig… Creekshirebrook Acade… Let Gade 27182, 1…
+#> 2              1 Department of Physics University of North S… 314 Newton Blvd, …
 ```
 
 Notice that in creating associations between Scott Bug and his
@@ -472,15 +472,15 @@ new_author(
 )
 #> New author:
 #> # A tibble: 1 x 7
-#>      id given_names last_name title   degree email phone       
-#>   <int> <chr>       <chr>     <chr>   <chr>  <chr> <chr>       
-#> 1    86 Marie       Curie     Chemist <NA>   <NA>  553-867-5309
+#>      id last_name given_names title   degree email phone       
+#>   <int> <chr>     <chr>       <chr>   <chr>  <chr> <chr>       
+#> 1    86 Curie     Marie       Chemist <NA>   <NA>  553-867-5309
 #> 
 #> New author's affiliations:
 #> # A tibble: 1 x 4
-#>   affiliation_id department_name      institution_name      address        
-#>            <int> <chr>                <chr>                 <chr>          
-#> 1             50 Statistical Consult… Creekshirebrook Acad… "196 Normal Av…
+#>   affiliation_id department_name       institution_name        address          
+#>            <int> <chr>                 <chr>                   <chr>            
+#> 1             50 Statistical Consulti… Creekshirebrook Academ… "196 Normal Ave,…
 
 new_author(
   given_names = "George Washington",
@@ -492,24 +492,24 @@ new_author(
 )
 #> New author:
 #> # A tibble: 1 x 7
-#>      id given_names       last_name title         degree        email phone
-#>   <int> <chr>             <chr>     <chr>         <chr>         <chr> <chr>
-#> 1  1337 George Washington Carver    Astrophysici… MA, MPhil, P… <NA>  <NA>
+#>      id last_name given_names       title          degree         email phone
+#>   <int> <chr>     <chr>             <chr>          <chr>          <chr> <chr>
+#> 1  1337 Carver    George Washington Astrophysicist MA, MPhil, PhD <NA>  <NA>
 #> 
 #> New author's affiliations:
 #> # A tibble: 3 x 4
-#>   affiliation_id department_name      institution_name     address         
-#>            <int> <chr>                <chr>                <chr>           
-#> 1              1 Department of Physi… University of North… 314 Newton Blvd…
-#> 2              2 Impossibles Investi… Creekshirebrook Aca… Let Gade 27182,…
-#> 3             50 Statistical Consult… Creekshirebrook Aca… "196 Normal Ave…
+#>   affiliation_id department_name       institution_name      address            
+#>            <int> <chr>                 <chr>                 <chr>              
+#> 1              1 Department of Physics University of North … "314 Newton Blvd, …
+#> 2              2 Impossibles Investig… Creekshirebrook Acad… "Let Gade 27182, 1…
+#> 3             50 Statistical Consulti… Creekshirebrook Acad… "196 Normal Ave, C…
 
 new_author(last_name = "Archimedes", title = "Mathematician")
 #> New author:
 #> # A tibble: 1 x 7
-#>      id given_names last_name  title         degree email phone
-#>   <int> <chr>       <chr>      <chr>         <chr>  <chr> <chr>
-#> 1     2 <NA>        Archimedes Mathematician <NA>   <NA>  <NA>
+#>      id last_name  given_names title         degree email phone
+#>   <int> <chr>      <chr>       <chr>         <chr>  <chr> <chr>
+#> 1     2 Archimedes <NA>        Mathematician <NA>   <NA>  <NA>
 #> 
 #> New author's affiliations:
 #> None.
@@ -524,16 +524,16 @@ new_author(
 )
 #> New author:
 #> # A tibble: 1 x 7
-#>      id given_names  last_name title     degree email    phone
-#>   <int> <chr>        <chr>     <chr>     <chr>  <chr>    <chr>
-#> 1     3 Chien-Shiung Wu        Physicist PhD    wu@wu.wu <NA>
+#>      id last_name given_names  title     degree email    phone
+#>   <int> <chr>     <chr>        <chr>     <chr>  <chr>    <chr>
+#> 1     3 Wu        Chien-Shiung Physicist PhD    wu@wu.wu <NA>
 #> 
 #> New author's affiliations:
 #> # A tibble: 2 x 4
-#>   affiliation_id department_name     institution_name      address         
-#>            <int> <chr>               <chr>                 <chr>           
-#> 1              1 Department of Phys… University of North … 314 Newton Blvd…
-#> 2             50 Statistical Consul… Creekshirebrook Acad… "196 Normal Ave…
+#>   affiliation_id department_name      institution_name       address            
+#>            <int> <chr>                <chr>                  <chr>              
+#> 1              1 Department of Physi… University of North S… "314 Newton Blvd, …
+#> 2             50 Statistical Consult… Creekshirebrook Acade… "196 Normal Ave, C…
 ```
 
 Now that some authors and affiliations have been created, we can view
@@ -542,20 +542,20 @@ these tables:
 ``` r
 authors()
 #> # A tibble: 5 x 7
-#>      id given_names    last_name  title     degree    email        phone   
-#>   <int> <chr>          <chr>      <chr>     <chr>     <chr>        <chr>   
-#> 1     1 Scott          Bug        Professor PhD       scottbug@im… 965-555…
-#> 2     2 <NA>           Archimedes Mathemat… <NA>      <NA>         <NA>    
-#> 3     3 Chien-Shiung   Wu         Physicist PhD       wu@wu.wu     <NA>    
-#> 4    86 Marie          Curie      Chemist   <NA>      <NA>         553-867…
-#> 5  1337 George Washin… Carver     Astrophy… MA, MPhi… <NA>         <NA>
+#>      id last_name  given_names     title      degree     email          phone   
+#>   <int> <chr>      <chr>           <chr>      <chr>      <chr>          <chr>   
+#> 1     1 Bug        Scott           Professor  PhD        scottbug@impo… 965-555…
+#> 2     2 Archimedes <NA>            Mathemati… <NA>       <NA>           <NA>    
+#> 3     3 Wu         Chien-Shiung    Physicist  PhD        wu@wu.wu       <NA>    
+#> 4    86 Curie      Marie           Chemist    <NA>       <NA>           553-867…
+#> 5  1337 Carver     George Washing… Astrophys… MA, MPhil… <NA>           <NA>
 affiliations()
 #> # A tibble: 3 x 4
-#>      id department_name        institution_name        address             
-#>   <int> <chr>                  <chr>                   <chr>               
-#> 1     1 Department of Physics  University of North Sc… 314 Newton Blvd, Sp…
-#> 2     2 Impossibles Investiga… Creekshirebrook Academ… Let Gade 27182, 156…
-#> 3    50 Statistical Consultin… Creekshirebrook Academ… "196 Normal Ave, Co…
+#>      id department_name         institution_name         address                
+#>   <int> <chr>                   <chr>                    <chr>                  
+#> 1     1 Department of Physics   University of North Sci… "314 Newton Blvd, Spri…
+#> 2     2 Impossibles Investigat… Creekshirebrook Academy… "Let Gade 27182, 1566 …
+#> 3    50 Statistical Consulting… Creekshirebrook Academy… "196 Normal Ave, Colum…
 ```
 
 Now we will showcase project creation:
@@ -573,23 +573,23 @@ new_project(
 )
 #> 
 #> Project 1 has been created at
-#> /tmp/RtmpKQK7IQ/projects/p0001
+#> /tmp/Rtmp1bvSML/projects/p0001
 #> # A tibble: 1 x 6
-#>      id title          stage    status    deadline_type deadline           
-#>   <int> <chr>          <prjcts> <chr>     <chr>         <dttm>             
-#> 1     1 Achieving Col… 1: desi… just cre… Pilot study   2020-12-31 00:00:00
+#>      id title             stage     status     deadline_type deadline           
+#>   <int> <chr>             <prjstg>  <chr>      <chr>         <dttm>             
+#> 1     1 Achieving Cold F… 1: design just crea… Pilot study   2020-12-31 00:00:00
 #> 
 #> New project's authors:
 #> # A tibble: 4 x 7
-#>   author_id given_names    last_name title     degree   email       phone  
-#>       <int> <chr>          <chr>     <chr>     <chr>    <chr>       <chr>  
-#> 1         1 Scott          Bug       Professor PhD      scottbug@i… 965-55…
-#> 2         3 Chien-Shiung   Wu        Physicist PhD      wu@wu.wu    <NA>   
-#> 3        86 Marie          Curie     Chemist   <NA>     <NA>        553-86…
-#> 4      1337 George Washin… Carver    Astrophy… MA, MPh… <NA>        <NA>   
+#>   author_id last_name given_names    title      degree    email         phone   
+#>       <int> <chr>     <chr>          <chr>      <chr>     <chr>         <chr>   
+#> 1         1 Bug       Scott          Professor  PhD       scottbug@imp… 965-555…
+#> 2         3 Wu        Chien-Shiung   Physicist  PhD       wu@wu.wu      <NA>    
+#> 3        86 Curie     Marie          Chemist    <NA>      <NA>          553-867…
+#> 4      1337 Carver    George Washin… Astrophys… MA, MPhi… <NA>          <NA>    
 #> # A tibble: 1 x 3
 #>   current_owner corresp_auth creator   
-#>   <prjcts_t>    <prjcts_t>   <prjcts_t>
+#>   <prjaut>      <prjaut>     <prjaut>  
 #> 1 1337: Carver  1: Bug       0: kriegen
 ```
 
@@ -614,20 +614,20 @@ new_project(
 )
 #> 
 #> Project 2 has been created at
-#> /tmp/RtmpKQK7IQ/projects/p0002
+#> /tmp/Rtmp1bvSML/projects/p0002
 #> # A tibble: 1 x 6
-#>      id title         stage     status    deadline_type deadline           
-#>   <int> <chr>         <prjcts_> <chr>     <chr>         <dttm>             
-#> 1     2 Weighing the… 4: manus… just cre… <NA>          NA
+#>      id title          stage         status    deadline_type deadline           
+#>   <int> <chr>          <prjstg>      <chr>     <chr>         <dttm>             
+#> 1     2 Weighing the … 4: manuscript just cre… <NA>          NA
 #> 
 #> New project's authors:
 #> # A tibble: 1 x 7
-#>   author_id given_names last_name  title         degree email phone
-#>       <int> <chr>       <chr>      <chr>         <chr>  <chr> <chr>
-#> 1         2 <NA>        Archimedes Mathematician <NA>   <NA>  <NA> 
+#>   author_id last_name  given_names title         degree email phone
+#>       <int> <chr>      <chr>       <chr>         <chr>  <chr> <chr>
+#> 1         2 Archimedes <NA>        Mathematician <NA>   <NA>  <NA> 
 #> # A tibble: 1 x 3
 #>   current_owner corresp_auth  creator   
-#>   <prjcts_t>    <prjcts_t>    <prjcts_t>
+#>   <prjaut>      <prjaut>      <prjaut>  
 #> 1 2: Archimedes 2: Archimedes 0: kriegen
 
 new_project(
@@ -647,22 +647,22 @@ new_project(
 )
 #> 
 #> Project 1945 has been created at
-#> /tmp/RtmpKQK7IQ/projects/top_secret/p1945
+#> /tmp/Rtmp1bvSML/projects/top_secret/p1945
 #> # A tibble: 1 x 6
-#>      id title          stage   status     deadline_type deadline           
-#>   <int> <chr>          <prjct> <chr>      <chr>         <dttm>             
-#> 1  1945 How I Learned… 5: und… debating … 2nd revision  2030-10-08 00:00:00
+#>      id title        stage           status    deadline_type deadline           
+#>   <int> <chr>        <prjstg>        <chr>     <chr>         <dttm>             
+#> 1  1945 How I Learn… 5: under review debating… 2nd revision  2030-10-08 00:00:00
 #> 
 #> New project's authors:
 #> # A tibble: 3 x 7
-#>   author_id given_names    last_name title     degree   email       phone  
-#>       <int> <chr>          <chr>     <chr>     <chr>    <chr>       <chr>  
-#> 1         3 Chien-Shiung   Wu        Physicist PhD      wu@wu.wu    <NA>   
-#> 2         1 Scott          Bug       Professor PhD      scottbug@i… 965-55…
-#> 3      1337 George Washin… Carver    Astrophy… MA, MPh… <NA>        <NA>   
+#>   author_id last_name given_names    title      degree    email         phone   
+#>       <int> <chr>     <chr>          <chr>      <chr>     <chr>         <chr>   
+#> 1         3 Wu        Chien-Shiung   Physicist  PhD       wu@wu.wu      <NA>    
+#> 2         1 Bug       Scott          Professor  PhD       scottbug@imp… 965-555…
+#> 3      1337 Carver    George Washin… Astrophys… MA, MPhi… <NA>          <NA>    
 #> # A tibble: 1 x 3
-#>   current_owner corresp_auth creator   
-#>   <prjcts_t>    <prjcts_t>   <prjcts_t>
+#>   current_owner corresp_auth creator 
+#>   <prjaut>      <prjaut>     <prjaut>
 #> 1 1337: Carver  1337: Carver 3: Wu
 
 new_project(
@@ -676,20 +676,20 @@ new_project(
 )
 #> 
 #> Project 3 has been created at
-#> /tmp/RtmpKQK7IQ/projects/p0003
+#> /tmp/Rtmp1bvSML/projects/p0003
 #> # A tibble: 1 x 6
-#>      id title        stage    status      deadline_type deadline           
-#>   <int> <chr>        <prjcts> <chr>       <chr>         <dttm>             
-#> 1     3 Understandi… 3: anal… Safety pro… <NA>          NA
+#>      id title         stage       status       deadline_type deadline           
+#>   <int> <chr>         <prjstg>    <chr>        <chr>         <dttm>             
+#> 1     3 Understandin… 3: analysis Safety proc… <NA>          NA
 #> 
 #> New project's authors:
 #> # A tibble: 1 x 7
-#>   author_id given_names last_name title   degree email phone       
-#>       <int> <chr>       <chr>     <chr>   <chr>  <chr> <chr>       
-#> 1        86 Marie       Curie     Chemist <NA>   <NA>  553-867-5309
+#>   author_id last_name given_names title   degree email phone       
+#>       <int> <chr>     <chr>       <chr>   <chr>  <chr> <chr>       
+#> 1        86 Curie     Marie       Chemist <NA>   <NA>  553-867-5309
 #> # A tibble: 1 x 3
-#>   current_owner corresp_auth creator   
-#>   <prjcts_t>    <prjcts_t>   <prjcts_t>
+#>   current_owner corresp_auth creator  
+#>   <prjaut>      <prjaut>     <prjaut> 
 #> 1 86: Curie     86: Curie    86: Curie
 ```
 
@@ -697,13 +697,19 @@ Here is the list of all projects that have been created:
 
 ``` r
 projects()
+#> Note: method with signature 'projects_stage#ANY' chosen for function '%in%',
+#>  target signature 'projects_stage#projects_stage'.
+#>  "ANY#projects_stage" would also be valid
+#> Note: method with signature 'projects_stage#ANY' chosen for function 'match',
+#>  target signature 'projects_stage#projects_stage'.
+#>  "ANY#projects_stage" would also be valid
 #> # A tibble: 4 x 5
-#>      id title                      current_owner status           stage    
-#>   <int> <chr>                      <prjcts_t>    <chr>            <prjcts_>
-#> 1  1945 How I Learned to Stop Wor… 1337: Carver  debating leader… 5: under…
-#> 2     2 Weighing the Crown         2: Archimedes just created     4: manus…
-#> 3     3 Understanding Radon        86: Curie     Safety procedur… 3: analy…
-#> 4     1 Achieving Cold Fusion      1337: Carver  just created     1: desig…
+#>      id title                      current_owner status          stage          
+#>   <int> <chr>                      <prjaut>      <chr>           <prjstg>       
+#> 1  1945 How I Learned to Stop Wor… 1337: Carver  debating leade… 5: under review
+#> 2     2 Weighing the Crown         2: Archimedes just created    4: manuscript  
+#> 3     3 Understanding Radon        86: Curie     Safety procedu… 3: analysis    
+#> 4     1 Achieving Cold Fusion      1337: Carver  just created    1: design
 ```
 
 Projects, authors, and affiliations can all be edited with their
@@ -777,6 +783,7 @@ author:
   - ^3^ Statistical Consulting Unit, Creekshirebrook Academy of Thinks, 196 Normal Ave, Columbus, OH 
   - \* Corresponding author
   - 314 Newton Blvd, Springfield CT 06003
+  - 965-555-5556
   - scottbug@impossible.net
 ```
 
@@ -795,9 +802,9 @@ projects(verbose = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 3 x 3
 #>      id short_title     path                                     
 #>   <int> <chr>           <chr>                                    
-#> 1  1945 Dr. Strangelove /tmp/RtmpKQK7IQ/projects/top_secret/p1945
-#> 2     2 Eureka!         /tmp/RtmpKQK7IQ/projects/p0002           
-#> 3     3 Rn86            /tmp/RtmpKQK7IQ/projects/p0003
+#> 1  1945 Dr. Strangelove /tmp/Rtmp1bvSML/projects/top_secret/p1945
+#> 2     2 Eureka!         /tmp/Rtmp1bvSML/projects/p0002           
+#> 3     3 Rn86            /tmp/Rtmp1bvSML/projects/p0003
 ```
 
 Users can also create subdirectories with the function
@@ -807,7 +814,7 @@ Users can also create subdirectories with the function
 new_project_group("Greek_studies/ancient_studies")
 #> 
 #> The following directory was created:
-#> /tmp/RtmpKQK7IQ/projects/Greek_studies/ancient_studies
+#> /tmp/Rtmp1bvSML/projects/Greek_studies/ancient_studies
 ```
 
 If a project has already been created, it can be moved **not** with
@@ -820,14 +827,14 @@ its `id`, folder name (which, again, is based on its `id`), `path`
 ``` r
 move_project("Crown", path = "Greek_studies/ancient_studies")
 #> # A tibble: 1 x 11
-#>      id title short_title current_owner status deadline_type
-#>   <int> <chr> <chr>       <prjcts_t>    <chr>  <chr>        
-#> 1     2 Weig… Eureka!     2: Archimedes just … <NA>         
-#> # … with 5 more variables: deadline <dttm>, stage <prjcts_s>, path <chr>,
-#> #   corresp_auth <prjcts_t>, creator <prjcts_t>
+#>      id title short_title current_owner status deadline_type deadline           
+#>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
+#> 1     2 Weig… Eureka!     2: Archimedes just … <NA>          NA                 
+#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
+#> #   creator <prjaut>
 #> 
 #> Project 2 moved so that its new path is
-#> /tmp/RtmpKQK7IQ/projects/Greek_studies/ancient_studies/p0002
+#> /tmp/Rtmp1bvSML/projects/Greek_studies/ancient_studies/p0002
 
 copy_project(
   project_to_copy = "Radon",
@@ -835,25 +842,25 @@ copy_project(
   make_directories = TRUE
 )
 #> # A tibble: 1 x 11
-#>      id title short_title current_owner status deadline_type
-#>   <int> <chr> <chr>       <prjcts_t>    <chr>  <chr>        
-#> 1     3 Unde… Rn86        86: Curie     Safet… <NA>         
-#> # … with 5 more variables: deadline <dttm>, stage <prjcts_s>, path <chr>,
-#> #   corresp_auth <prjcts_t>, creator <prjcts_t>
+#>      id title short_title current_owner status deadline_type deadline           
+#>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
+#> 1     3 Unde… Rn86        86: Curie     Safet… <NA>          NA                 
+#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
+#> #   creator <prjaut>
 #> 
 #> Project 4 below is a copy of project 3 and is located at
-#> /tmp/RtmpKQK7IQ/projects/dangerous_studies/radioactive_studies/radon_studies/p0004
+#> /tmp/Rtmp1bvSML/projects/dangerous_studies/radioactive_studies/radon_studies/p0004
 #> # A tibble: 1 x 11
-#>      id title short_title current_owner status deadline_type
-#>   <int> <chr> <lgl>       <prjcts_t>    <chr>  <chr>        
-#> 1     4 Unde… NA          86: Curie     Safet… <NA>         
-#> # … with 5 more variables: deadline <dttm>, stage <prjcts_s>, path <chr>,
-#> #   corresp_auth <prjcts_t>, creator <prjcts_t>
+#>      id title short_title current_owner status deadline_type deadline           
+#>   <int> <chr> <lgl>       <prjaut>      <chr>  <chr>         <dttm>             
+#> 1     4 Unde… NA          86: Curie     Safet… <NA>          NA                 
+#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
+#> #   creator <prjaut>
 #> 
 #> The .Rproj file
-#> /tmp/RtmpKQK7IQ/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0003.Rproj
+#> /tmp/Rtmp1bvSML/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0003.Rproj
 #> was renamed to
-#> /tmp/RtmpKQK7IQ/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0004.Rproj
+#> /tmp/Rtmp1bvSML/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0004.Rproj
 #> 
 #> Be sure to change all instances of "p0003" to "p0004" as desired
 #> (e.g., .bib files and references to them in YAML headers).
@@ -862,11 +869,11 @@ copy_project(
 ``` r
 projects(c("Crown", "Radon"), verbose = TRUE) %>% select(id, title, path)
 #> # A tibble: 3 x 3
-#>      id title           path                                               
-#>   <int> <chr>           <chr>                                              
-#> 1     2 Weighing the C… /tmp/RtmpKQK7IQ/projects/Greek_studies/ancient_stu…
-#> 2     3 Understanding … /tmp/RtmpKQK7IQ/projects/p0003                     
-#> 3     4 Understanding … /tmp/RtmpKQK7IQ/projects/dangerous_studies/radioac…
+#>      id title           path                                                    
+#>   <int> <chr>           <chr>                                                   
+#> 1     2 Weighing the C… /tmp/Rtmp1bvSML/projects/Greek_studies/ancient_studies/…
+#> 2     4 Understanding … /tmp/Rtmp1bvSML/projects/dangerous_studies/radioactive_…
+#> 3     3 Understanding … /tmp/Rtmp1bvSML/projects/p0003
 ```
 
 Projects can also be archived; they are moved into a subdirectory called
@@ -877,14 +884,14 @@ created.
 ``` r
 archive_project("Strangelove")
 #> # A tibble: 1 x 11
-#>      id title short_title current_owner status deadline_type
-#>   <int> <chr> <chr>       <prjcts_t>    <chr>  <chr>        
-#> 1  1945 How … Dr. Strang… 1337: Carver  debat… 2nd revision 
-#> # … with 5 more variables: deadline <dttm>, stage <prjcts_s>, path <chr>,
-#> #   corresp_auth <prjcts_t>, creator <prjcts_t>
+#>      id title short_title current_owner status deadline_type deadline           
+#>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
+#> 1  1945 How … Dr. Strang… 1337: Carver  debat… 2nd revision  2030-10-08 00:00:00
+#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
+#> #   creator <prjaut>
 #> 
 #> The above project was archived and has the file path
-#> /tmp/RtmpKQK7IQ/projects/top_secret/archive/p1945
+#> /tmp/Rtmp1bvSML/projects/top_secret/archive/p1945
 ```
 
 When a project is archived, it is no longer included in `projects()`
@@ -893,20 +900,20 @@ output unless the user sets `archived = TRUE`.
 ``` r
 projects(verbose = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 3 x 3
-#>      id short_title path                                                   
-#>   <int> <chr>       <chr>                                                  
-#> 1     2 Eureka!     /tmp/RtmpKQK7IQ/projects/Greek_studies/ancient_studies…
-#> 2     3 Rn86        /tmp/RtmpKQK7IQ/projects/p0003                         
-#> 3     4 <NA>        /tmp/RtmpKQK7IQ/projects/dangerous_studies/radioactive…
+#>      id short_title path                                                        
+#>   <int> <chr>       <chr>                                                       
+#> 1     2 Eureka!     /tmp/Rtmp1bvSML/projects/Greek_studies/ancient_studies/p0002
+#> 2     4 <NA>        /tmp/Rtmp1bvSML/projects/dangerous_studies/radioactive_stud…
+#> 3     3 Rn86        /tmp/Rtmp1bvSML/projects/p0003
 
 projects(verbose = TRUE, archived = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 4 x 3
-#>      id short_title    path                                                
-#>   <int> <chr>          <chr>                                               
-#> 1  1945 Dr. Strangelo… /tmp/RtmpKQK7IQ/projects/top_secret/archive/p1945   
-#> 2     2 Eureka!        /tmp/RtmpKQK7IQ/projects/Greek_studies/ancient_stud…
-#> 3     3 Rn86           /tmp/RtmpKQK7IQ/projects/p0003                      
-#> 4     4 <NA>           /tmp/RtmpKQK7IQ/projects/dangerous_studies/radioact…
+#>      id short_title    path                                                     
+#>   <int> <chr>          <chr>                                                    
+#> 1  1945 Dr. Strangelo… /tmp/Rtmp1bvSML/projects/top_secret/archive/p1945        
+#> 2     2 Eureka!        /tmp/Rtmp1bvSML/projects/Greek_studies/ancient_studies/p…
+#> 3     4 <NA>           /tmp/Rtmp1bvSML/projects/dangerous_studies/radioactive_s…
+#> 4     3 Rn86           /tmp/Rtmp1bvSML/projects/p0003
 ```
 
 Lastly, affiliations, authors and projects can be deleted with the
@@ -918,37 +925,37 @@ project folder. Use the `delete_*()` functions with caution.
 ``` r
 delete_affiliation("north science")
 #> # A tibble: 1 x 4
-#>      id department_name     institution_name       address                 
-#>   <int> <chr>               <chr>                  <chr>                   
-#> 1     1 Department of Phys… University of North S… 314 Newton Blvd, Spring…
+#>      id department_name      institution_name        address                    
+#>   <int> <chr>                <chr>                   <chr>                      
+#> 1     1 Department of Physi… University of North Sc… 314 Newton Blvd, Springfie…
 #> # A tibble: 1 x 4
-#>      id department_name     institution_name       address                 
-#>   <int> <chr>               <chr>                  <chr>                   
-#> 1     1 Department of Phys… University of North S… 314 Newton Blvd, Spring…
+#>      id department_name      institution_name        address                    
+#>   <int> <chr>                <chr>                   <chr>                      
+#> 1     1 Department of Physi… University of North Sc… 314 Newton Blvd, Springfie…
 #> The above affiliation was deleted.
 delete_author(2)
 #> # A tibble: 1 x 7
-#>      id given_names last_name  title         degree email phone
-#>   <int> <chr>       <chr>      <chr>         <chr>  <chr> <chr>
-#> 1     2 <NA>        Archimedes Mathematician <NA>   <NA>  <NA> 
+#>      id last_name  given_names title         degree email phone
+#>   <int> <chr>      <chr>       <chr>         <chr>  <chr> <chr>
+#> 1     2 Archimedes <NA>        Mathematician <NA>   <NA>  <NA> 
 #> # A tibble: 1 x 7
-#>      id given_names last_name  title         degree email phone
-#>   <int> <chr>       <chr>      <chr>         <chr>  <chr> <chr>
-#> 1     2 <NA>        Archimedes Mathematician <NA>   <NA>  <NA>
+#>      id last_name  given_names title         degree email phone
+#>   <int> <chr>      <chr>       <chr>         <chr>  <chr> <chr>
+#> 1     2 Archimedes <NA>        Mathematician <NA>   <NA>  <NA>
 #> The above author was deleted.
 delete_project("Crown")
 #> # A tibble: 1 x 11
-#>      id title short_title current_owner status deadline_type
-#>   <int> <chr> <chr>       <prjcts_t>    <chr>  <chr>        
-#> 1     2 Weig… Eureka!     NA            just … <NA>         
-#> # … with 5 more variables: deadline <dttm>, stage <prjcts_s>, path <chr>,
-#> #   corresp_auth <prjcts_t>, creator <prjcts_t>
+#>      id title short_title current_owner status deadline_type deadline           
+#>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
+#> 1     2 Weig… Eureka!     NA            just … <NA>          NA                 
+#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
+#> #   creator <prjaut>
 #> # A tibble: 1 x 11
-#>      id title short_title current_owner status deadline_type
-#>   <int> <chr> <chr>       <prjcts_t>    <chr>  <chr>        
-#> 1     2 Weig… Eureka!     NA            just … <NA>         
-#> # … with 5 more variables: deadline <dttm>, stage <prjcts_s>, path <chr>,
-#> #   corresp_auth <prjcts_t>, creator <prjcts_t>
+#>      id title short_title current_owner status deadline_type deadline           
+#>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
+#> 1     2 Weig… Eureka!     NA            just … <NA>          NA                 
+#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
+#> #   creator <prjaut>
 #> 
 #> The above project was deleted.
 ```
@@ -968,7 +975,7 @@ various stages of development.
 
 # References
 
-<div id="refs" class="references">
+<div id="refs" class="references hanging-indent">
 
 <div id="ref-baker20161">
 

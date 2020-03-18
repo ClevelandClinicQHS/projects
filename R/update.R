@@ -138,14 +138,14 @@ validate_stage_column <- function(projects_table) {
             )
             attempt <- readLines(con = stdin(), n = 1L)
             if (identical(attempt, "NA")) {
-              attempt <- new_projects_stage(NA)
+              attempt <- new_projects_stage(NA_character_)
             } else {
               attempt <- try(validate_stage(attempt), silent = TRUE)
             }
           }
 
           replacements <<-
-            rbind(
+            vec_rbind(
               tibble::tibble(
                 old = x,
                 new = attempt
@@ -226,7 +226,7 @@ validate_sa_column <- function(projects_table,
           attempt <- readLines(con = stdin(), n = 1L)
 
           if (identical(attempt, "NA")) {
-            attempt <- new_projects_author(NA)
+            attempt <- new_projects_author(NA_character_)
           } else if (identical(attempt, "0") && colname == "creator") {
             attempt <- new_projects_author(paste0("0: ", original_x))
           } else {
@@ -240,7 +240,7 @@ validate_sa_column <- function(projects_table,
           inherits(try_author(original_x, authors_table), "try-error")
         ) {
           replacements <<-
-            rbind(
+            vec_rbind(
               tibble::tibble(
                 old = original_x,
                 new = attempt
