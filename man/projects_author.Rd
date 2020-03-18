@@ -29,8 +29,6 @@ match.projects_author(x, table, nomatch = NA_integer_, incomparables = NULL)
 \arguments{
 \item{x}{For \code{projects_author()}, an integer or character vector. For
 
-  For the \code{as.*()} methods, a \code{projects_author} object.
-
   For \code{\link{match}()} and \code{\link{\%in\%}}, an integer, a character
   string, or a \code{projects_author} object. See \code{\link{match}()} and
   \strong{Equality and value matching methods} below.}
@@ -92,7 +90,7 @@ dir.create(temp_dir)
 Sys.unsetenv("PROJECTS_FOLDER_PATH")
 Sys.setenv(HOME = temp_dir)
 setup_projects(path = temp_dir)
-new_author("jonesman", "chuck", id = 33)
+new_author("chuck", "jonesman", id = 33)
 new_author("Hattie", "Hatsman", id = 45)
 #############################################################################
 
@@ -114,16 +112,10 @@ match(jones, c(31:40))  # 3
 # numbers are compared.
 jones == c("jOnES", "hat")   # TRUE FALSE
 
-x <- structure("32: Clinton", class = "dummyclass")
-class(c(x))     # Does not retain class
-class(c(jones)) # Retains class
-
 #############################################################################
 # Cleanup (or just restart R)
 Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
 }
 \seealso{
 \code{\link{Ops}}; \code{\link[methods]{Methods_for_Nongenerics}}.
-  For other S3 class-retention strategies, see \code{\link{Extract}} and
-  \code{\link{[.data.frame}}.
 }

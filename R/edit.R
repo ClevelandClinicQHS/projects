@@ -327,8 +327,6 @@ edit_affiliation <- function(affiliation,
   institution_name <- validate_single_string(institution_name, null.ok = TRUE)
   address          <- validate_single_string(address, null.ok = TRUE)
 
-  message("Edited affiliation:")
-
   edited_row <-
     edit_metadata(
       table = affiliations_table,

@@ -33,8 +33,6 @@
 #'
 #' @param x For \code{projects_stage()}, an integer or character vector. For
 #'
-#'   For the \code{as.*()} methods, a \code{projects_stage} object.
-#'
 #'   For \code{\link{match}()} and \code{\link{\%in\%}}, an integer, a character
 #'   string, or a \code{projects_stage} object. See \code{\link{match}()} and
 #'   \strong{Comparison and value matching methods} below.
@@ -54,8 +52,6 @@
 #'   \code{projects_stage}.
 #'
 #' @seealso \code{\link{Ops}}; \code{\link[methods]{Methods_for_Nongenerics}}.
-#'   For other S3 class-retention strategies, see \code{\link{Extract}} and
-#'   \code{\link{[.data.frame}}.
 #'
 #' @examples
 #' stage <- projects_stage("4: manuscript")
@@ -74,10 +70,6 @@
 #' more_stages <- projects_stage(c("0: idea", "4: manuscript", "1: design"))
 #'
 #' match("MAnuscRIPT", more_stages)      # 2
-#'
-#' x <- structure("7: redacted", class = "dummyclass")
-#' class(c(x))     # Does not retain class
-#' class(c(stage, more_stages)) # Retains class
 #' @rdname projects_stage
 #' @export
 methods::setClass("projects_stage")
