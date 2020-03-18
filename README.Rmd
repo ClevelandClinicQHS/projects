@@ -132,7 +132,7 @@ In keeping with relational database theory, there are two *.rds* files that keep
 
 Users create individual project folders with the function `new_project()`. By default, the name of each project folder is of the form p*XXXX*, where *XXXX* is the project's `id` padded with 0s on the left side. Its contents are copied from a template project folder within the *.templates* directory in the main */projects* folder.
 
-The default project folder template is strutured as follows:
+The default project folder template is structured as follows:
 
 - */p*XXXX
     + */data*

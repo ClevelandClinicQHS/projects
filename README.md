@@ -324,7 +324,7 @@ form p*XXXX*, where *XXXX* is the project’s `id` padded with 0s on the
 left side. Its contents are copied from a template project folder within
 the *.templates* directory in the main */projects* folder.
 
-The default project folder template is strutured as follows:
+The default project folder template is structured as follows:
 
   - */p*XXXX
       - */data*
@@ -378,7 +378,7 @@ library(projects)
 ``` r
 setup_projects("~")
 #> projects folder created at
-#> /tmp/Rtmpr4fD5C/projects
+#> /tmp/RtmpBBoEOw/projects
 #> 
 #> Add affiliations with new_affiliation(),
 #> then add authors with new_author(),
@@ -579,7 +579,7 @@ new_project(
 )
 #> 
 #> Project 1 has been created at
-#> /tmp/Rtmpr4fD5C/projects/p0001
+#> /tmp/RtmpBBoEOw/projects/p0001
 #> # A tibble: 1 x 6
 #>      id title             stage     status     deadline_type deadline           
 #>   <int> <chr>             <prjstg>  <chr>      <chr>         <dttm>             
@@ -620,7 +620,7 @@ new_project(
 )
 #> 
 #> Project 2 has been created at
-#> /tmp/Rtmpr4fD5C/projects/p0002
+#> /tmp/RtmpBBoEOw/projects/p0002
 #> # A tibble: 1 x 6
 #>      id title          stage         status    deadline_type deadline           
 #>   <int> <chr>          <prjstg>      <chr>     <chr>         <dttm>             
@@ -653,7 +653,7 @@ new_project(
 )
 #> 
 #> Project 1945 has been created at
-#> /tmp/Rtmpr4fD5C/projects/top_secret/p1945
+#> /tmp/RtmpBBoEOw/projects/top_secret/p1945
 #> # A tibble: 1 x 6
 #>      id title        stage           status    deadline_type deadline           
 #>   <int> <chr>        <prjstg>        <chr>     <chr>         <dttm>             
@@ -682,7 +682,7 @@ new_project(
 )
 #> 
 #> Project 3 has been created at
-#> /tmp/Rtmpr4fD5C/projects/p0003
+#> /tmp/RtmpBBoEOw/projects/p0003
 #> # A tibble: 1 x 6
 #>      id title         stage       status       deadline_type deadline           
 #>   <int> <chr>         <prjstg>    <chr>        <chr>         <dttm>             
@@ -766,7 +766,6 @@ edit_affiliation(
   affiliation     = "Impossibles",
   department_name = "Pseudoscience Debunking Unit"
 )
-#> Edited affiliation:
 ```
 
 The text to be pasted in the YAML can be obtained for any given project
@@ -802,9 +801,9 @@ projects(verbose = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 3 x 3
 #>      id short_title     path                                     
 #>   <int> <chr>           <chr>                                    
-#> 1  1945 Dr. Strangelove /tmp/Rtmpr4fD5C/projects/top_secret/p1945
-#> 2     2 Eureka!         /tmp/Rtmpr4fD5C/projects/p0002           
-#> 3     3 Rn86            /tmp/Rtmpr4fD5C/projects/p0003
+#> 1  1945 Dr. Strangelove /tmp/RtmpBBoEOw/projects/top_secret/p1945
+#> 2     2 Eureka!         /tmp/RtmpBBoEOw/projects/p0002           
+#> 3     3 Rn86            /tmp/RtmpBBoEOw/projects/p0003
 ```
 
 Users can also create subdirectories with the function
@@ -814,7 +813,7 @@ Users can also create subdirectories with the function
 new_project_group("Greek_studies/ancient_studies")
 #> 
 #> The following directory was created:
-#> /tmp/Rtmpr4fD5C/projects/Greek_studies/ancient_studies
+#> /tmp/RtmpBBoEOw/projects/Greek_studies/ancient_studies
 ```
 
 If a project has already been created, it can be moved **not** with
@@ -834,7 +833,7 @@ move_project("Crown", path = "Greek_studies/ancient_studies")
 #> #   creator <prjaut>
 #> 
 #> Project 2 moved so that its new path is
-#> /tmp/Rtmpr4fD5C/projects/Greek_studies/ancient_studies/p0002
+#> /tmp/RtmpBBoEOw/projects/Greek_studies/ancient_studies/p0002
 
 copy_project(
   project_to_copy = "Radon",
@@ -849,7 +848,7 @@ copy_project(
 #> #   creator <prjaut>
 #> 
 #> Project 4 below is a copy of project 3 and is located at
-#> /tmp/Rtmpr4fD5C/projects/dangerous_studies/radioactive_studies/radon_studies/p0004
+#> /tmp/RtmpBBoEOw/projects/dangerous_studies/radioactive_studies/radon_studies/p0004
 #> # A tibble: 1 x 11
 #>      id title short_title current_owner status deadline_type deadline           
 #>   <int> <chr> <lgl>       <prjaut>      <chr>  <chr>         <dttm>             
@@ -858,9 +857,9 @@ copy_project(
 #> #   creator <prjaut>
 #> 
 #> The .Rproj file
-#> /tmp/Rtmpr4fD5C/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0003.Rproj
+#> /tmp/RtmpBBoEOw/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0003.Rproj
 #> was renamed to
-#> /tmp/Rtmpr4fD5C/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0004.Rproj
+#> /tmp/RtmpBBoEOw/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0004.Rproj
 #> 
 #> Be sure to change all instances of "p0003" to "p0004" as desired
 #> (e.g., .bib files and references to them in YAML headers).
@@ -871,9 +870,9 @@ projects(c("Crown", "Radon"), verbose = TRUE) %>% select(id, title, path)
 #> # A tibble: 3 x 3
 #>      id title           path                                                    
 #>   <int> <chr>           <chr>                                                   
-#> 1     2 Weighing the C… /tmp/Rtmpr4fD5C/projects/Greek_studies/ancient_studies/…
-#> 2     4 Understanding … /tmp/Rtmpr4fD5C/projects/dangerous_studies/radioactive_…
-#> 3     3 Understanding … /tmp/Rtmpr4fD5C/projects/p0003
+#> 1     2 Weighing the C… /tmp/RtmpBBoEOw/projects/Greek_studies/ancient_studies/…
+#> 2     4 Understanding … /tmp/RtmpBBoEOw/projects/dangerous_studies/radioactive_…
+#> 3     3 Understanding … /tmp/RtmpBBoEOw/projects/p0003
 ```
 
 Projects can also be archived; they are moved into a subdirectory called
@@ -891,7 +890,7 @@ archive_project("Strangelove")
 #> #   creator <prjaut>
 #> 
 #> The above project was archived and has the file path
-#> /tmp/Rtmpr4fD5C/projects/top_secret/archive/p1945
+#> /tmp/RtmpBBoEOw/projects/top_secret/archive/p1945
 ```
 
 When a project is archived, it is no longer included in `projects()`
@@ -902,18 +901,18 @@ projects(verbose = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 3 x 3
 #>      id short_title path                                                        
 #>   <int> <chr>       <chr>                                                       
-#> 1     2 Eureka!     /tmp/Rtmpr4fD5C/projects/Greek_studies/ancient_studies/p0002
-#> 2     4 <NA>        /tmp/Rtmpr4fD5C/projects/dangerous_studies/radioactive_stud…
-#> 3     3 Rn86        /tmp/Rtmpr4fD5C/projects/p0003
+#> 1     2 Eureka!     /tmp/RtmpBBoEOw/projects/Greek_studies/ancient_studies/p0002
+#> 2     4 <NA>        /tmp/RtmpBBoEOw/projects/dangerous_studies/radioactive_stud…
+#> 3     3 Rn86        /tmp/RtmpBBoEOw/projects/p0003
 
 projects(verbose = TRUE, archived = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 4 x 3
 #>      id short_title    path                                                     
 #>   <int> <chr>          <chr>                                                    
-#> 1  1945 Dr. Strangelo… /tmp/Rtmpr4fD5C/projects/top_secret/archive/p1945        
-#> 2     2 Eureka!        /tmp/Rtmpr4fD5C/projects/Greek_studies/ancient_studies/p…
-#> 3     4 <NA>           /tmp/Rtmpr4fD5C/projects/dangerous_studies/radioactive_s…
-#> 4     3 Rn86           /tmp/Rtmpr4fD5C/projects/p0003
+#> 1  1945 Dr. Strangelo… /tmp/RtmpBBoEOw/projects/top_secret/archive/p1945        
+#> 2     2 Eureka!        /tmp/RtmpBBoEOw/projects/Greek_studies/ancient_studies/p…
+#> 3     4 <NA>           /tmp/RtmpBBoEOw/projects/dangerous_studies/radioactive_s…
+#> 4     3 Rn86           /tmp/RtmpBBoEOw/projects/p0003
 ```
 
 Lastly, affiliations, authors and projects can be deleted with the

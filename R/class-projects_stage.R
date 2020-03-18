@@ -1,5 +1,5 @@
 
-#' \code{projects_stage} class and its methods
+#' \code{projects_stage} vector
 #'
 #' Objects of this class are merely a character string containing a number and a
 #' name of one of seven project development stages.
@@ -37,8 +37,6 @@
 #'   string, or a \code{projects_stage} object. See \code{\link{match}()} and
 #'   \strong{Comparison and value matching methods} below.
 #'
-#' @param ... further arguments passed to or from other methods.
-#'
 #' @param table An integer number, a character string, or a
 #'   \code{projects_stage} object. See \code{\link{match}()} and
 #'   \strong{Comparison and value matching methods} below.
@@ -70,9 +68,11 @@
 #' more_stages <- projects_stage(c("0: idea", "4: manuscript", "1: design"))
 #'
 #' match("MAnuscRIPT", more_stages)      # 2
-#' @rdname projects_stage
 #' @export
-methods::setClass("projects_stage")
+projects_stage <- function(x = character()) {
+  x <- vec_cast(x, character())
+  validate_stage(x)
+}
 
 
 new_projects_stage <- function(x = character()) {
@@ -83,10 +83,8 @@ new_projects_stage <- function(x = character()) {
 
 #' @rdname projects_stage
 #' @export
-projects_stage <- function(x = character()) {
-  x <- vec_cast(x, character())
-  validate_stage(x)
-}
+methods::setClass("projects_stage")
+
 
 #' @export
 vec_ptype_abbr.projects_stage <- function(x, ...) "prjstg"

@@ -1,5 +1,5 @@
 
-#' \code{projects_author} class and its methods
+#' \code{projects_author} vector
 #'
 #' Objects of this class contain both the \code{id} and the \code{last_name} of
 #' an author so that the package and the user, respectively, can easily identify
@@ -36,8 +36,6 @@
 #'   For \code{\link{match}()} and \code{\link{\%in\%}}, an integer, a character
 #'   string, or a \code{projects_author} object. See \code{\link{match}()} and
 #'   \strong{Equality and value matching methods} below.
-#'
-#' @param ... further arguments passed to or from other methods.
 #'
 #' @param table An integer number, a character string, or a
 #'   \code{projects_author} object. See \code{\link{match}()}  and
@@ -85,10 +83,12 @@
 #' #############################################################################
 #' # Cleanup (or just restart R)
 #' Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
-#' @rdname projects_author
 #' @import vctrs
 #' @export
-methods::setClass("projects_author")
+projects_author <- function(x = character()) {
+  x <- vec_cast(x, character())
+  validate_projects_author(x)
+}
 
 
 new_projects_author <- function(x = character()) {
@@ -96,12 +96,10 @@ new_projects_author <- function(x = character()) {
   new_vctr(x, class = "projects_author")
 }
 
+
 #' @rdname projects_author
 #' @export
-projects_author <- function(x = character()) {
-  x <- vec_cast(x, character())
-  validate_projects_author(x)
-}
+methods::setClass("projects_author")
 
 #' @export
 vec_ptype_abbr.projects_author <- function(x, ...) "prjaut"

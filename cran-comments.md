@@ -1,4 +1,7 @@
 
+## Update to version 2.1.0
+There were no ERRORs, WARNINGs, or NOTEs.
+
 ## Update to version 2.0.0
 There were no ERRORS, WARNING, or NOTES.
 

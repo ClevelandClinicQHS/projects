@@ -1,4 +1,17 @@
 
+# projects 2.1.0
+
+## Major updates:
+- Addition of `rename_projects_folder()` and `move_projects_folder()`
+- Addition of `path` argument to `projects()`, allowing users to filter by subdirectory
+- Incorporation of `vctrs` package for `projects_stage` and `projects_author` classes
+
+## Minor updates:
+- `projects()` now prints a maximum of 100 rows by default.
+- `open_project()` attempts to locate projects on shared servers when the local `projects_folder()` value differs from the server's `projects_folder()` value
+- Backslash inserted before any single quotation marks in projects folder path before being written to .Renviron
+- Bug, documentation, README improvements
+
 # projects 2.0.0
 
 ## Major updates:
