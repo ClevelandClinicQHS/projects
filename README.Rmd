@@ -95,7 +95,14 @@ The main metadata tables accessible to the user are `projects()`, `authors()` an
 * `status` – a short description of the status of the project. For example, it may elaborate on the value of `current_owner` and/or `stage`.
 * `deadline_type` – a simple description of the meaning of the date contained in the next field, `deadline`.
 * `deadline` – a date indicating some kind of deadline whose meaning is described in the previous field, `deadline_type`.
-* `stage` – one of sevem predefined stages of project development that the project is currently in: `c("0: idea", "1: design", "2: data collection", "3: analysis", "4: manuscript", "5: under review", "6: accepted")`.
+* `stage` – one of seven predefined stages of project development that the project is currently in:
+  - `c("0: idea",`
+  - &nbsp;&nbsp;&nbsp;&nbsp;`"1: design",`
+  - &nbsp;&nbsp;&nbsp;&nbsp;`"2: data collection",`
+  - &nbsp;&nbsp;&nbsp;&nbsp;`"3: analysis",`
+  - &nbsp;&nbsp;&nbsp;&nbsp;`"4: manuscript",`
+  - &nbsp;&nbsp;&nbsp;&nbsp;`"5: under review",`
+  - &nbsp;&nbsp;&nbsp;&nbsp;`"6: accepted")`
 * `path` – the full file path where the project folder is located.
 * `corresp_auth` – the `id` of the author who should be contacted for any correspondence relating to the project. This author's name will be especially marked on automatically generated title pages for this project, and his or her contact information will be especially displayed there as well in a "Corresponding Author" section.
 * `creator` – the `id` of the author who initially created the project, or the value of `Sys.info()["user"]` if the author who ran `new_project()` did not enter a value.
