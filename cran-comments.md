@@ -1,6 +1,8 @@
 
 ## Update to version 2.1.1
-There were no ERRORs, WARNINGs, or NOTEs.
+There were no ERRORs, WARNINGs.
+
+NOTE on some platforms objecting to `methods` being in the `Imports` list.
 
 ## Update to version 2.1.0
 There were no ERRORs, WARNINGs, or NOTEs.
