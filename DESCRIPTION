@@ -33,7 +33,7 @@ Imports:
     sessioninfo (>= 1.1.1),
     stringr (>= 1.4.0),
     tibble (>= 3.0.1),
-    vctrs (>= 0.3.0),
+    vctrs (>= 0.2.4),
     zip (>= 2.0.4)
 Suggests:
     forcats,
