@@ -1,4 +1,9 @@
 
+# projects 2.1.1
+
+## Minor updates:
+- Bug fix after breaking change in vctrs (`vec_cast(x, to = character())` changed to `as.character(x)`)
+
 # projects 2.1.0
 
 ## Major updates:

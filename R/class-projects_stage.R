@@ -70,7 +70,7 @@
 #' match("MAnuscRIPT", more_stages)      # 2
 #' @export
 projects_stage <- function(x = character()) {
-  x <- vec_cast(x, character())
+  x <- as.character(x)
   validate_stage(x)
 }
 

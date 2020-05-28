@@ -86,7 +86,7 @@
 #' @import vctrs
 #' @export
 projects_author <- function(x = character()) {
-  x <- vec_cast(x, character())
+  x <- as.character(x)
   validate_projects_author(x)
 }
 
