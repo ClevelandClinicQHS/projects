@@ -277,9 +277,11 @@ projects <- function(project,
 
   if (!is.null(path)) {
 
-    if (!fs::path_has_parent(path, p_path)) {
-      path <- fs::path(p_path, path)
-    }
+    path <- fs::path_abs(path, p_path)
+
+    # if (!fs::path_has_parent(path, p_path)) {
+    #   path <- fs::path(p_path, path)
+    # }
 
     if (!fs::dir_exists(path)) {
       warning("\nThe directory:\n", path, "\ndoes not exist.")

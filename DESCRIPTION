@@ -1,6 +1,6 @@
 Package: projects
 Title: A Project Infrastructure for Researchers
-Version: 2.1.1
+Version: 2.1.2
 Authors@R: 
     c(person(given = "Nik",
              family = "Krieger",

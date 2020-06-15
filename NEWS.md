@@ -1,4 +1,9 @@
 
+# projects 2.1.2
+
+## Minor updates:
+- Bug fix to `projects()`'s handling of the `path` argument, accommodating latest behavior of `fs::path_abs()`.
+
 # projects 2.1.1
 
 ## Minor updates:
