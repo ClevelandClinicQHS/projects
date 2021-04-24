@@ -13,9 +13,7 @@ Funding:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
 
-```{r load_libraries, include=FALSE}
 library(projects)
 library(here)
 library(tidyverse)

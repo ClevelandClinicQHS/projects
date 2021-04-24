@@ -1,4 +1,11 @@
 
+# projects 2.1.3
+
+## Minor updates:
+- Removed names from arguments passed to `readr::write_lines()` and `readr::write_rds()` since they have deprecated `path` in favor of `file`.
+- Combined the `setup` and `load_libraries` code chunks in all applicable template .Rmd files.
+- Removed `LazyData` line from `DESCRIPTION` file in compliance with new CRAN check.
+
 # projects 2.1.2
 
 ## Minor updates:

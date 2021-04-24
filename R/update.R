@@ -102,7 +102,7 @@ update_metadata <- function(ask = TRUE) {
     projects_table$creator <- creator_results$results
   }
 
-  readr::write_rds(x = projects_table, path = projects_path)
+  readr::write_rds(projects_table, projects_path)
 
   message("\nProjects metadata updated.")
 

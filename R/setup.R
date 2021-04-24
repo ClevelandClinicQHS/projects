@@ -227,7 +227,7 @@ set_Renviron <- function(projects_folder_path, .Renviron_path) {
       )
     )
 
-  readr::write_lines(Renviron_entries, path = .Renviron_path)
+  readr::write_lines(Renviron_entries, .Renviron_path)
   Sys.setenv(PROJECTS_FOLDER_PATH = projects_folder_path)
 }
 
@@ -360,7 +360,7 @@ restore_metadata <- function(path) {
         if (fs::file_exists(rds_path)) {
           tibble <- vec_rbind(readRDS(rds_path), tibble)
         }
-        readr::write_rds(x = tibble, path = rds_path)
+        readr::write_rds(tibble, rds_path)
       }
   )
 }

@@ -465,7 +465,7 @@ archive_project <- function(project) {
 
   projects_table$path[projects_table$id == project_row$id]   <- new_path
 
-  readr::write_rds(x = projects_table, path = projects_path)
+  readr::write_rds(projects_table, projects_path)
 
   print(dplyr::filter(projects_table, .data$id == project_row$id))
   message("\nThe above project was archived and has the file path\n", new_path)
@@ -640,7 +640,7 @@ move_projects_folder <- function(new_path,
       replacement = new_path
     )
 
-  readr::write_rds(projects_table, path = projects_path)
+  readr::write_rds(projects_table, projects_path)
 
   message("\nProjects folder moved so that its new path is\n", new_path2)
 }
@@ -699,7 +699,7 @@ rename_projects_folder <- function(new_name,
       replacement = new_path
     )
 
-  readr::write_rds(projects_table, path = projects_path)
+  readr::write_rds(projects_table, projects_path)
 
   message("\nProjects folder renamed so that its new path is:\n", new_path)
 }

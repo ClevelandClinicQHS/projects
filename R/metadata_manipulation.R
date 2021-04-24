@@ -52,7 +52,7 @@ add_metadata <- function(table, new_row, table_path) {
 
   table <- vec_rbind(table, new_row)
 
-  readr::write_rds(x = table, path = table_path)
+  readr::write_rds(table, table_path)
 
   table[nrow(table), ]
 }
@@ -73,7 +73,7 @@ edit_metadata <- function(table, row_id, ..., table_path) {
     }
   )
 
-  readr::write_rds(x = table, path = table_path)
+  readr::write_rds(table, table_path)
 
   table[row_number, ]
 }
@@ -84,7 +84,7 @@ delete_metadata <- function(table, row_id, table_path) {
 
   table <- table[table$id != row_id, ]
 
-  readr::write_rds(x = table, path = table_path)
+  readr::write_rds(table, table_path)
 }
 
 
@@ -93,7 +93,7 @@ add_assoc <- function(assoc_table, new_rows, assoc_path) {
 
   assoc_table <- rbind(assoc_table, new_rows)
 
-  readr::write_rds(x = assoc_table, path = assoc_path)
+  readr::write_rds(assoc_table, assoc_path)
 
   assoc_table
 }
@@ -109,7 +109,7 @@ delete_assoc <- function(assoc_table, ..., assoc_path) {
       dplyr::anti_join(assoc_table, assoc_to_delete)
     )
 
-  readr::write_rds(x = assoc_table, path = assoc_path)
+  readr::write_rds(assoc_table, assoc_path)
 
   assoc_table
 }
@@ -125,7 +125,7 @@ change_special_author <- function(author_id,
     change_matrix <- projects_table[special_author_cols] == author_id
     if (isTRUE(any(change_matrix))) {
       projects_table[special_author_cols][change_matrix] <- new_value
-      readr::write_rds(x = projects_table, path = projects_path)
+      readr::write_rds(projects_table, projects_path)
     }
   }
 }
