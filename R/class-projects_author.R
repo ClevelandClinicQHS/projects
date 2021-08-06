@@ -32,6 +32,7 @@
 #'   \code{\link{authors}()} table.
 #'
 #' @param x For \code{projects_author()}, an integer or character vector. For
+#'   \code{is_projects_author()}, an object to test.
 #'
 #'   For \code{\link{match}()} and \code{\link{\%in\%}}, an integer, a character
 #'   string, or a \code{projects_author} object. See \code{\link{match}()} and
@@ -88,6 +89,13 @@
 projects_author <- function(x = character()) {
   x <- as.character(x)
   validate_projects_author(x)
+}
+
+
+#' @rdname projects_author
+#' @export
+is_projects_author <- function(x) {
+  inherits(x, "projects_author")
 }
 
 

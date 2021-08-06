@@ -3,6 +3,7 @@
 \docType{class}
 \name{projects_author}
 \alias{projects_author}
+\alias{is_projects_author}
 \alias{projects_author-class}
 \alias{match.projects_author}
 \alias{match,projects_author,ANY-method}
@@ -13,6 +14,8 @@
 \title{\code{projects_author} vector}
 \usage{
 projects_author(x = character())
+
+is_projects_author(x)
 
 match.projects_author(x, table, nomatch = NA_integer_, incomparables = NULL)
 
@@ -28,6 +31,7 @@ match.projects_author(x, table, nomatch = NA_integer_, incomparables = NULL)
 }
 \arguments{
 \item{x}{For \code{projects_author()}, an integer or character vector. For
+  \code{is_projects_author()}, an object to test.
 
   For \code{\link{match}()} and \code{\link{\%in\%}}, an integer, a character
   string, or a \code{projects_author} object. See \code{\link{match}()} and

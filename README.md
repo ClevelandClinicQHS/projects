@@ -63,11 +63,11 @@ having to request updates.
 
 The primary features of the projects R package are the following:
 
-  - Relational database containing details of projects, project
-    coauthors and their affiliations, so that author details generally
-    need to be entered only once;
-  - Tools for editing metadata associated with projects, authors and
-    affiliations;
+  - Relational database containing details of projects, its granular
+    tasks, and project coauthors and their affiliations, so that author
+    details generally need to be entered only once;
+  - Tools for editing metadata associated with projects, tasks, authors
+    and affiliations;
   - Automated file structure supporting reproducible research workflow;
   - Report templates that automatically generate title page headers,
     including a numbered author list and corresponding affiliations;
@@ -189,7 +189,7 @@ the full file path of the directory in which the user wants the
 ### Metadata
 
 Data about authors, institutional and/or department affiliations and
-projects are stored in *.rds* files within the main */project*
+projects and tasks are stored in *.rds* files within the main */project*
 directory, so that the user only needs to enter these details once
 (unless, for example, a co-author changes their name or affiliations).
 These data are also used to assemble title pages of reports, with
@@ -198,10 +198,10 @@ We provide a complete example of this process below in the
 **Demonstration** section below.
 
 The main metadata tables accessible to the user are `projects()`,
-`authors()` and `affiliations()`, via functions thusly named. Two
-additional tables are internally created to keep track of associations
-between authors and projects and between authors and affiliations (see
-the **Internal Tables** section).
+`tasks()`, `authors()` and `affiliations()`, via functions thusly named.
+Two additional tables are internally created to keep track of
+associations between authors and projects and between authors and
+affiliations (see the **Internal Tables** section).
 
 #### Projects Table Columns
 
@@ -223,6 +223,8 @@ the **Internal Tables** section).
   - `status` – a short description of the status of the project. For
     example, it may elaborate on the value of `current_owner` and/or
     `stage`.
+  - `impact` — a number depicting the estimated impact that this project
+    will have.
   - `deadline_type` – a simple description of the meaning of the date
     contained in the next field, `deadline`.
   - `deadline` – a date indicating some kind of deadline whose meaning
@@ -304,6 +306,23 @@ the **Internal Tables** section).
     this affiliation as his or her primary (i.e., first) affiliation
     (see the **Internal Tables** section).
 
+#### Tasks Table
+
+  - `PID` — the `id` of the project that the task is associated with
+    (see above).
+  - `TID` — the identification number of the task, also representing the
+    order of priority within its associated project. For each project,
+    its tasks’ `TID`s are always sequential positive integers starting
+    with 1
+  - `done` — a binary (1/0) indicator of the task’s completion status.
+  - `effort` — a numeric value indicating the level of effort that it
+    will require to complete the task
+  - `timing` — a numeric value indicating the nature of the timing
+    associated with the completion of the task
+  - `lead` — the `id` of the author who will take the lead in completing
+    the task.
+  - `status` — the status of the task.
+
 #### Internal Tables
 
 In keeping with relational database theory, there are two *.rds* files
@@ -378,11 +397,12 @@ library(projects)
 ``` r
 setup_projects("~")
 #> projects folder created at
-#> /tmp/RtmpH0SVxn/projects
+#> /tmp/RtmpjCNxOS/projects
 #> 
 #> Add affiliations with new_affiliation(),
 #> then add authors with new_author(),
-#> then create projects with new_project()
+#> then create projects with new_project(),
+#> and finally, create tasks with new_task()
 ```
 
 As the message suggests, it is in the user’s best interest to add
@@ -579,7 +599,7 @@ new_project(
 )
 #> 
 #> Project 1 has been created at
-#> /tmp/RtmpH0SVxn/projects/p0001
+#> /tmp/RtmpjCNxOS/projects/p0001
 #> # A tibble: 1 x 6
 #>      id title             stage     status     deadline_type deadline           
 #>   <int> <chr>             <prjstg>  <chr>      <chr>         <dttm>             
@@ -620,7 +640,7 @@ new_project(
 )
 #> 
 #> Project 2 has been created at
-#> /tmp/RtmpH0SVxn/projects/p0002
+#> /tmp/RtmpjCNxOS/projects/p0002
 #> # A tibble: 1 x 6
 #>      id title          stage         status    deadline_type deadline           
 #>   <int> <chr>          <prjstg>      <chr>     <chr>         <dttm>             
@@ -653,7 +673,7 @@ new_project(
 )
 #> 
 #> Project 1945 has been created at
-#> /tmp/RtmpH0SVxn/projects/top_secret/p1945
+#> /tmp/RtmpjCNxOS/projects/top_secret/p1945
 #> # A tibble: 1 x 6
 #>      id title        stage           status    deadline_type deadline           
 #>   <int> <chr>        <prjstg>        <chr>     <chr>         <dttm>             
@@ -682,7 +702,7 @@ new_project(
 )
 #> 
 #> Project 3 has been created at
-#> /tmp/RtmpH0SVxn/projects/p0003
+#> /tmp/RtmpjCNxOS/projects/p0003
 #> # A tibble: 1 x 6
 #>      id title         stage       status       deadline_type deadline           
 #>   <int> <chr>         <prjstg>    <chr>        <chr>         <dttm>             
@@ -703,13 +723,13 @@ Here is the list of all projects that have been created:
 
 ``` r
 projects()
-#> # A tibble: 4 x 5
-#>      id title                      current_owner status          stage          
-#>   <int> <chr>                      <prjaut>      <chr>           <prjstg>       
-#> 1  1945 How I Learned to Stop Wor… 1337: Carver  debating leade… 5: under review
-#> 2     2 Weighing the Crown         2: Archimedes just created    4: manuscript  
-#> 3     3 Understanding Radon        86: Curie     Safety procedu… 3: analysis    
-#> 4     1 Achieving Cold Fusion      1337: Carver  just created    1: design
+#> # A tibble: 4 x 6
+#>      id title                 current_owner status        stage           impact
+#>   <int> <chr>                 <prjaut>      <chr>         <prjstg>         <dbl>
+#> 1  1945 How I Learned to Sto… 1337: Carver  debating lea… 5: under review     NA
+#> 2     2 Weighing the Crown    2: Archimedes just created  4: manuscript       NA
+#> 3     3 Understanding Radon   86: Curie     Safety proce… 3: analysis         NA
+#> 4     1 Achieving Cold Fusion 1337: Carver  just created  1: design           NA
 ```
 
 Projects, authors, and affiliations can all be edited with their
@@ -801,9 +821,9 @@ projects(verbose = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 3 x 3
 #>      id short_title     path                                     
 #>   <int> <chr>           <chr>                                    
-#> 1  1945 Dr. Strangelove /tmp/RtmpH0SVxn/projects/top_secret/p1945
-#> 2     2 Eureka!         /tmp/RtmpH0SVxn/projects/p0002           
-#> 3     3 Rn86            /tmp/RtmpH0SVxn/projects/p0003
+#> 1  1945 Dr. Strangelove /tmp/RtmpjCNxOS/projects/top_secret/p1945
+#> 2     2 Eureka!         /tmp/RtmpjCNxOS/projects/p0002           
+#> 3     3 Rn86            /tmp/RtmpjCNxOS/projects/p0003
 ```
 
 Users can also create subdirectories with the function
@@ -813,7 +833,7 @@ Users can also create subdirectories with the function
 new_project_group("Greek_studies/ancient_studies")
 #> 
 #> The following directory was created:
-#> /tmp/RtmpH0SVxn/projects/Greek_studies/ancient_studies
+#> /tmp/RtmpjCNxOS/projects/Greek_studies/ancient_studies
 ```
 
 If a project has already been created, it can be moved **not** with
@@ -825,41 +845,41 @@ its `id`, folder name (which, again, is based on its `id`), `path`
 
 ``` r
 move_project("Crown", path = "Greek_studies/ancient_studies")
-#> # A tibble: 1 x 11
+#> # A tibble: 1 x 12
 #>      id title short_title current_owner status deadline_type deadline           
 #>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
 #> 1     2 Weig… Eureka!     2: Archimedes just … <NA>          NA                 
-#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
-#> #   creator <prjaut>
+#> # … with 5 more variables: stage <prjstg>, impact <dbl>, path <chr>,
+#> #   corresp_auth <prjaut>, creator <prjaut>
 #> 
 #> Project 2 moved so that its new path is
-#> /tmp/RtmpH0SVxn/projects/Greek_studies/ancient_studies/p0002
+#> /tmp/RtmpjCNxOS/projects/Greek_studies/ancient_studies/p0002
 
 copy_project(
   project_to_copy = "Radon",
   path = "dangerous_studies/radioactive_studies/radon_studies", 
   make_directories = TRUE
 )
-#> # A tibble: 1 x 11
+#> # A tibble: 1 x 12
 #>      id title short_title current_owner status deadline_type deadline           
 #>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
 #> 1     3 Unde… Rn86        86: Curie     Safet… <NA>          NA                 
-#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
-#> #   creator <prjaut>
+#> # … with 5 more variables: stage <prjstg>, impact <dbl>, path <chr>,
+#> #   corresp_auth <prjaut>, creator <prjaut>
 #> 
 #> Project 4 below is a copy of project 3 and is located at
-#> /tmp/RtmpH0SVxn/projects/dangerous_studies/radioactive_studies/radon_studies/p0004
-#> # A tibble: 1 x 11
+#> /tmp/RtmpjCNxOS/projects/dangerous_studies/radioactive_studies/radon_studies/p0004
+#> # A tibble: 1 x 12
 #>      id title short_title current_owner status deadline_type deadline           
 #>   <int> <chr> <lgl>       <prjaut>      <chr>  <chr>         <dttm>             
 #> 1     4 Unde… NA          86: Curie     Safet… <NA>          NA                 
-#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
-#> #   creator <prjaut>
+#> # … with 5 more variables: stage <prjstg>, impact <dbl>, path <chr>,
+#> #   corresp_auth <prjaut>, creator <prjaut>
 #> 
 #> The .Rproj file
-#> /tmp/RtmpH0SVxn/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0003.Rproj
+#> /tmp/RtmpjCNxOS/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0003.Rproj
 #> was renamed to
-#> /tmp/RtmpH0SVxn/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0004.Rproj
+#> /tmp/RtmpjCNxOS/projects/dangerous_studies/radioactive_studies/radon_studies/p0004/p0004.Rproj
 #> 
 #> Be sure to change all instances of "p0003" to "p0004" as desired
 #> (e.g., .bib files and references to them in YAML headers).
@@ -870,9 +890,9 @@ projects(c("Crown", "Radon"), verbose = TRUE) %>% select(id, title, path)
 #> # A tibble: 3 x 3
 #>      id title           path                                                    
 #>   <int> <chr>           <chr>                                                   
-#> 1     2 Weighing the C… /tmp/RtmpH0SVxn/projects/Greek_studies/ancient_studies/…
-#> 2     4 Understanding … /tmp/RtmpH0SVxn/projects/dangerous_studies/radioactive_…
-#> 3     3 Understanding … /tmp/RtmpH0SVxn/projects/p0003
+#> 1     2 Weighing the C… /tmp/RtmpjCNxOS/projects/Greek_studies/ancient_studies/…
+#> 2     4 Understanding … /tmp/RtmpjCNxOS/projects/dangerous_studies/radioactive_…
+#> 3     3 Understanding … /tmp/RtmpjCNxOS/projects/p0003
 ```
 
 Projects can also be archived; they are moved into a subdirectory called
@@ -882,15 +902,15 @@ created.
 
 ``` r
 archive_project("Strangelove")
-#> # A tibble: 1 x 11
+#> # A tibble: 1 x 12
 #>      id title short_title current_owner status deadline_type deadline           
 #>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
 #> 1  1945 How … Dr. Strang… 1337: Carver  debat… 2nd revision  2030-10-08 00:00:00
-#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
-#> #   creator <prjaut>
+#> # … with 5 more variables: stage <prjstg>, impact <dbl>, path <chr>,
+#> #   corresp_auth <prjaut>, creator <prjaut>
 #> 
 #> The above project was archived and has the file path
-#> /tmp/RtmpH0SVxn/projects/top_secret/archive/p1945
+#> /tmp/RtmpjCNxOS/projects/top_secret/archive/p1945
 ```
 
 When a project is archived, it is no longer included in `projects()`
@@ -901,25 +921,120 @@ projects(verbose = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 3 x 3
 #>      id short_title path                                                        
 #>   <int> <chr>       <chr>                                                       
-#> 1     2 Eureka!     /tmp/RtmpH0SVxn/projects/Greek_studies/ancient_studies/p0002
-#> 2     4 <NA>        /tmp/RtmpH0SVxn/projects/dangerous_studies/radioactive_stud…
-#> 3     3 Rn86        /tmp/RtmpH0SVxn/projects/p0003
+#> 1     2 Eureka!     /tmp/RtmpjCNxOS/projects/Greek_studies/ancient_studies/p0002
+#> 2     4 <NA>        /tmp/RtmpjCNxOS/projects/dangerous_studies/radioactive_stud…
+#> 3     3 Rn86        /tmp/RtmpjCNxOS/projects/p0003
 
 projects(verbose = TRUE, archived = TRUE) %>% select(id, short_title, path)
 #> # A tibble: 4 x 3
 #>      id short_title    path                                                     
 #>   <int> <chr>          <chr>                                                    
-#> 1  1945 Dr. Strangelo… /tmp/RtmpH0SVxn/projects/top_secret/archive/p1945        
-#> 2     2 Eureka!        /tmp/RtmpH0SVxn/projects/Greek_studies/ancient_studies/p…
-#> 3     4 <NA>           /tmp/RtmpH0SVxn/projects/dangerous_studies/radioactive_s…
-#> 4     3 Rn86           /tmp/RtmpH0SVxn/projects/p0003
+#> 1  1945 Dr. Strangelo… /tmp/RtmpjCNxOS/projects/top_secret/archive/p1945        
+#> 2     2 Eureka!        /tmp/RtmpjCNxOS/projects/Greek_studies/ancient_studies/p…
+#> 3     4 <NA>           /tmp/RtmpjCNxOS/projects/dangerous_studies/radioactive_s…
+#> 4     3 Rn86           /tmp/RtmpjCNxOS/projects/p0003
 ```
 
-Lastly, affiliations, authors and projects can be deleted with the
-`delete_*()` functions. Deleting an author is complete: doing so removes
-the author from the `creator`, `current_owner` and `corresp_auth` fields
-of all projects. Furthermore, deleting a project also deletes the entire
-project folder. Use the `delete_*()` functions with caution.
+Project contributors can utilize the `tasks()` table to manage tasks
+associated with projects. Here, a few tasks are created, edited, and
+viewed.
+
+``` r
+new_task(
+  project = "Eureka",
+  task = "Retrieve the crown from the monarch",
+  lead = "archimedes",
+  effort = 2,
+  status = "Waiting on the horse to get well."
+)
+#> 
+#> New task was added to project 2:
+#> # A tibble: 1 x 8
+#>     PID   TID  done task             effort timing lead          status         
+#>   <int> <dbl> <int> <chr>             <dbl>  <dbl> <prjaut>      <chr>          
+#> 1     2     1     0 Retrieve the cr…      2     NA 2: Archimedes Waiting on the…
+
+new_task(
+  project = "Eureka",
+  task = "Rehabilitate the horse",
+  TID = 1,
+  lead = "scott bug",
+  effort = 22
+)
+#> 
+#> New task was added to project 2:
+#> # A tibble: 2 x 8
+#>     PID   TID  done task             effort timing lead          status         
+#>   <int> <dbl> <int> <chr>             <dbl>  <dbl> <prjaut>      <chr>          
+#> 1     2     1     0 Rehabilitate th…     22     NA 1: Bug        <NA>           
+#> 2     2     2     0 Retrieve the cr…      2     NA 2: Archimedes Waiting on the…
+
+edit_task(project = "Crown", TID = 1, timing = pi)
+#> 
+#> Updated task list for project 2:
+#> # A tibble: 2 x 8
+#>     PID   TID  done task             effort timing lead          status         
+#>   <int> <int> <int> <chr>             <dbl>  <dbl> <prjaut>      <chr>          
+#> 1     2     1     0 Rehabilitate th…     22   3.14 1: Bug        <NA>           
+#> 2     2     2     0 Retrieve the cr…      2  NA    2: Archimedes Waiting on the…
+
+new_task(project = 4, task = "collect the radon", lead = "scott bug")
+#> 
+#> New task was added to project 4:
+#> # A tibble: 1 x 8
+#>     PID   TID  done task              effort timing lead     status
+#>   <int> <dbl> <int> <chr>              <dbl>  <dbl> <prjaut> <chr> 
+#> 1     4     1     0 collect the radon     NA     NA 1: Bug   <NA>
+
+# This is a shortcut to set a task's "done" value to 1
+finish(4, 1)
+#> 
+#> Updated task list for project 4:
+#> # A tibble: 1 x 8
+#>     PID   TID  done task              effort timing lead     status
+#>   <int> <int> <int> <chr>              <dbl>  <dbl> <prjaut> <chr> 
+#> 1     4     1     1 collect the radon     NA     NA 1: Bug   <NA>
+
+tasks()
+#> # A tibble: 3 x 11
+#>     PID project     PI            impact   TID  done task          effort timing
+#>   <int> <chr>       <prjaut>       <dbl> <int> <int> <chr>          <dbl>  <dbl>
+#> 1     2 Weighing t… 2: Archimedes     NA     1     0 Rehabilitate…     22   3.14
+#> 2     2 Weighing t… 2: Archimedes     NA     2     0 Retrieve the…      2  NA   
+#> 3     4 Understand… 86: Curie         NA     1     1 collect the …     NA  NA   
+#> # … with 2 more variables: lead <prjaut>, status <chr>
+```
+
+Like the other metadata-viewing functions, the user can filter tasks()
+by project, by lead, or both:
+
+``` r
+tasks(project = 4)
+#> # A tibble: 1 x 11
+#>     PID project  PI        impact   TID  done task   effort timing lead   status
+#>   <int> <chr>    <prjaut>   <dbl> <int> <int> <chr>   <dbl>  <dbl> <prja> <chr> 
+#> 1     4 Underst… 86: Curie     NA     1     1 colle…     NA     NA 1: Bug <NA>
+tasks(lead = "bug")
+#> # A tibble: 2 x 11
+#>     PID project   PI            impact   TID  done task     effort timing lead  
+#>   <int> <chr>     <prjaut>       <dbl> <int> <int> <chr>     <dbl>  <dbl> <prja>
+#> 1     2 Weighing… 2: Archimedes     NA     1     0 Rehabil…     22   3.14 1: Bug
+#> 2     4 Understa… 86: Curie         NA     1     1 collect…     NA  NA    1: Bug
+#> # … with 1 more variable: status <chr>
+tasks(project = "Eureka", lead = 1)
+#> # A tibble: 1 x 11
+#>     PID project   PI            impact   TID  done task     effort timing lead  
+#>   <int> <chr>     <prjaut>       <dbl> <int> <int> <chr>     <dbl>  <dbl> <prja>
+#> 1     2 Weighing… 2: Archimedes     NA     1     0 Rehabil…     22   3.14 1: Bug
+#> # … with 1 more variable: status <chr>
+```
+
+Lastly, affiliations, authors, tasks and projects can be deleted with
+the `delete_*()` functions. Deleting an author is complete: doing so
+removes the author from the `creator`, `current_owner` and
+`corresp_auth` fields of all projects and from the `lead` field of all
+tasks. Furthermore, deleting a project also deletes the entire project
+folder. Use the `delete_*()` functions with caution.
 
 ``` r
 delete_affiliation("north science")
@@ -943,20 +1058,30 @@ delete_author(2)
 #> 1     2 Archimedes <NA>        Mathematician <NA>   <NA>  <NA>
 #> The above author was deleted.
 delete_project("Crown")
-#> # A tibble: 1 x 11
+#> # A tibble: 1 x 12
 #>      id title short_title current_owner status deadline_type deadline           
 #>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
 #> 1     2 Weig… Eureka!     NA            just … <NA>          NA                 
-#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
-#> #   creator <prjaut>
-#> # A tibble: 1 x 11
+#> # … with 5 more variables: stage <prjstg>, impact <dbl>, path <chr>,
+#> #   corresp_auth <prjaut>, creator <prjaut>
+#> # A tibble: 1 x 12
 #>      id title short_title current_owner status deadline_type deadline           
 #>   <int> <chr> <chr>       <prjaut>      <chr>  <chr>         <dttm>             
 #> 1     2 Weig… Eureka!     NA            just … <NA>          NA                 
-#> # … with 4 more variables: stage <prjstg>, path <chr>, corresp_auth <prjaut>,
-#> #   creator <prjaut>
+#> # … with 5 more variables: stage <prjstg>, impact <dbl>, path <chr>,
+#> #   corresp_auth <prjaut>, creator <prjaut>
 #> 
 #> The above project was deleted.
+delete_task(project = 4, TID = 1)
+#> # A tibble: 1 x 9
+#>     PID   TID  done task           effort timing lead     status project        
+#>   <int> <int> <int> <chr>           <dbl>  <dbl> <prjaut> <chr>  <chr>          
+#> 1     4     1     1 collect the r…     NA     NA 1: Bug   <NA>   Understanding …
+#> 
+#> No more tasks remaining for project 4
+#> # A tibble: 0 x 9
+#> # … with 9 variables: PID <int>, TID <int>, done <int>, task <chr>,
+#> #   effort <dbl>, timing <dbl>, lead <prjaut>, status <chr>, project <chr>
 ```
 
 # Conclusions

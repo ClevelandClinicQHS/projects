@@ -1,4 +1,9 @@
 
+## Development version:
+There were no ERRORs, WARNINGs.
+
+NOTE on some platforms objecting to `methods` being in the `Imports` list.
+
 ## Update to version 2.1.3
 There were no ERRORs, WARNINGs.
 

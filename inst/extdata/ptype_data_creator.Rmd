@@ -1,0 +1,63 @@
+---
+title: "ptype data creator"
+---
+
+```{r}
+local({
+  projects_ptype <-
+  dplyr::tibble(
+    id            = integer(),
+    title         = character(),
+    short_title   = character(),
+    current_owner = projects:::new_projects_author(),
+    status        = character(),
+    deadline_type = character(),
+    deadline      = lubridate::as_datetime(character()),
+    stage         = projects:::new_projects_stage(),
+    impact        = numeric(),
+    path          = character(),
+    corresp_auth  = projects:::new_projects_author(),
+    creator       = projects:::new_projects_author()
+  )
+
+tasks_ptype <-
+  dplyr::tibble(
+    PID = integer(),
+    TID = integer(),
+    done = integer(),
+    task = character(),
+    effort = double(),
+    timing = double(),
+    lead = projects:::new_projects_author(),
+    status = character()
+  )
+
+authors_ptype <-
+  dplyr::tibble(
+    id          = integer(),
+    last_name   = character(),
+    given_names = character(),
+    title       = character(),
+    degree      = character(),
+    email       = character(),
+    phone       = character()
+  )
+
+affiliations_ptype <-
+  dplyr::tibble(
+    id               = integer(),
+    department_name  = character(),
+    institution_name = character(),
+    address          = character()
+  )
+
+assoc_ptype <- dplyr::tibble(id1 = integer(), id2 = integer())
+
+usethis::use_data(
+  projects_ptype, tasks_ptype, authors_ptype, affiliations_ptype, assoc_ptype,
+  internal = TRUE,
+  overwrite = TRUE
+)
+})
+```
+

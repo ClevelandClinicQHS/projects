@@ -1,4 +1,16 @@
 
+# projects 2.1.99.9990
+
+## Major update:
+
+- Addition of tasks, which involves the new functions `tasks()`, `new_task()`, `edit_task()`, `delete_task()`, and `finish()`. This adds another metadata table (tasks.rds) to the little relational database that projects maintains.
+
+## Minor update:
+
+- A `vctrs` `.ptype` has been added to the internal name space of the package. The metadata tables are `vctrs::vec_cast()` to these `.ptype`s every time they are re-saved.
+- Code updates.
+- Updated documentation.
+
 # projects 2.1.3
 
 ## Minor updates:

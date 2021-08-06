@@ -7,7 +7,8 @@ validate_entry <- function(x,
                            zero.ok = FALSE) {
 
   if (!rlang::is_scalar_vector(x)) {
-    stop("Each entry identifying a ", what, "must be of length 1")
+    stop("\nEach entry identifying a ", what, " must be of length 1",
+         call. = FALSE)
   }
 
   if (is.na(x)) {
@@ -16,6 +17,8 @@ validate_entry <- function(x,
     }
     stop(what, " may not be missing (NA)")
   }
+
+  id_col <- switch(what, task = "TID", "id")
 
   x_int <- as.integer(stringr::str_extract(x, "\\d+"))
 
@@ -32,19 +35,21 @@ validate_entry <- function(x,
 
   } else {
 
-    matches <- table[table$id == x_int, ]
+    matches <- table[table[[id_col]] == x_int, ]
 
   }
 
   if (nrow(matches) == 0L) {
     stop(
+      "\n",
       what,
       ifelse(
         rlang::is_integerish(x),
-        paste0(" with the id ", x),
+        paste0(" with the ", id_col, " ", x),
         paste0(" matching '", x, "'")
       ),
-      " not found"
+      " not found",
+      call. = FALSE
     )
   } else {
     matches
@@ -138,26 +143,30 @@ validate_unique_entry_list <- function(x,
 
 validate_new <- function(id, what, rds_table) {
 
-  if (nrow(rds_table) > 9999L) {
+  if (nrow(rds_table) >= 9999L) {
     stop("Maximum number of ", what, "s reached.")
   }
 
-  if (!is.na(id) &&
-      (!rlang::is_scalar_integerish(id) || !dplyr::between(id, 1L, 9999L))) {
-    stop(what, " id number must be a single integer between 1 and 9999.")
+  if (length(id) != 1L) {
+    stop("\n", id, " must have length of 1", call. = FALSE)
   }
-
-  id <- as.integer(id)
 
   if (is.na(id)) {
     id <- min(setdiff(1L:9999L, rds_table$id))
-  }
-  else if (any(rds_table$id == id)) {
-    stop(
-      'id number already taken. Try a different one or leave the ',
-      'argument blank for automatic selection ',
-      '(the lowest counting number still available).'
-    )
+  } else {
+    id <- as.integer(id)
+    if (!dplyr::between(id, 1L, 9999L)) {
+      stop("\n", " must be coercible to a single integer between 1 and 9999",
+           call. = FALSE)
+    }
+    if (any(rds_table$id == id)) {
+      stop(
+        '\nid number already taken. Try a different one or leave the ',
+        'argument blank for automatic selection ',
+        '(the lowest counting number still available).',
+        call. = FALSE
+      )
+    }
   }
 
   id
@@ -266,7 +275,8 @@ validate_assoc <- function(x, what, rds_table, what2, rds_table2) {
 
   if (!all(id_checks)) {
     print(rds_table[rds_table$id %in% x[!id_checks], ])
-    stop("The above ", what, "(s) not found in ", what2, "'s ", what, " list.")
+    stop("\nThe above ", what, "(s) not found in ", what2, "'s ", what,
+         " list.", call. = FALSE)
   }
 
   x
@@ -286,7 +296,7 @@ validate_single_string <- function(x,
     return(NULL)
   }
 
-  x    <- as.character(x)
+  x <- as.character(x)
 
   if (!rlang::is_scalar_character(x)) {
       stop(user_input, " must be coercible to a single character string")
@@ -297,11 +307,70 @@ validate_single_string <- function(x,
   }
 
   if (nchar(x) == 0L && !zero.chars.ok) {
-    stop(user_input, " must be at least one character long")
+    stop("\n", user_input, " must be at least one character long",
+         call. = FALSE)
   }
 
   if (tolower) {
     x <- tolower(x)
+  }
+
+  x
+}
+
+
+
+validate_single_number <- function(x, null.ok = FALSE, na.ok = TRUE) {
+
+  user_input <- rlang::as_label(rlang::enexpr(x))
+
+  if (is.null(x) && null.ok) {
+    return(NULL)
+  }
+
+  x <- as.double(x)
+
+  if (!rlang::is_scalar_double(x)) {
+    stop("\n", user_input, " must be coercible to a single number",
+         call. = FALSE)
+  }
+
+  if (is.na(x) && !na.ok) {
+    stop("\n", user_input, " must not be NA", call. = FALSE)
+  }
+
+  x
+}
+
+
+
+
+validate_single_integer <- function(x,
+                                    null.ok = FALSE,
+                                    na.ok = TRUE,
+                                    min = -Inf,
+                                    max = Inf) {
+
+  user_input <- rlang::as_label(rlang::enexpr(x))
+
+  if (is.null(x) && null.ok) {
+    return(NULL)
+  }
+
+  x <- as.integer(x)
+
+  if (!rlang::is_scalar_integer(x)) {
+    stop("\n", user_input, " must be coercible to a single integer",
+         call. = FALSE)
+  }
+
+  if (is.na(x)) {
+    if (!na.ok) {
+      stop(user_input, " must not be missing")
+    }
+  } else if (!dplyr::between(x, min, max)) {
+    stop("\n", user_input, " must be an integer between ", min, " and ", max,
+         call. = FALSE)
   }
 
   x
@@ -325,6 +394,7 @@ validate_deadline <- function(x, null.ok = FALSE) {
   }
   x
 }
+
 
 
 

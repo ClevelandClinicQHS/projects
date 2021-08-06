@@ -3,16 +3,19 @@
 \name{affiliations}
 \alias{affiliations}
 \alias{authors}
+\alias{tasks}
 \alias{display_metadata}
 \alias{projects}
 \alias{ideas}
 \alias{manuscripts}
-\title{View the \code{projects()}, \code{authors()}, and \code{affiliations()}
-tables}
+\title{View the \code{projects()}, \code{tasks()}, \code{authors()}, and
+\code{affiliations()} tables}
 \usage{
 affiliations(affiliation, authors = FALSE)
 
 authors(author, affiliations = FALSE, projects = FALSE)
+
+tasks(project, lead, archived = FALSE)
 
 projects(
   project,
@@ -33,10 +36,14 @@ manuscripts(project, archived = FALSE, verbose = FALSE, authors = FALSE)
 to perform a left join with another metadata tibble. All \code{FALSE} by
 default.}
 
-\item{project, author, affiliation}{An optional unique vector of \code{id}s
-and/or names. Only rows matching one or more entries will be returned. This
-is the one setting in which the package does not return throw an error if
-user input matches multiple projects.}
+\item{project, author, affiliation, lead}{An optional unique vector of
+\code{id}s and/or names. Only rows matching one or more entries will be
+returned. This is the one setting in which the package does not return
+throw an error if user input matches multiple projects.}
+
+\item{archived}{Logical, indicating whether or not to include projects that
+have been archived using \code{\link{archive_project}()}. \code{FALSE} by
+default.}
 
 \item{all_stages}{Logical, indicating whether or not to include projects of
 all stages, \strong{overriding the} \code{exclude} \strong{argument}.}
@@ -53,10 +60,6 @@ all stages, \strong{overriding the} \code{exclude} \strong{argument}.}
 \item{path}{A single file path of a directory within the main projects
 folder; only projects whose folder is in this directory will be returned.}
 
-\item{archived}{Logical, indicating whether or not to include projects that
-have been archived using \code{\link{archive_project}()}. \code{FALSE} by
-default.}
-
 \item{verbose}{Logical, indicating whether or not to return all columns of
 the \code{\link{projects}()}; if \code{FALSE}, only the \code{id},
 \code{current_owner}, \code{status}, and \code{stage} columns are returned.
@@ -66,8 +69,8 @@ Defaults to \code{FALSE}.}
 A \code{\link[tibble]{tibble}}.
 }
 \description{
-Returns a table of the projects/authors/affiliations, filtered and joined
-according to the entirely optional arguments.
+Returns a table of the projects/tasks/authors/affiliations, filtered and
+joined according to the entirely optional arguments.
 }
 \details{
 \code{ideas()} is a shortcut for \code{projects(exclude = 1:6)} (including
@@ -83,7 +86,7 @@ performed, with the "left" table being the one sharing the name of the
 function being used. As such, rows that don't have matches in any other
 tables will still show up in the output, and rows that have multiple matches
 in other tables will yield multiple rows in the output. The "right" table's
-\code{id} column will be renamed.
+\code{id} column (if present) will be renamed.
 }
 \examples{
 #############################################################################
@@ -119,6 +122,10 @@ new_project(title = "Fun project 4",  current_owner = "Rice", stage = 4)
 new_project(title = "Fun project 5",  current_owner = "Rice", stage = 5)
 new_project(title = "Fun project 6",  current_owner = "Rice", stage = 6)
 new_project(title = "Good idea",  current_owner = "Rice", stage = 0)
+new_task(2, "take a break", lead = "eezza", done = 1)
+new_task(2, "go home", TID = 1, lead = 303, timing = 1337)
+new_task(1, "tie up loose ends", status = "untying a knot", effort = Inf)
+new_task(3, "cook dinner", lead = "plato")
 #############################################################################
 
 # View entire affiliations table
@@ -139,6 +146,18 @@ manuscripts()
 
 # View ideas
 ideas()
+
+# View tasks
+tasks()
+
+# View only Project 1's tasks
+tasks(1)
+
+# View only Plato's tasks
+tasks(lead = "plato")
+
+# View only Plato's tasks in project 1
+tasks(1, "plato")
 
 # Wrapped in if (interactive()) because it requires interactive console input
 # and fails automated testing.

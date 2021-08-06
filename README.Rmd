@@ -50,8 +50,8 @@ The goal of the `projects` R package is to provide a set of tools that support a
 
 The primary features of the projects R package are the following:
 
-* Relational database containing details of projects, project coauthors and their affiliations, so that author details generally need to be entered only once;
-* Tools for editing metadata associated with projects, authors and affiliations;
+* Relational database containing details of projects, its granular tasks, and project coauthors and their affiliations, so that author details generally need to be entered only once;
+* Tools for editing metadata associated with projects, tasks, authors and affiliations;
 * Automated file structure supporting reproducible research workflow;
 * Report templates that automatically generate title page headers, including a numbered author list and corresponding affiliations;
 * Full RStudio integration via R Markdown, including customizable styling via cascading style sheets (CSS); 
@@ -82,9 +82,9 @@ All projects that the user creates with the `projects` package---as well as its 
 
 ### Metadata
 
-Data about authors, institutional and/or department affiliations and projects are stored in *.rds* files within the main */project* directory, so that the user only needs to enter these details once (unless, for example, a co-author changes their name or affiliations). These data are also used to assemble title pages of reports, with automatically generated author lists and lists of author affiliations. We provide a complete example of this process below in the **Demonstration** section below.
+Data about authors, institutional and/or department affiliations and projects and tasks are stored in *.rds* files within the main */project* directory, so that the user only needs to enter these details once (unless, for example, a co-author changes their name or affiliations). These data are also used to assemble title pages of reports, with automatically generated author lists and lists of author affiliations. We provide a complete example of this process below in the **Demonstration** section below.
 
-The main metadata tables accessible to the user are `projects()`, `authors()` and `affiliations()`, via functions thusly named. Two additional tables are internally created to keep track of associations between authors and projects and between authors and affiliations (see the **Internal Tables** section).
+The main metadata tables accessible to the user are `projects()`, `tasks()`, `authors()` and `affiliations()`, via functions thusly named. Two additional tables are internally created to keep track of associations between authors and projects and between authors and affiliations (see the **Internal Tables** section).
 
 #### Projects Table Columns
 
@@ -93,6 +93,7 @@ The main metadata tables accessible to the user are `projects()`, `authors()` an
 * `short_title` – an optional unique nickname for the project. A nonambiguous substring of `short_title` (i.e., a substring that does not match any other project) can be used whenever needing to identify this project within `projects` package functions. This is useful if users cannot remember the long, formal project `title` nor the project `id`.
 * `current_owner` – the `id` of the author who is responsible for taking action in order that work on the project may proceed further.
 * `status` – a short description of the status of the project. For example, it may elaborate on the value of `current_owner` and/or `stage`.
+* `impact` — a number depicting the estimated impact that this project will have.
 * `deadline_type` – a simple description of the meaning of the date contained in the next field, `deadline`.
 * `deadline` – a date indicating some kind of deadline whose meaning is described in the previous field, `deadline_type`.
 * `stage` – one of seven predefined stages of project development that the project is currently in:
@@ -123,6 +124,16 @@ The main metadata tables accessible to the user are `projects()`, `authors()` an
 * `department_name` – the department name of the affiliation. A nonambiguous substring of `department_name` (i.e., a substring that does not match any other affiliation) can be used whenever needing to identify this affiliation within `projects` package functions. This is included in the affiliations section of the automatically generated title page of projects associated with authors with this affiliation. 
 * `institution_name` – the name of the overall institution of the affiliation. A nonambiguous substring of `institution_name` (i.e., a substring that does not match any other affiliation) can be used whenever needing to identify this affiliation within `projects` package functions. This is included after `department_name` in the affiliations section of the automatically generated title page of projects associated with authors with this affiliation.
 * `address` – the address of the affiliation. This is included after `institution_name` in the affiliations section of the automatically generated title page of projects associated with authors with this affiliation. It is also included in the "Corresponding Author" section of the title page when a project's corresponding author has this affiliation as his or her primary (i.e., first) affiliation (see the **Internal Tables** section).
+
+#### Tasks Table
+
+* `PID` — the `id` of the project that the task is associated with (see above).
+* `TID` — the identification number of the task, also representing the order of priority within its associated project. For each project, its tasks' `TID`s are always sequential positive integers starting with 1
+* `done` — a binary (1/0) indicator of the task's completion status.
+* `effort` — a numeric value indicating the level of effort that it will require to complete the task
+* `timing` — a numeric value indicating the nature of the timing associated with the completion of the task
+* `lead` — the `id` of the author who will take the lead in completing the task.
+* `status` — the status of the task.
 
 #### Internal Tables
 
@@ -402,12 +413,50 @@ projects(verbose = TRUE) %>% select(id, short_title, path)
 projects(verbose = TRUE, archived = TRUE) %>% select(id, short_title, path)
 ```
 
-Lastly, affiliations, authors and projects can be deleted with the `delete_*()` functions. Deleting an author is complete: doing so removes the author from the `creator`, `current_owner` and `corresp_auth` fields of all projects. Furthermore, deleting a project also deletes the entire project folder. Use the `delete_*()` functions with caution.
+Project contributors can utilize the `tasks()` table to manage tasks associated with projects. Here, a few tasks are created, edited, and viewed.
+
+```{r create_some_tasks}
+new_task(
+  project = "Eureka",
+  task = "Retrieve the crown from the monarch",
+  lead = "archimedes",
+  effort = 2,
+  status = "Waiting on the horse to get well."
+)
+
+new_task(
+  project = "Eureka",
+  task = "Rehabilitate the horse",
+  TID = 1,
+  lead = "scott bug",
+  effort = 22
+)
+
+edit_task(project = "Crown", TID = 1, timing = pi)
+
+new_task(project = 4, task = "collect the radon", lead = "scott bug")
+
+# This is a shortcut to set a task's "done" value to 1
+finish(4, 1)
+
+tasks()
+```
+
+Like the other metadata-viewing functions, the user can filter tasks() by project, by lead, or both:
+
+```{r}
+tasks(project = 4)
+tasks(lead = "bug")
+tasks(project = "Eureka", lead = 1)
+```
+
+Lastly, affiliations, authors, tasks and projects can be deleted with the `delete_*()` functions. Deleting an author is complete: doing so removes the author from the `creator`, `current_owner` and `corresp_auth` fields of all projects and from the `lead` field of all tasks. Furthermore, deleting a project also deletes the entire project folder. Use the `delete_*()` functions with caution.
 
 ```{r deleting things}
 delete_affiliation("north science")
 delete_author(2)
 delete_project("Crown")
+delete_task(project = 4, TID = 1)
 ```
 
 

@@ -124,13 +124,54 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 
 
 
+#' @rdname display_metadata
+#' @importFrom rlang .data
+#' @export
+tasks <- function(project, lead, archived = FALSE) {
+
+  p_path <- get_p_path()
+  projects_table <- projects_internal(p_path, archived = archived)
+
+  if (!archived) {
+    projects_table <- remove_archived(projects_table)
+  }
+
+  if (!missing(project)) {
+    projects_table <-
+      validate_entry_list(x = project, table = projects_table, what = "project")
+  }
+
+  tasks_table <- tasks_internal()
+
+  if (!missing(lead)) {
+
+    lead <-
+      validate_entry_list(
+        lead,
+        table = authors_internal(p_path),
+        what = "author",
+        na.ok = TRUE
+      )$id
+
+    tasks_table <- tasks_table[tasks_table$lead %in% lead, ]
+  }
+
+  projects_table %>%
+    dplyr::select(
+      PID = "id", project = "title", PI = "corresp_auth", "impact"
+    ) %>%
+    dplyr::inner_join(tasks_table, by = "PID") %>%
+    dplyr::arrange(.data$PID, .data$TID)
+}
 
 
-#' View the \code{projects()}, \code{authors()}, and \code{affiliations()}
-#' tables
+
+
+#' View the \code{projects()}, \code{tasks()}, \code{authors()}, and
+#' \code{affiliations()} tables
 #'
-#' Returns a table of the projects/authors/affiliations, filtered and joined
-#' according to the entirely optional arguments.
+#' Returns a table of the projects/tasks/authors/affiliations, filtered and
+#' joined according to the entirely optional arguments.
 #'
 #' \code{ideas()} is a shortcut for \code{projects(exclude = 1:6)} (including
 #' only projects of stage \code{0: idea}).
@@ -145,12 +186,12 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' function being used. As such, rows that don't have matches in any other
 #' tables will still show up in the output, and rows that have multiple matches
 #' in other tables will yield multiple rows in the output. The "right" table's
-#' \code{id} column will be renamed.
+#' \code{id} column (if present) will be renamed.
 #'
-#' @param project,author,affiliation An optional unique vector of \code{id}s
-#'   and/or names. Only rows matching one or more entries will be returned. This
-#'   is the one setting in which the package does not return throw an error if
-#'   user input matches multiple projects.
+#' @param project,author,affiliation,lead An optional unique vector of
+#'   \code{id}s and/or names. Only rows matching one or more entries will be
+#'   returned. This is the one setting in which the package does not return
+#'   throw an error if user input matches multiple projects.
 #' @param projects,authors,affiliations Logical values indicating whether or not
 #'   to perform a left join with another metadata tibble. All \code{FALSE} by
 #'   default.
@@ -210,6 +251,10 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #' new_project(title = "Fun project 5",  current_owner = "Rice", stage = 5)
 #' new_project(title = "Fun project 6",  current_owner = "Rice", stage = 6)
 #' new_project(title = "Good idea",  current_owner = "Rice", stage = 0)
+#' new_task(2, "take a break", lead = "eezza", done = 1)
+#' new_task(2, "go home", TID = 1, lead = 303, timing = 1337)
+#' new_task(1, "tie up loose ends", status = "untying a knot", effort = Inf)
+#' new_task(3, "cook dinner", lead = "plato")
 #' #############################################################################
 #'
 #' # View entire affiliations table
@@ -230,6 +275,18 @@ authors <- function(author, affiliations = FALSE, projects = FALSE) {
 #'
 #' # View ideas
 #' ideas()
+#'
+#' # View tasks
+#' tasks()
+#'
+#' # View only Project 1's tasks
+#' tasks(1)
+#'
+#' # View only Plato's tasks
+#' tasks(lead = "plato")
+#'
+#' # View only Plato's tasks in project 1
+#' tasks(1, "plato")
 #'
 #' # Wrapped in if (interactive()) because it requires interactive console input
 #' # and fails automated testing.

@@ -5,16 +5,38 @@ make_rds_path <- function(rds_name, p_path = get_p_path()) {
 
 
 
-get_rds <- function(rds_path, check = TRUE) {
+get_rds <- function(rds_path) {
 
   if (!fs::file_exists(rds_path)) {
-    stop(
-      fs::path_file(rds_path), " file not found at ", rds_path,
-      ". Please restore the file or [re]run setup_projects()"
-    )
-  }
 
-  readRDS(rds_path)
+    what <- fs::path_ext_remove(fs::path_file(rds_path))
+
+    user_prompt(
+      msg =
+        paste0("\nThe ", what, " table was not found at\n", rds_path,
+               "\n\nContinue with a blank ", what, " table?"),
+      n_msg =
+        paste0("\n\nRestore the ", what, " table to\n", rds_path,
+               "\n\nOr, [re]run setup_projects()",
+               "\n\nOr, just put 'y' next time.")
+    )
+    switch(
+      what,
+      projects = projects_ptype,
+      authors = authors_ptype,
+      affiliations = affiliations_ptype,
+      tasks = tasks_ptype,
+      assoc_ptype
+    )
+  } else {
+    readRDS(rds_path)
+  }
+}
+
+
+
+save_metadata <- function(x, path, .ptype) {
+  readr::write_rds(vec_cast(x, .ptype), path)
 }
 
 
@@ -28,6 +50,10 @@ projects_internal <- function(p_path = get_p_path(), archived = TRUE) {
   } else {
     remove_archived(projects_table)
   }
+}
+
+tasks_internal <- function(p_path = get_p_path()) {
+  get_rds(make_rds_path("tasks", p_path))
 }
 
 authors_internal <- function(p_path = get_p_path()) {
@@ -48,52 +74,60 @@ aa_assoc_internal <- function(p_path = get_p_path()) {
 
 
 
-add_metadata <- function(table, new_row, table_path) {
+add_metadata <- function(table,
+                         new_row,
+                         table_path,
+                         .ptype,
+                         task = FALSE) {
 
-  table <- vec_rbind(table, new_row)
+  if (task) {
+    table <- table %>%
+      vec_rbind(new_row, .ptype = dplyr::mutate(.ptype, TID = double())) %>%
+      sort_project_tasks(PID = new_row$PID)
+  } else {
+    table <- vec_rbind(table, new_row)
+  }
 
-  readr::write_rds(table, table_path)
+  save_metadata(table, table_path, .ptype)
 
-  table[nrow(table), ]
+  table
 }
 
 
-edit_metadata <- function(table, row_id, ..., table_path) {
+edit_metadata <- function(table, row_spec_lgl, table_path, .ptype, ...) {
 
   changes <- list(...)
 
-  row_number <- match(row_id, table$id)
-
   purrr::iwalk(
     changes,
-    function(change, name) {
-      if (!is.null(change)) {
-        table[row_number, name] <<- change
+    function(new_value, colname) {
+      if (!is.null(new_value)) {
+        table[row_spec_lgl, colname] <<- new_value
       }
     }
   )
 
-  readr::write_rds(table, table_path)
+  if (!is.null(changes$TID)) {
+    table <-
+      sort_project_tasks(
+        table,
+        PID = table$PID[row_spec_lgl],
+        tiebreaker = !row_spec_lgl
+      )
+  }
 
-  table[row_number, ]
-}
+  save_metadata(table, table_path, .ptype)
 
-
-
-delete_metadata <- function(table, row_id, table_path) {
-
-  table <- table[table$id != row_id, ]
-
-  readr::write_rds(table, table_path)
+  table
 }
 
 
 
 add_assoc <- function(assoc_table, new_rows, assoc_path) {
 
-  assoc_table <- rbind(assoc_table, new_rows)
+  assoc_table <- vec_rbind(assoc_table, new_rows, .ptype = assoc_ptype)
 
-  readr::write_rds(assoc_table, assoc_path)
+  save_metadata(assoc_table, assoc_path, assoc_ptype)
 
   assoc_table
 }
@@ -109,7 +143,7 @@ delete_assoc <- function(assoc_table, ..., assoc_path) {
       dplyr::anti_join(assoc_table, assoc_to_delete)
     )
 
-  readr::write_rds(assoc_table, assoc_path)
+  save_metadata(assoc_table, assoc_path, assoc_ptype)
 
   assoc_table
 }
@@ -118,14 +152,18 @@ delete_assoc <- function(assoc_table, ..., assoc_path) {
 
 change_special_author <- function(author_id,
                                   new_value,
-                                  projects_path,
-                                  projects_table) {
-  if (nrow(projects_table) > 0L) {
-    special_author_cols <- c("current_owner", "creator", "corresp_auth")
-    change_matrix <- projects_table[special_author_cols] == author_id
+                                  table,
+                                  table_path,
+                                  ptype) {
+  if (nrow(table)) {
+    special_author_cols <-
+      table %>%
+      dplyr::select(where(is_projects_author)) %>%
+      names()
+    change_matrix <- table[special_author_cols] == author_id
     if (isTRUE(any(change_matrix))) {
-      projects_table[special_author_cols][change_matrix] <- new_value
-      readr::write_rds(projects_table, projects_path)
+      table[special_author_cols][change_matrix] <- new_value
+      save_metadata(table, table_path, ptype)
     }
   }
 }

@@ -1,4 +1,4 @@
-
+utils::globalVariables("where")
 if (getRversion() >= "2.15.1") utils::globalVariables(c(".", ":="))
 
 #' Set up the projects folder
@@ -315,53 +315,21 @@ restore_templates <- function(projects_folder_path) {
 
 
 
-restore_metadata <- function(path) {
-  purrr::walk2(
-    .x = c("projects", "authors", "affiliations",
-           "project_author_assoc", "author_affiliation_assoc"),
-    .y = list(
-      # projects
-      tibble::tibble(
-        id            = integer(),
-        title         = character(),
-        short_title   = character(),
-        current_owner = new_projects_author(),
-        status        = character(),
-        deadline_type = character(),
-        deadline      = lubridate::as_datetime(character()),
-        stage         = new_projects_stage(),
-        path          = character(),
-        corresp_auth  = new_projects_author(),
-        creator       = new_projects_author()
-      ),
-      # authors
-      tibble::tibble(
-        id          = integer(),
-        last_name   = character(),
-        given_names = character(),
-        title       = character(),
-        degree      = character(),
-        email       = character(),
-        phone       = character()
-      ),
-      # affiliations
-      tibble::tibble(
-        id               = integer(),
-        department_name  = character(),
-        institution_name = character(),
-        address          = character()),
-      # project_author_assoc
-      tibble::tibble(id1 = integer(), id2 = integer()),
-      # author_affiliation_assoc
-      tibble::tibble(id1 = integer(), id2 = integer())),
-    .f =
-      function(rds_name, tibble) {
-        rds_path <- make_rds_path(rds_name, path)
-        if (fs::file_exists(rds_path)) {
-          tibble <- vec_rbind(readRDS(rds_path), tibble)
-        }
-        readr::write_rds(tibble, rds_path)
-      }
+restore_metadata <- function(p_path) {
+  purrr::iwalk(
+    list(
+      projects = projects_ptype,
+      tasks = tasks_ptype,
+      authors = authors_ptype,
+      affiliations = affiliations_ptype,
+      project_author_assoc = assoc_ptype,
+      author_affiliation_assoc = assoc_ptype
+    ),
+    function(ptype, rds_name) {
+      rds_path <- make_rds_path(rds_name, p_path)
+      tibble <- if (fs::file_exists(rds_path)) readRDS(rds_path) else ptype
+      save_metadata(tibble, rds_path, ptype)
+    }
   )
 }
 
@@ -372,7 +340,8 @@ setup_messages <- function(projects_folder_path, old_path) {
       'projects folder created at\n', projects_folder_path,
       '\n\nAdd affiliations with new_affiliation(),',
       '\nthen add authors with new_author(),',
-      '\nthen create projects with new_project()'
+      '\nthen create projects with new_project(),',
+      '\nand finally, create tasks with new_task()'
     )
   }
   else if (old_path == projects_folder_path) {

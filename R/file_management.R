@@ -191,10 +191,12 @@ rename_folder <- function(project, new_folder_name, archived = FALSE) {
 
   edit_metadata(
     table = projects_table,
-    row_id = project_row$id,
+    row_spec_lgl = projects_table$id == project_row$id,
+    table_path = projects_path,
+    .ptype = projects_ptype,
+
     path = project_row$path,
-    short_title = project_row$short_title,
-    table_path = projects_path
+    short_title = project_row$short_title
   )
 
   message(
@@ -269,9 +271,11 @@ move_project <- function(project,
 
   edit_metadata(
     table = projects_table,
-    row_id = project_row$id,
-    path = project_row$path,
-    table_path = projects_path
+    row_spec_lgl = projects_table$id == project_row$id,
+    table_path = projects_path,
+    .ptype = projects_ptype,
+
+    path = project_row$path
   )
 
   message(
@@ -381,7 +385,8 @@ copy_project <- function(project_to_copy,
   add_metadata(
     table = projects_table,
     new_row = project_row,
-    table_path = projects_path
+    table_path = projects_path,
+    .ptype = projects_ptype
   )
 
   old_assoc <- dplyr::filter(pa_assoc_table, .data$id1 == original_project_id)
@@ -465,10 +470,13 @@ archive_project <- function(project) {
 
   projects_table$path[projects_table$id == project_row$id]   <- new_path
 
-  readr::write_rds(projects_table, projects_path)
+  save_metadata(projects_table, projects_path, projects_ptype)
 
   print(dplyr::filter(projects_table, .data$id == project_row$id))
+
   message("\nThe above project was archived and has the file path\n", new_path)
+
+  invisible(new_path)
 }
 
 
@@ -640,16 +648,18 @@ move_projects_folder <- function(new_path,
       replacement = new_path
     )
 
-  readr::write_rds(projects_table, projects_path)
+  save_metadata(projects_table, projects_path, projects_ptype)
 
   message("\nProjects folder moved so that its new path is\n", new_path2)
+
+  invisible(new_path2)
 }
 
 
 #' @rdname file_management
 #' @export
 rename_projects_folder <- function(new_name,
-                                   .Renviron_path   =
+                                   .Renviron_path =
                                      file.path(Sys.getenv("HOME"), ".Renviron")
                                    ) {
   p_path <- get_p_path()
@@ -699,7 +709,9 @@ rename_projects_folder <- function(new_name,
       replacement = new_path
     )
 
-  readr::write_rds(projects_table, projects_path)
+  save_metadata(projects_table, projects_path, projects_ptype)
 
   message("\nProjects folder renamed so that its new path is:\n", new_path)
+
+  invisible(new_path)
 }

@@ -11,6 +11,7 @@ edit_project <- function(project,
                          deadline_type  = NULL,
                          deadline       = NULL,
                          stage          = NULL,
+                         impact         = NULL,
                          corresp_auth   = NULL,
                          creator        = NULL,
                          archived       = FALSE) {
@@ -43,10 +44,9 @@ edit_project <- function(project,
   short_title   <- validate_single_string(short_title, null.ok = TRUE)
   status        <- validate_single_string(status, null.ok = TRUE)
   deadline_type <- validate_single_string(deadline_type, null.ok = TRUE)
-
-  stage           <- validate_stage(stage, null.ok = TRUE, n = 1L)
-
-  deadline        <- validate_deadline(deadline, null.ok = TRUE)
+  impact        <- validate_single_number(impact, null.ok = TRUE)
+  stage         <- validate_stage(stage, null.ok = TRUE, n = 1L)
+  deadline      <- validate_deadline(deadline, null.ok = TRUE)
 
   ###########################################
   # Handling of adding or removing authors
@@ -117,7 +117,7 @@ edit_project <- function(project,
       )
 
     if (any(authors$remove == corresp_auth)) {
-      stop("The value of corresp_auth must not be slated for removal in the ",
+      stop("\nThe value of corresp_auth must not be slated for removal in the ",
            '"authors" argument.')
     }
 
@@ -148,10 +148,14 @@ edit_project <- function(project,
       )
   }
 
+  row_spec_lgl <- projects_table$id == project$id
+
   new_project_row <-
     edit_metadata(
       table = projects_table,
-      row_id = project$id,
+      row_spec_lgl = row_spec_lgl,
+      table_path = projects_path,
+      .ptype = projects_ptype,
 
       title         = title,
       short_title   = short_title,
@@ -160,11 +164,10 @@ edit_project <- function(project,
       deadline_type = deadline_type,
       deadline      = deadline,
       stage         = stage,
+      impact = impact,
       corresp_auth  = corresp_auth,
-      creator       = creator,
-
-      table_path = projects_path
-    )
+      creator       = creator
+    )[row_spec_lgl, ]
 
   if (length(authors$remove) > 0L) {
     assoc_table <-
@@ -179,7 +182,7 @@ edit_project <- function(project,
   if (length(authors$add) > 0L) {
     add_assoc(
       assoc_table = assoc_table,
-      new_rows = tibble::tibble(id1 = project$id, id2 = authors$add),
+      new_rows = dplyr::tibble(id1 = project$id, id2 = authors$add),
       assoc_path = assoc_path
     )
   }
@@ -193,151 +196,6 @@ edit_project <- function(project,
   }
 
   invisible(new_project_row)
-}
-################################################################################
-################################################################################
-
-
-
-################################################################################
-#' @include new.R
-#' @rdname new_edit_delete
-#' @importFrom rlang .data
-#' @export
-edit_author <- function(author,
-                        given_names   = NULL,
-                        last_name     = NULL,
-                        affiliations  = NULL,
-                        title         = NULL,
-                        degree        = NULL,
-                        email         = NULL,
-                        phone         = NULL) {
-
-  p_path             <- get_p_path()
-
-  authors_path       <- make_rds_path("authors", p_path)
-
-  authors_table      <- get_rds(authors_path)
-
-  author_id             <-
-    validate_unique_entry(
-      x      = author,
-      table  = authors_table,
-      what   = "author"
-    ) %>%
-    dplyr::pull("id")
-
-  affiliations_table <- affiliations_internal(p_path)
-
-  assoc_path         <- make_rds_path("author_affiliation_assoc", p_path)
-  assoc_table        <- get_rds(assoc_path)
-
-  given_names <- validate_single_string(given_names, null.ok = TRUE)
-  last_name   <- validate_single_string(last_name, null.ok = TRUE)
-  title       <- validate_single_string(title, null.ok = TRUE)
-  degree      <- validate_single_string(degree, null.ok = TRUE)
-  email       <- validate_single_string(email, null.ok = TRUE, tolower = TRUE)
-  phone       <- validate_single_string(phone, null.ok = TRUE)
-
-  affiliations <-
-    if (is.null(affiliations)) {
-      list(add = list(), remove = list())
-    } else {
-      parse_formula(
-        formula     = affiliations,
-        what        = "affiliation",
-        what2       = "author",
-        main_table  = affiliations_table,
-        assoc_table = dplyr::filter(assoc_table, .data$id1 == author_id)
-      )
-    }
-
-  if (!is.null(last_name)) {
-    projects_path  <- make_rds_path("projects", p_path = p_path)
-    projects_table <- get_rds(projects_path)
-
-    change_special_author(
-      author_id      = author_id,
-      new_value      = new_projects_author(paste0(author_id, ": ", last_name)),
-      projects_path  = projects_path,
-      projects_table = projects_table
-    )
-  }
-
-  new_author_row <-
-    edit_metadata(
-      table       = authors_table,
-      row_id      = author_id,
-      given_names = given_names,
-      last_name   = last_name,
-      title       = title,
-      degree      = degree,
-      email       = email,
-      phone       = phone,
-      table_path  = authors_path
-    )
-
-  if (length(affiliations$remove) > 0L) {
-    assoc_table <-
-      delete_assoc(
-        assoc_table = assoc_table,
-        id1         = author_id,
-        id2         = affiliations$remove,
-        assoc_path  = assoc_path
-      )
-  }
-
-  if (length(affiliations$add) > 0L) {
-    add_assoc(
-      assoc_table = assoc_table,
-      new_rows = tibble::tibble(id1 = author_id, id2 = affiliations$add),
-      assoc_path  = assoc_path
-    )
-  }
-
-  invisible(new_author_row)
-}
-################################################################################
-
-
-
-################################################################################
-#' @include new.R
-#' @rdname new_edit_delete
-#' @export
-edit_affiliation <- function(affiliation,
-                             department_name  = NULL,
-                             institution_name = NULL,
-                             address          = NULL) {
-
-  p_path             <- get_p_path()
-
-  affiliations_path  <- make_rds_path("affiliations", p_path)
-
-  affiliations_table <- get_rds(affiliations_path)
-
-  affiliation        <-
-    validate_unique_entry(
-      x     = affiliation,
-      table = affiliations_table,
-      what  = "affiliation"
-    )$id
-
-  department_name  <- validate_single_string(department_name, null.ok = TRUE)
-  institution_name <- validate_single_string(institution_name, null.ok = TRUE)
-  address          <- validate_single_string(address, null.ok = TRUE)
-
-  edited_row <-
-    edit_metadata(
-      table = affiliations_table,
-      row_id = affiliation,
-      department_name  = department_name,
-      institution_name = institution_name,
-      address          = address,
-      table_path = affiliations_path
-    )
-
-  invisible(edited_row)
 }
 ################################################################################
 
@@ -358,17 +216,14 @@ delete_project <- function(project, archived = FALSE) {
     projects_table <- remove_archived(projects_table)
   }
 
-  project        <-
-    validate_unique_entry(
-      x     = project,
-      table = projects_table,
-      what  = "project"
-    )$id
+  project_row <-
+    validate_unique_entry(project, table = projects_table, what = "project")
+
+  tasks_path <- make_rds_path("tasks", p_path)
+  tasks_table <- get_rds(tasks_path)
 
   pa_assoc_path  <- make_rds_path("project_author_assoc", p_path)
   pa_assoc_table <- get_rds(pa_assoc_path)
-
-  project_row    <- dplyr::filter(projects_table, .data$id == project)
 
   print(project_row)
 
@@ -401,16 +256,23 @@ delete_project <- function(project, archived = FALSE) {
     )
   }
 
+  # Actual deletion of project
+  save_metadata(
+    projects_table[-match(project_row$id, projects_table$id), ],
+    projects_path,
+    projects_ptype
+  )
 
-  delete_metadata(
-    table = projects_table,
-    row_id = project,
-    table_path = projects_path
+  # Actual deletion of tasks associated with project
+  save_metadata(
+    tasks_table[tasks_table$PID != project_row$id, ],
+    tasks_path,
+    tasks_ptype
   )
 
   delete_assoc(
     assoc_table = pa_assoc_table,
-    id1         = project,
+    id1         = project_row$id,
     assoc_path  = pa_assoc_path
   )
 
@@ -418,6 +280,266 @@ delete_project <- function(project, archived = FALSE) {
   message("\nThe above project was deleted.")
   invisible(project_row)
 }
+################################################################################
+
+
+
+
+
+################################################################################
+#' @include new.R
+#' @rdname new_edit_delete
+#' @importFrom rlang .data
+#' @export
+edit_task <- function(project,
+                      TID,
+                      new_TID = NULL,
+                      lead = NULL,
+                      effort = NULL,
+                      timing = NULL,
+                      status = NULL,
+                      done = NULL,
+                      archived = FALSE) {
+  p_path <- get_p_path()
+
+  projects_table <- projects_internal(p_path = p_path, archived = archived)
+
+  project <-
+    validate_unique_entry(project, table = projects_table, what = "project")
+
+  tasks_path <- make_rds_path("tasks", p_path = p_path)
+  tasks_table <- get_rds(tasks_path)
+
+  project_tasks_lgl <- tasks_table$PID == project$id
+
+  TID <- validate_single_integer(TID, na.ok = FALSE, min = 1L, max = Inf)
+
+  validate_unique_entry(
+    TID,
+    table = tasks_table[project_tasks_lgl, ],
+    what = "task"
+  )
+
+  effort <- validate_single_number(effort, null.ok = TRUE)
+  timing <- validate_single_number(timing, null.ok = TRUE)
+  status <- validate_single_string(status, null.ok = TRUE)
+  done <- validate_single_integer(done, null.ok = TRUE, min = 0L, max = 1L)
+  if (!is.null(lead)) {
+    lead <-
+      validate_projects_author(
+        x             = lead,
+        authors_table = authors_internal(p_path),
+        na.ok         = TRUE
+      )
+  }
+  new_TID <- validate_single_number(new_TID, null.ok = TRUE, na.ok = FALSE)
+
+  updated_tasks <-
+    edit_metadata(
+      table = tasks_table,
+      row_spec_lgl = project_tasks_lgl & tasks_table$TID == TID,
+      table_path = tasks_path,
+      .ptype = tasks_ptype,
+
+      TID = new_TID,
+      effort = effort,
+      timing = timing,
+      status = status,
+      done = done,
+      lead = lead
+    ) %>%
+    dplyr::filter(.data$PID == !!project$id) %>%
+    dplyr::arrange(.data$TID)
+
+  message("\nUpdated task list for project ", project$id, ":\n")
+  updated_tasks
+}
+
+
+
+#' @include new.R
+#' @rdname new_edit_delete
+#' @export
+finish <- function(project, TID, archived = FALSE) {
+  edit_task(project = project, TID = TID, archived = archived, done = 1)
+}
+
+
+
+#' @include new.R
+#' @rdname new_edit_delete
+#' @importFrom rlang .data
+#' @export
+delete_task <- function(project, TID, archived = FALSE) {
+  p_path <- get_p_path()
+
+  projects_path  <- make_rds_path("projects", p_path)
+  projects_table <- get_rds(projects_path)
+  if (!archived) {
+    projects_table <- remove_archived(projects_table)
+  }
+  project_row <-
+    validate_unique_entry(project, table = projects_table, what = "project")
+
+  tasks_path <- make_rds_path("tasks", p_path)
+  tasks_table <- get_rds(tasks_path)
+  TID <- validate_single_integer(TID, na.ok = FALSE, min = 1L, max = Inf)
+  task_row <-
+    validate_unique_entry(
+      TID,
+      table = tasks_table[tasks_table$PID == project_row$id, ],
+      what = "task"
+    )
+
+  project_row %>%
+    dplyr::select(PID = "id", project = "title") %>%
+    dplyr::inner_join(task_row, ., by = "PID") %>%
+    print()
+
+  user_prompt(
+    msg   = "\nAre you sure you want to delete the above task? (y/n)",
+    n_msg =
+      paste0(
+        '\nDeletion not completed. If deletion is desired, ',
+        'input "y" next time.'
+      )
+  )
+
+  tasks_table <- tasks_table %>%
+    dplyr::anti_join(task_row, by = c("PID", "TID")) %>%
+    sort_project_tasks(PID = task_row$PID)
+
+  save_metadata(tasks_table, tasks_path, tasks_ptype)
+
+  project_tasks <-
+    project_row %>%
+    dplyr::select(PID = "id", project = "title") %>%
+    dplyr::inner_join(tasks_table, ., by = "PID") %>%
+    dplyr::arrange(.data$PID, .data$TID)
+
+  if (nrow(project_tasks)) {
+    message("\nUpdated project task list:")
+    project_tasks
+  } else {
+    message("\nNo more tasks remaining for project ", project_row$id)
+    invisible(project_tasks)
+  }
+}
+
+
+
+
+
+
+################################################################################
+#' @include new.R
+#' @rdname new_edit_delete
+#' @importFrom rlang .data
+#' @export
+edit_author <- function(author,
+                        given_names   = NULL,
+                        last_name     = NULL,
+                        affiliations  = NULL,
+                        title         = NULL,
+                        degree        = NULL,
+                        email         = NULL,
+                        phone         = NULL) {
+  p_path             <- get_p_path()
+
+  authors_path       <- make_rds_path("authors", p_path)
+
+  authors_table      <- get_rds(authors_path)
+
+  author_id <-
+    validate_unique_entry(author, table = authors_table, what = "author")$id
+
+  affiliations_table <- affiliations_internal(p_path)
+
+  assoc_path         <- make_rds_path("author_affiliation_assoc", p_path)
+  assoc_table        <- get_rds(assoc_path)
+
+  given_names <- validate_single_string(given_names, null.ok = TRUE)
+  last_name   <- validate_single_string(last_name, null.ok = TRUE)
+  title       <- validate_single_string(title, null.ok = TRUE)
+  degree      <- validate_single_string(degree, null.ok = TRUE)
+  email       <- validate_single_string(email, null.ok = TRUE, tolower = TRUE)
+  phone       <- validate_single_string(phone, null.ok = TRUE)
+
+  affiliations <-
+    if (is.null(affiliations)) {
+      list(add = list(), remove = list())
+    } else {
+      parse_formula(
+        formula     = affiliations,
+        what        = "affiliation",
+        what2       = "author",
+        main_table  = affiliations_table,
+        assoc_table = dplyr::filter(assoc_table, .data$id1 == author_id)
+      )
+    }
+
+  if (!is.null(last_name)) {
+    projects_path  <- make_rds_path("projects", p_path = p_path)
+    projects_table <- get_rds(projects_path)
+    tasks_path <- make_rds_path("tasks", p_path = p_path)
+    tasks_table <- get_rds(tasks_path)
+    new_value <- new_projects_author(paste0(author_id, ": ", last_name))
+
+    change_special_author(
+      author_id = author_id,
+      new_value = new_value,
+      table = projects_table,
+      table_path = projects_path,
+      ptype = projects_ptype
+    )
+
+    change_special_author(
+      author_id = author_id,
+      new_value = new_value,
+      table = tasks_table,
+      table_path  = tasks_path,
+      ptype = tasks_ptype
+    )
+  }
+
+  row_spec_lgl <- authors_table$id == author_id
+
+  new_author_row <-
+    edit_metadata(
+      table = authors_table,
+      row_spec_lgl = row_spec_lgl,
+      table_path = authors_path,
+      .ptype = authors_ptype,
+      given_names = given_names,
+      last_name   = last_name,
+      title       = title,
+      degree      = degree,
+      email       = email,
+      phone       = phone
+    )[row_spec_lgl, ]
+
+  if (length(affiliations$remove) > 0L) {
+    assoc_table <-
+      delete_assoc(
+        assoc_table = assoc_table,
+        id1         = author_id,
+        id2         = affiliations$remove,
+        assoc_path  = assoc_path
+      )
+  }
+
+  if (length(affiliations$add) > 0L) {
+    add_assoc(
+      assoc_table = assoc_table,
+      new_rows = dplyr::tibble(id1 = author_id, id2 = affiliations$add),
+      assoc_path  = assoc_path
+    )
+  }
+
+  invisible(new_author_row)
+}
+################################################################################
+
 
 
 
@@ -447,6 +569,9 @@ delete_author <- function(author) {
   projects_path  <- make_rds_path("projects", p_path)
   projects_table <- get_rds(projects_path)
 
+  tasks_path <- make_rds_path("tasks", p_path)
+  tasks_table <- get_rds(tasks_path)
+
   print(author_row)
 
   user_prompt(
@@ -458,17 +583,26 @@ delete_author <- function(author) {
       )
   )
 
-  delete_metadata(
-    table = authors_table,
-    row_id = author_row$id,
-    table_path = authors_path
+  save_metadata(
+    authors_table[-match(author_row$id, authors_table$id), ],
+    authors_path,
+    authors_ptype
   )
 
   change_special_author(
     author_id = author_row$id,
     new_value = NA,
-    projects_path = projects_path,
-    projects_table = projects_table
+    table = projects_table,
+    table_path = projects_path,
+    ptype = projects_ptype
+  )
+
+  change_special_author(
+    author_id = author_row$id,
+    new_value = NA,
+    table = tasks_table,
+    table_path = tasks_path,
+    ptype = tasks_ptype
   )
 
   delete_assoc(
@@ -488,6 +622,53 @@ delete_author <- function(author) {
 
   invisible(author_row)
 }
+
+
+
+
+################################################################################
+#' @include new.R
+#' @rdname new_edit_delete
+#' @export
+edit_affiliation <- function(affiliation,
+                             department_name  = NULL,
+                             institution_name = NULL,
+                             address          = NULL) {
+
+  p_path             <- get_p_path()
+
+  affiliations_path  <- make_rds_path("affiliations", p_path)
+
+  affiliations_table <- get_rds(affiliations_path)
+
+  affiliation        <-
+    validate_unique_entry(
+      x     = affiliation,
+      table = affiliations_table,
+      what  = "affiliation"
+    )$id
+
+  department_name  <- validate_single_string(department_name, null.ok = TRUE)
+  institution_name <- validate_single_string(institution_name, null.ok = TRUE)
+  address          <- validate_single_string(address, null.ok = TRUE)
+
+  row_spec_lgl <- affiliations_table$id == affiliation
+
+  edited_row <-
+    edit_metadata(
+      table = affiliations_table,
+      row_spec_lgl = row_spec_lgl,
+      table_path = affiliations_path,
+      .ptype = affiliations_ptype,
+
+      department_name  = department_name,
+      institution_name = institution_name,
+      address          = address
+    )[row_spec_lgl, ]
+
+  invisible(edited_row)
+}
+################################################################################
 
 
 
@@ -518,10 +699,10 @@ delete_affiliation <- function(affiliation) {
     n_msg = paste0('\nDeletion not completed. If deletion is desired, ',
                    'input "y" next time.'))
 
-  delete_metadata(
-    table = affiliations_table,
-    row_id = affiliation_row$id,
-    table_path = affiliations_path
+  save_metadata(
+    affiliations_table[-match(affiliation_row$id, affiliations_table$id), ],
+    affiliations_path,
+    affiliations_ptype
   )
 
   delete_assoc(
@@ -896,7 +1077,7 @@ reorder_assoc <- function(id, ..., after, rds1, rds2, assoc, archived = TRUE) {
 
   add_assoc(
     assoc_table = assoc_table,
-    new_rows    = tibble::tibble(id1 = rds1_row$id, id2 = reordered),
+    new_rows    = dplyr::tibble(id1 = rds1_row$id, id2 = reordered),
     assoc_path  = assoc_path
   )
 
@@ -914,3 +1095,23 @@ reorder_assoc <- function(id, ..., after, rds1, rds2, assoc, archived = TRUE) {
 }
 ################################################################################
 ################################################################################
+
+
+
+#' @importFrom rlang .data
+sort_project_tasks <- function(tasks_table,
+                               PID,
+                               tiebreaker = -seq_len(nrow(tasks_table))) {
+
+  project_rows_lgl <- tasks_table$PID == PID
+
+  tasks_table$TID[project_rows_lgl] <-
+    order(
+      order(
+        tasks_table$TID[project_rows_lgl],
+        tiebreaker[project_rows_lgl]
+      )
+    )
+
+  tasks_table
+}

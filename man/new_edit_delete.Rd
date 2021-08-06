@@ -4,13 +4,17 @@
 \alias{new_edit_delete}
 \alias{new_project}
 \alias{new_idea}
+\alias{new_task}
 \alias{new_author}
 \alias{new_affiliation}
 \alias{edit_project}
-\alias{edit_author}
-\alias{edit_affiliation}
 \alias{delete_project}
+\alias{edit_task}
+\alias{finish}
+\alias{delete_task}
+\alias{edit_author}
 \alias{delete_author}
+\alias{edit_affiliation}
 \alias{delete_affiliation}
 \title{Create, edit or delete projects, authors and affiliations}
 \usage{
@@ -19,6 +23,7 @@ new_project(
   current_owner = NA,
   stage = c("1: design", "2: data collection", "3: analysis", "4: manuscript",
     "5: under review", "6: accepted", "0: idea"),
+  impact = NA,
   status = "just created",
   short_title = NA,
   authors = NULL,
@@ -34,6 +39,18 @@ new_project(
 )
 
 new_idea(title, status = "just an idea", ...)
+
+new_task(
+  project,
+  task = NA,
+  TID = Inf,
+  lead = NA,
+  effort = NA,
+  timing = NA,
+  status = NA,
+  done = 0L,
+  archived = FALSE
+)
 
 new_author(
   given_names = NA,
@@ -63,10 +80,29 @@ edit_project(
   deadline_type = NULL,
   deadline = NULL,
   stage = NULL,
+  impact = NULL,
   corresp_auth = NULL,
   creator = NULL,
   archived = FALSE
 )
+
+delete_project(project, archived = FALSE)
+
+edit_task(
+  project,
+  TID,
+  new_TID = NULL,
+  lead = NULL,
+  effort = NULL,
+  timing = NULL,
+  status = NULL,
+  done = NULL,
+  archived = FALSE
+)
+
+finish(project, TID, archived = FALSE)
+
+delete_task(project, TID, archived = FALSE)
 
 edit_author(
   author,
@@ -79,16 +115,14 @@ edit_author(
   phone = NULL
 )
 
+delete_author(author)
+
 edit_affiliation(
   affiliation,
   department_name = NULL,
   institution_name = NULL,
   address = NULL
 )
-
-delete_project(project, archived = FALSE)
-
-delete_author(author)
 
 delete_affiliation(affiliation)
 }
@@ -99,7 +133,7 @@ delete_affiliation(affiliation)
   For the \code{new_author()} and \code{edit_author()}, the job title of the
   author.}
 
-\item{current_owner, corresp_auth, creator}{An \code{id} or unambiguous
+\item{current_owner, corresp_auth, creator, lead}{An \code{id} or unambiguous
   \code{last_name}/\code{given_names} of one of the authors in the
   \code{\link{authors}()} table, which will be coerced into a
   \link{projects_author-class} object.
@@ -121,11 +155,15 @@ delete_affiliation(affiliation)
 
   See \link{projects_stage-class}.}
 
+\item{impact}{A scalar numeric value, intended to communicate the estimated
+impact the project will have.}
+
 \item{status}{A free text field, intended to communicate the most current
-  condition the project is in.
+  condition the project or task is in.
 
   For \code{new_project()}, default is \code{"just created"}. For
-  \code{new_idea()}, default is \code{"just an idea"}.}
+  \code{new_idea()}, default is \code{"just an idea"}. For \code{new_task()},
+  the default is \code{NA}.}
 
 \item{short_title}{A nickname for the project. Can be used in other
 \code{projects} package functions whenever needing to specify a project.}
@@ -192,6 +230,40 @@ according to the value of the \code{folder_name} argument. See also
 
 \item{...}{Additional arguments to be passed to \code{new_project()}}
 
+\item{project, author, affiliation}{The \code{id} or unambiguous name(s) of a
+project/author/affiliation to \code{new_task()} or \code{edit_*()} or
+\code{delete_*()}.}
+
+\item{task}{The name / very short description of the task.}
+
+\item{TID}{The "\strong{t}ask \strong{ID}." \code{TID}s are always
+  standardized so that for each project they are positive integers starting
+  with 1.
+
+  For \code{new_task()}, this is used to specify the \code{TID} of the new
+  task. The user can enter any scalar, non-missing numeric value, and all
+  tasks' \code{TID}s will be standardized. Therefore, the default of
+  \code{Inf} for a new task always places the new task at the end of the
+  list. If the new task's \code{TID} is the same as an existing task's
+  \code{TID}, the new task will take priority.
+
+  For \code{edit_task()} and \code{delete_task()}, this argument, along with
+  the \code{project} argument, identifies the task to be edited or deleted.}
+
+\item{effort, timing}{Any scalar numeric value, intended to communicate the
+level of effort the task will require and the nature of the timing of the
+task, respectively.}
+
+\item{done}{Used to indicate whether or not the task has been completed. Must
+be \code{0}, \code{1}, or \code{NA}.}
+
+\item{archived}{Logical indicating whether or not the function should
+  consider archived projects when determining which project the user is
+  referring to in the \code{project} argument. \code{FALSE} by default.
+
+  See the \strong{Details} section of \code{\link{archive_project}()} for
+  more information on the "archived" status of a project.}
+
 \item{given_names, last_name, department_name, institution_name}{Each a single
 character string. Can be used whenever needing to specify a specific
 author/affiliation.}
@@ -207,15 +279,12 @@ author:" section written by \code{\link{header}()}.}
 
 \item{address}{A character string indicating the address of the affiliation.}
 
-\item{project, author, affiliation}{The \code{id} or unambiguous name(s) of a
-project/author/affiliation to \code{edit_*()} or to \code{delete_*()}.}
-
-\item{archived}{Logical indicating whether or not the function should
-  consider archived projects when determining which project the user is
-  referring to in the \code{project} argument. \code{FALSE} by default.
-
-  See the \strong{Details} section of \code{\link{archive_project}()} for
-  more information on the "archived" status of a project.}
+\item{new_TID}{Used to change the task ID of the task specified by
+\code{project} and \code{TID}. The user can enter a scalar, non-missing
+numeric value, and the \code{TID}s of all the project's tasks' will be
+re-standardized (see the description of the \code{TID} argument above). The
+task's TID will be unchanged if \code{new_TID} is left as the default
+(\code{NULL}).}
 }
 \value{
 \code{new_affiliation()} and \code{edit_affiliation()} simply return
@@ -235,9 +304,9 @@ project/author/affiliation to \code{edit_*()} or to \code{delete_*()}.}
 }
 \description{
 These functions create, edit, or delete rows in the \code{\link{projects}()},
-\code{\link{authors}()}, and \code{\link{affiliations}()} tables, which are
-stored in the \emph{.metadata} subdirectory of the main
-\link[=projects_folder]{projects folder}.
+\code{\link{tasks}()}, \code{\link{authors}()}, and
+\code{\link{affiliations}()} tables, which are stored in the \emph{.metadata}
+subdirectory of the main \link[=projects_folder]{projects folder}.
 }
 \details{
 \code{new_project()} copies the folder in the \emph{.templates} folder named
@@ -258,6 +327,9 @@ tables.
 
 \code{new_idea()} is a convenience function for quickly creating projects in
 the \code{"0: idea"} stage.
+
+\code{finish()} is a shortcut for \code{edit_task(my_project, my_TID, done =
+1)}
 }
 \examples{
 #############################################################################
@@ -315,7 +387,7 @@ new_project(
   stage = 4,
   deadline = "2055-02-28",
   deadline_type = "submission",
-  parent_directory = "famous_studied/philosophers/rocks",
+  parent_directory = "famous_studies/philosophers/rocks",
   corresp_auth = "Stone",
   current_owner = "agnew",
   make_directories = TRUE,
@@ -329,13 +401,57 @@ edit_project(
   authors = ~ + "303" - 13 - Stone
 )
 
+
+# Creating a new idea
 new_idea(title = "Boiling the Ocean")
+
+# Creating some tasks
+new_task(project = 2,
+         task = "put the horse before the cart",
+         lead = "spiro",
+         timing = NaN)
+
+new_task(project = 1,
+         task = "learn something",
+         effort = pi,
+         lead = "Stone",
+         status = "foobar",
+         timing = Inf)
+
+new_task(project = 1,
+         task = "take a break",
+         TID = 600.66,
+         effort = -100,
+         status = "throw it all away",
+         lead = "303")
+
+new_task(project = 1,
+         task = "tie your shoes",
+         TID = 2,
+         lead = 303)
+
+new_task(project = 1,
+         task = "put out the fire",
+         TID = .5,
+         lead = "stone")
+
+# Editing a task
+edit_task(project = "understanding",
+          TID = 3,
+          new_TID = 2,
+          lead = "agnew",
+          done = 1,
+          status = "make dinner")
+
+# finish is a shortcut for setting done = 1 on the specified task.
+finish("construction", 4)
 
 # Wrapped in if (interactive()) because it requires interactive console input
 # and fails automated package checking and testing.
 if (interactive()) {
   delete_project("usa1")
   delete_author(303)
+  delete_task(2, 1)
   delete_affiliation("Math")
 }
 

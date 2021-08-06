@@ -1,9 +1,9 @@
 #' Create, edit or delete projects, authors and affiliations
 #'
 #' These functions create, edit, or delete rows in the \code{\link{projects}()},
-#' \code{\link{authors}()}, and \code{\link{affiliations}()} tables, which are
-#' stored in the \emph{.metadata} subdirectory of the main
-#' \link[=projects_folder]{projects folder}.
+#' \code{\link{tasks}()}, \code{\link{authors}()}, and
+#' \code{\link{affiliations}()} tables, which are stored in the \emph{.metadata}
+#' subdirectory of the main \link[=projects_folder]{projects folder}.
 #'
 #' \code{new_project()} copies the folder in the \emph{.templates} folder named
 #' by the \code{template_name} argument into the
@@ -24,6 +24,9 @@
 #' \code{new_idea()} is a convenience function for quickly creating projects in
 #' the \code{"0: idea"} stage.
 #'
+#' \code{finish()} is a shortcut for \code{edit_task(my_project, my_TID, done =
+#' 1)}
+#'
 #' @param id An integer that will become the item's permanent identification
 #'   number. Must be in the range 1-9999 or left blank. If left blank, the
 #'   lowest available integer in the aforementioned range will be selected.
@@ -34,6 +37,26 @@
 #'   author.
 #' @param short_title A nickname for the project. Can be used in other
 #'   \code{projects} package functions whenever needing to specify a project.
+#' @param task The name / very short description of the task.
+#' @param TID The "\strong{t}ask \strong{ID}." \code{TID}s are always
+#'   standardized so that for each project they are positive integers starting
+#'   with 1.
+#'
+#'   For \code{new_task()}, this is used to specify the \code{TID} of the new
+#'   task. The user can enter any scalar, non-missing numeric value, and all
+#'   tasks' \code{TID}s will be standardized. Therefore, the default of
+#'   \code{Inf} for a new task always places the new task at the end of the
+#'   list. If the new task's \code{TID} is the same as an existing task's
+#'   \code{TID}, the new task will take priority.
+#'
+#'   For \code{edit_task()} and \code{delete_task()}, this argument, along with
+#'   the \code{project} argument, identifies the task to be edited or deleted.
+#' @param new_TID Used to change the task ID of the task specified by
+#'   \code{project} and \code{TID}. The user can enter a scalar, non-missing
+#'   numeric value, and the \code{TID}s of all the project's tasks' will be
+#'   re-standardized (see the description of the \code{TID} argument above). The
+#'   task's TID will be unchanged if \code{new_TID} is left as the default
+#'   (\code{NULL}).
 #' @param given_names,last_name,department_name,institution_name Each a single
 #'   character string. Can be used whenever needing to specify a specific
 #'   author/affiliation.
@@ -46,7 +69,8 @@
 #'   author:" section written by \code{\link{header}()}.
 #' @param address A character string indicating the address of the affiliation.
 #' @param project,author,affiliation The \code{id} or unambiguous name(s) of a
-#'   project/author/affiliation to \code{edit_*()} or to \code{delete_*()}.
+#'   project/author/affiliation to \code{new_task()} or \code{edit_*()} or
+#'   \code{delete_*()}.
 #' @param authors,affiliations For \code{new_project()}/\code{new_author()}, a
 #'   vector of \code{id}s or unambiguous \code{given_names}/\code{last_name} or
 #'   \code{department_name}/\code{institution_name} of authors/affiliations.
@@ -60,7 +84,7 @@
 #'   Authors and affiliations may be specified by \code{id} or name. Each
 #'   element must match an existing row in the
 #'   \code{\link{authors}()}/\code{\link{affiliations}()} table.
-#' @param current_owner,corresp_auth,creator An \code{id} or unambiguous
+#' @param current_owner,corresp_auth,creator,lead An \code{id} or unambiguous
 #'   \code{last_name}/\code{given_names} of one of the authors in the
 #'   \code{\link{authors}()} table, which will be coerced into a
 #'   \link{projects_author-class} object.
@@ -80,15 +104,23 @@
 #'   For \code{new_project()}, defaults to \code{"1: design"}.
 #'
 #'   See \link{projects_stage-class}.
+#' @param impact A scalar numeric value, intended to communicate the estimated
+#'   impact the project will have.
 #' @param status A free text field, intended to communicate the most current
-#'   condition the project is in.
+#'   condition the project or task is in.
 #'
 #'   For \code{new_project()}, default is \code{"just created"}. For
-#'   \code{new_idea()}, default is \code{"just an idea"}.
+#'   \code{new_idea()}, default is \code{"just an idea"}. For \code{new_task()},
+#'   the default is \code{NA}.
 #' @param deadline_type A free text field, intended to communicate the meaning
 #'   of the next field, \code{deadline}.
 #' @param deadline A \code{\link{POSIXct}} object or something coercible to one
 #'   (via \code{lubridate::\link[lubridate]{as_datetime}()}).
+#' @param effort,timing Any scalar numeric value, intended to communicate the
+#'   level of effort the task will require and the nature of the timing of the
+#'   task, respectively.
+#' @param done Used to indicate whether or not the task has been completed. Must
+#'   be \code{0}, \code{1}, or \code{NA}.
 #' @param folder_name A character string that can serve as a valid directory
 #'   name. By default, it is "p" followed by the project \code{id} number
 #'   left-filled with "0" until the number is four digits long.
@@ -200,7 +232,7 @@
 #'   stage = 4,
 #'   deadline = "2055-02-28",
 #'   deadline_type = "submission",
-#'   parent_directory = "famous_studied/philosophers/rocks",
+#'   parent_directory = "famous_studies/philosophers/rocks",
 #'   corresp_auth = "Stone",
 #'   current_owner = "agnew",
 #'   make_directories = TRUE,
@@ -214,13 +246,57 @@
 #'   authors = ~ + "303" - 13 - Stone
 #' )
 #'
+#'
+#' # Creating a new idea
 #' new_idea(title = "Boiling the Ocean")
+#'
+#' # Creating some tasks
+#' new_task(project = 2,
+#'          task = "put the horse before the cart",
+#'          lead = "spiro",
+#'          timing = NaN)
+#'
+#' new_task(project = 1,
+#'          task = "learn something",
+#'          effort = pi,
+#'          lead = "Stone",
+#'          status = "foobar",
+#'          timing = Inf)
+#'
+#' new_task(project = 1,
+#'          task = "take a break",
+#'          TID = 600.66,
+#'          effort = -100,
+#'          status = "throw it all away",
+#'          lead = "303")
+#'
+#' new_task(project = 1,
+#'          task = "tie your shoes",
+#'          TID = 2,
+#'          lead = 303)
+#'
+#' new_task(project = 1,
+#'          task = "put out the fire",
+#'          TID = .5,
+#'          lead = "stone")
+#'
+#' # Editing a task
+#' edit_task(project = "understanding",
+#'           TID = 3,
+#'           new_TID = 2,
+#'           lead = "agnew",
+#'           done = 1,
+#'           status = "make dinner")
+#'
+#' # finish is a shortcut for setting done = 1 on the specified task.
+#' finish("construction", 4)
 #'
 #' # Wrapped in if (interactive()) because it requires interactive console input
 #' # and fails automated package checking and testing.
 #' if (interactive()) {
 #'   delete_project("usa1")
 #'   delete_author(303)
+#'   delete_task(2, 1)
 #'   delete_affiliation("Math")
 #' }
 #'
@@ -235,6 +311,7 @@ new_project <- function(title            = NA,
                                              "3: analysis", "4: manuscript",
                                              "5: under review", "6: accepted",
                                              "0: idea"),
+                        impact           = NA,
                         status           = "just created",
                         short_title      = NA,
                         authors          = NULL,
@@ -267,13 +344,12 @@ new_project <- function(title            = NA,
   short_title   <- validate_single_string(short_title)
   status        <- validate_single_string(status)
   deadline_type <- validate_single_string(deadline_type)
-
   folder_name   <-
     validate_single_string(folder_name, na.ok = FALSE, zero.chars.ok = FALSE)
-
   deadline <- validate_deadline(deadline)
   stage <-
     if (missing(stage)) projects_stage(1L) else validate_stage(stage, n = 1)
+  impact <- validate_single_number(impact)
 
   all_authors   <-
     validate_authors(
@@ -303,7 +379,7 @@ new_project <- function(title            = NA,
   }
 
   new_project_row <-
-    tibble::tibble(
+    dplyr::tibble(
       id = id,
       title         = title,
       short_title   = short_title,
@@ -312,6 +388,7 @@ new_project <- function(title            = NA,
       deadline_type = deadline_type,
       deadline      = deadline,
       stage         = stage,
+      impact        = impact,
       path          = folder_path,
       corresp_auth  = all_authors$corresp_auth,
       creator       = all_authors$creator
@@ -320,13 +397,14 @@ new_project <- function(title            = NA,
   add_metadata(
     table = projects_table,
     new_row = new_project_row,
-    table_path = projects_path
+    table_path = projects_path,
+    .ptype = projects_ptype
   )
 
   # Add row(s) to project-author association table
   if (!is.null(all_authors$general_authors)) {
 
-    new_pa_assoc <- tibble::tibble(id1 = id, id2 = all_authors$general_authors)
+    new_pa_assoc <- dplyr::tibble(id1 = id, id2 = all_authors$general_authors)
 
     add_assoc(
       assoc_table = pa_assoc_table,
@@ -386,6 +464,75 @@ new_idea <- function(title, status = "just an idea", ...) {
 
 ################################################################################
 #' @rdname new_edit_delete
+#' @importFrom rlang .data
+#' @export
+new_task <- function(project,
+                     task = NA,
+                     TID = Inf,
+                     lead = NA,
+                     effort = NA,
+                     timing = NA,
+                     status = NA,
+                     done = 0L,
+                     archived = FALSE) {
+  p_path          <- get_p_path()
+
+  projects_table  <- projects_internal(p_path = p_path, archived = archived)
+
+  project <-
+    validate_unique_entry(
+      x     = project,
+      table = projects_table,
+      what  = "project"
+    )
+
+  tasks_path <- make_rds_path("tasks", p_path)
+  tasks_table <- get_rds(tasks_path)
+
+  authors_table <- authors_internal(p_path)
+
+  task <- validate_single_string(task)
+  effort <- validate_single_number(effort)
+  timing <- validate_single_number(timing)
+  status <- validate_single_string(status)
+  done <- validate_single_integer(done, na.ok = TRUE, min = 0L, max = 1L)
+  TID <- validate_single_number(TID, na.ok = FALSE)
+  # We validate the lead against the authors table but not against the projects
+  # author list
+  lead <- validate_projects_author(lead, authors_table)
+
+  new_task_row <-
+    dplyr::tibble(
+      PID = project$id,
+      TID = TID,
+      done = done,
+      task = task,
+      effort = effort,
+      timing = timing,
+      lead = lead,
+      status = status
+    )
+
+  project_tasks <-
+    add_metadata(
+      table = tasks_table,
+      new_row = new_task_row,
+      table_path = tasks_path,
+      .ptype = tasks_ptype,
+      task = TRUE
+    ) %>%
+    dplyr::filter(.data$PID == !!project$id) %>%
+    dplyr::arrange(.data$TID)
+
+  # Print results--------------------------------------------------------------
+  message("\nNew task was added to project ", project$id, ":")
+  project_tasks
+}
+
+
+
+################################################################################
+#' @rdname new_edit_delete
 #' @export
 new_author <- function(given_names  = NA,
                        last_name    = NA,
@@ -395,7 +542,6 @@ new_author <- function(given_names  = NA,
                        email        = NA,
                        phone        = NA,
                        id           = NA) {
-
   p_path         <- get_p_path()
 
   authors_path   <- make_rds_path("authors", p_path)
@@ -432,24 +578,26 @@ new_author <- function(given_names  = NA,
   }
 
   new_author_row <-
+    dplyr::tibble(
+      id          = id,
+      given_names = given_names,
+      last_name   = last_name,
+      title       = title,
+      degree      = degree,
+      email       = email,
+      phone       = phone
+    ) %>%
     add_metadata(
       table = authors_table,
-      new_row =
-        tibble::tibble(
-          id          = id,
-          given_names = given_names,
-          last_name   = last_name,
-          title       = title,
-          degree      = degree,
-          email       = email,
-          phone       = phone
-        ),
-      table_path = authors_path
-    )
+      new_row = .,
+      table_path = authors_path,
+      .ptype = authors_ptype
+    ) %>%
+    dplyr::slice_tail()
 
   if (!is.null(affiliations)) {
 
-    new_aa_assoc <- tibble::tibble(id1 = id, id2 = affiliations)
+    new_aa_assoc <- dplyr::tibble(id1 = id, id2 = affiliations)
 
     add_assoc(
       assoc_table = aa_assoc_table,
@@ -501,17 +649,19 @@ new_affiliation <- function(department_name  = NA,
   message("New affiliation:")
 
   new_affiliation_row <-
+    dplyr::tibble(
+      id               = id,
+      department_name  = department_name,
+      institution_name = institution_name,
+      address          = address
+    ) %>%
     add_metadata(
       table = affiliations_table,
-      new_row =
-        tibble::tibble(
-          id               = id,
-          department_name  = department_name,
-          institution_name = institution_name,
-          address          = address
-        ),
-      table_path = affiliations_path
-    )
+      new_row = .,
+      table_path = affiliations_path,
+      .ptype = affiliations_ptype
+    ) %>%
+    dplyr::slice_tail()
 
   new_affiliation_row
 }

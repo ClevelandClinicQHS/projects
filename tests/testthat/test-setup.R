@@ -1,6 +1,4 @@
-context("Setup")
-
-test_that("Setup works", {
+test_that("Everything works", {
 
   old_home <- Sys.getenv("HOME")
   old_ppath <- Sys.getenv("PROJECTS_FOLDER_PATH")
@@ -31,6 +29,7 @@ test_that("Setup works", {
           ".metadata/authors.rds",
           ".metadata/project_author_assoc.rds",
           ".metadata/projects.rds",
+          ".metadata/tasks.rds",
           ".templates",
           ".templates/CONSORT_protocol.Rmd",
           ".templates/STROBE_protocol.Rmd",
@@ -50,7 +49,8 @@ test_that("Setup works", {
           ".templates/default_folder/progs/styles.docx"
         )
       )
-    )
+    ),
+    ignore_attr = "names"
   )
 
   expect_error(
@@ -149,30 +149,29 @@ test_that("Setup works", {
       "Understanding",
       short_title = "usa1",
       authors = ~ + "303" - Stone,
-      corresp_auth = "plato"
+      corresp_auth = "plato",
+      impact = Inf
     ),
     NA
   )
 
   expect_error(
-    new_idea(title = "Boiling the Ocean"),
+    new_idea(title = "Boiling the Ocean", impact = pi),
     NA
   )
 
   expect_identical(
     affiliations(),
-    tibble::tribble(
+    dplyr::tribble(
       ~id, ~department_name,         ~institution_name,     ~address,
       1L,  "Mathematics Department", "Springfield College", "123 College St, Springfield, AB",
       42L, "Art Department",         "Springfield College", "321 University Boulevard, Springfield, AB"
     ) %>% structure(class = c("projects_metadata_tbl", class(.)))
   )
 
-
-
   expect_identical(
     authors(),
-    tibble::tribble(
+    dplyr::tribble(
       ~id,   ~last_name, ~given_names, ~title, ~degree, ~email,          ~phone,
       13L,   "Agnew",    "Spiro",      NA,     "LLB",   NA,              NA,
       303L,  "Plato",    NA,           "Nut",  NA,      NA,              NA,
@@ -182,7 +181,7 @@ test_that("Setup works", {
 
   expect_identical(
     projects(verbose = TRUE, all_stages = TRUE),
-    tibble::tibble(
+    dplyr::tibble(
       id = 1L:2L,
       title = c("Understanding the Construction of the United States",
                 "Boiling the Ocean"),
@@ -192,6 +191,7 @@ test_that("Setup works", {
       deadline_type = c("submission", NA),
       deadline = lubridate::as_datetime(c("2055-02-28", NA)),
       stage = new_projects_stage(c("4: manuscript", "0: idea")),
+      impact = c(Inf, pi),
       path = unclass(c(fs::path(projects_folder(),
                                 "famous_studied/philosophers/rocks/p0001"),
                        fs::path(projects_folder(), "p0002"))),
@@ -202,12 +202,107 @@ test_that("Setup works", {
 
   expect_identical(
     get_rds(make_rds_path("project_author_assoc")),
-    tibble::tibble(id1 = c(1L, 1L), id2 = c(13L, 303L))
+    dplyr::tibble(id1 = c(1L, 1L), id2 = c(13L, 303L))
   )
 
   expect_identical(
     get_rds(make_rds_path("author_affiliation_assoc")),
-    tibble::tibble(id1 = c(8888L, 8888L, 13L), id2 = c(42L, 1L, 1L))
+    dplyr::tibble(id1 = c(8888L, 8888L, 13L), id2 = c(42L, 1L, 1L))
+  )
+
+  expect_error(
+    new_task(project = 2,
+             task = "put the horse before the cart",
+             lead = "spiro",
+             timing = NaN),
+    NA
+  )
+
+  expect_error(
+    new_task(project = 1,
+             task = "learn something",
+             effort = pi,
+             lead = "Stone",
+             status = "foobar",
+             timing = Inf),
+    NA
+  )
+
+  expect_error(
+    new_task(project = 1,
+             task = "take a break",
+             TID = 600.66,
+             effort = -100,
+             status = "throw it all away",
+             lead = "303"),
+    NA
+  )
+
+  expect_error(
+    new_task(
+      project = 1,
+      task = "tie your shoes",
+      TID = 2,
+      lead = 303),
+    NA
+  )
+
+  expect_error(
+    new_task(
+      project = 1,
+      task = "put out the fire",
+      TID = .5,
+      lead = "stone"),
+    NA
+  )
+
+  expect_error(
+    edit_task(
+      project = "understanding",
+      TID = 3,
+      new_TID = 2,
+      lead = "agnew",
+      done = 1,
+      effort = 77L,
+      status = "make dinner"
+    ),
+    NA
+  )
+
+  expect_equal(
+    tasks(),
+    dplyr::tibble(
+      PID = c(1, 1, 1, 1, 2),
+      project = c(rep("Understanding the Construction of the United States", 4), "Boiling the Ocean"),
+      PI = new_projects_author(c(rep("303: Plato", 4), NA)),
+      impact = c(rep(Inf, 4), pi),
+      TID = c(1, 2, 3, 4, 1),
+      done = c(0, 1, 0, 0, 0),
+      task = c("put out the fire", "tie your shoes", "learn something", "take a break", "put the horse before the cart"),
+      effort = c(NA, 77, pi, -100, NA),
+      timing = c(NA, NA, Inf, NA, NaN),
+      lead = new_projects_author(c("8888: Stone", "13: Agnew", "8888: Stone", "303: Plato", "13: Agnew")),
+      status = c(NA, "make dinner", "foobar", "throw it all away", NA)
+    )
+  )
+
+  finish("construction", 4)
+
+  expect_equal(
+    tasks("construction", c(13, "plato")),
+    dplyr::tibble(
+      PID = c(1, 1),
+      project = rep("Understanding the Construction of the United States", 2),
+      PI = new_projects_author(rep("303: Plato", 2)),
+      impact = c(Inf, Inf),
+      TID = c(2, 4),
+      done = c(1, 1),
+      task = c("tie your shoes", "take a break"),
+      effort = c(77, -100),
+      timing = rep(NA_real_, 2),
+      lead = new_projects_author(c("13: Agnew", "303: Plato")),
+      status = c("make dinner", "throw it all away")
+    )
   )
 
   Sys.setenv(HOME = old_home, PROJECTS_FOLDER_PATH = old_ppath)
